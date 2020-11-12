@@ -9,7 +9,7 @@
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing Companions.BasicCompanions'
+print('importing Companions.BasicCompanions')
 
 import wx
 
@@ -19,10 +19,10 @@ import wx.animate
 
 from Utils import _
 
-from BaseCompanions import WindowDTC, ChoicedDTC, CollectionDTC
+from .BaseCompanions import WindowDTC, ChoicedDTC, CollectionDTC
 
-import Constructors
-from EventCollections import *
+from . import Constructors
+from .EventCollections import *
 
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
@@ -37,7 +37,7 @@ class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         return {'pos': position,
                 'size': size,
                 'style': 'wx.SB_HORIZONTAL',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent', 'CmdScrollEvent']
@@ -57,12 +57,12 @@ class ComboBoxDTC(ChoicedDTC):
                 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'value': `self.name`,
+        return {'value': repr(self.name),
                 'pos': position,
                 'size': size,
                 'choices': '[]',
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
 ##    def vetoedMethods(self):
 ##        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
@@ -85,9 +85,9 @@ class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         return {'pos': position,
                 'size': size,
-                'choices': `[]`,
+                'choices': repr([]),
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return ChoicedDTC.events(self) + ['ChoiceEvent']
@@ -108,11 +108,11 @@ class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
         self.windowStyles = ['wx.ALIGN_LEFT', 'wx.ALIGN_RIGHT', 'wx.ALIGN_CENTRE',
                              'wx.ST_NO_AUTORESIZE'] + self.windowStyles
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'label': `self.name`,
+        return {'label': repr(self.name),
                 'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
 EventCategories['TextCtrlEvent'] = ('wx.EVT_TEXT', 'wx.EVT_TEXT_ENTER',
                                     'wx.EVT_TEXT_URL', 'wx.EVT_TEXT_MAXLEN')
@@ -142,11 +142,11 @@ class TextCtrlDTC(WindowDTC):
                 'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'value': `self.name`,
+        return {'value': repr(self.name),
                 'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + \
@@ -172,11 +172,11 @@ class RadioButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
         self.windowStyles = ['wx.RB_GROUP'] + self.windowStyles
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'label': `self.name`,
+        return {'label': repr(self.name),
                 'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return WindowDTC.events(self) + ['RadioButtonEvent']
@@ -196,11 +196,11 @@ class CheckBoxDTC(Constructors.LabeledInputConstr, WindowDTC):
         self.windowStyles = ['wx.ALIGN_RIGHT'] + self.windowStyles
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'label': `self.name`,
+        return {'label': repr(self.name),
                 'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return WindowDTC.events(self) + ['CheckBoxEvent']
@@ -233,7 +233,7 @@ class SliderDTC(WindowDTC):
                 'pos': position,
                 'size': size,
                 'style': 'wx.SL_HORIZONTAL',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + ['TickFreq']
@@ -261,15 +261,15 @@ class GaugeDTC(WindowDTC):
                 'pos': position,
                 'size': size,
                 'style': 'wx.GA_HORIZONTAL',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
 class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'label': `self.name`,
+        return {'label': repr(self.name),
                 'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def properties(self):
         props = WindowDTC.properties(self)
@@ -285,7 +285,7 @@ class StaticLineDTC(Constructors.WindowConstr, WindowDTC):
         return {'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
 class StaticBitmapDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -301,7 +301,7 @@ class StaticBitmapDTC(WindowDTC):
                 'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
 class HtmlWindowDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -317,7 +317,7 @@ class HtmlWindowDTC(WindowDTC):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.html.HW_SCROLLBAR_AUTO',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def properties(self):
         props = WindowDTC.properties(self)
@@ -437,7 +437,7 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + ['Anchor', 'CodePage',
@@ -469,7 +469,7 @@ class FilenameConstrPropEdit(ConstrPropEdit):
             if dlg.ShowModal() == wx.ID_OK:
                 value = dlg.GetPath()
                 if os.path.isfile(value):
-                    self.value = `value`
+                    self.value = repr(value)
                     self.editorCtrl.setValue(self.value)
                     self.inspectorPost(False)
         finally:
@@ -494,8 +494,8 @@ class GIFAnimationCtrlDTC(WindowDTC):
         return {'pos': position,
                 'size': size,#self.getDefCtrlSize(),
                 'style': 'wx.animate.AN_FIT_ANIMATION|wx.NO_BORDER',
-                'name': `self.name`,
-                'filename': `''`}
+                'name': repr(self.name),
+                'filename': repr('')}
 
     def writeImports(self):
         return '\n'.join( (WindowDTC.writeImports(self),
@@ -522,9 +522,9 @@ class MediaCtrlDTC(WindowDTC):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
-                'name': `self.name`,
-                'fileName': `''`,
-                'szBackend': `''`}
+                'name': repr(self.name),
+                'fileName': repr(''),
+                'szBackend': repr('')}
 
     def writeImports(self):
         return '\n'.join( (WindowDTC.writeImports(self),
@@ -554,7 +554,7 @@ class RichTextCtrlDTC(WindowDTC):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style'}
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'value': `self.name`,
+        return {'value': repr(self.name),
                 'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.richtext.RE_MULTILINE'}
@@ -591,11 +591,11 @@ class ComboCtrlDTC(WindowDTC):
                 'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'value': `self.name`,
+        return {'value': repr(self.name),
                 'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
 ##    def vetoedMethods(self):
 ##        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
@@ -641,8 +641,8 @@ class BitmapComboBoxItemsCDTC(CollectionDTC):
         return props
 
     def designTimeSource(self, wId, method=None):
-        return {'pos': `wId`,
-                'item': `'%s%d'%(self.propName, wId)`,
+        return {'pos': repr(wId),
+                'item': repr('%s%d'%(self.propName, wId)),
                 'bitmap': 'wx.NullBitmap'}
 
     def GetItemBitmap(self):

@@ -6,7 +6,7 @@ from Utils import _
 try:
     import wx.lib.flatnotebook
 except ImportError:
-    raise Plugins.SkipPluginSilently, _('Module %s not found')%'wx.lib.flatnotebook'
+    raise Plugins.SkipPluginSilently(_('Module %s not found')%'wx.lib.flatnotebook')
 
 from Companions.ContainerCompanions import BookCtrlDTC
 from Companions.EventCollections import *

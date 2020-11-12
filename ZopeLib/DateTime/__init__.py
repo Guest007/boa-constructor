@@ -82,5 +82,5 @@
 # attributions are listed in the accompanying credits file.
 #
 ##############################################################################
-from DateTime import DateTime
-from DateTime import Timezones
+from .DateTime import DateTime
+from .DateTime import Timezones

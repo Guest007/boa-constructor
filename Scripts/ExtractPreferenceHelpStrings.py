@@ -36,7 +36,7 @@ def createStringsFile(comments, breaks):
     srcComments = '\n'.join(['%s = _(%r)'%(name, comment) 
                              for name, comment in comments 
                              if comment])
-    srcBreaks = '\n'.join(['_(%r)'%text for text in breaks.values() if text])
+    srcBreaks = '\n'.join(['_(%r)'%text for text in list(breaks.values()) if text])
     
     open('prefs.rc.i18n.py', 'w').write(srcComments+'\n\n'+srcBreaks)
 

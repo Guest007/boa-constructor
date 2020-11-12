@@ -409,7 +409,7 @@ class Frame1(wx.Frame):
         self._init_ctrls(parent)
 
     def OnMenu1items0Menu(self, event):
-        print 'Menu0'
+        print('Menu0')
 
     def OnToolbar1tools0Tool(self, event):
         raise Exception('Tool0')
@@ -437,7 +437,7 @@ class Frame1(wx.Frame):
         self.staticText1.SetLabel(time.asctime())
 
     def OnSlider1Slider(self, event):
-        self.lEDNumberCtrl1.SetValue(`event.GetPosition()`)
+        self.lEDNumberCtrl1.SetValue(repr(event.GetPosition()))
         self.gauge1.SetValue(event.GetPosition())
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@ def hook_debugger(tpe, val, tb):
 
     if not hasattr(sys, 'debugger_control'):
         sys.path.append(path_to_boa)
-        from Debugger.RemoteServer import start
+        from .Debugger.RemoteServer import start
 
         start(username='', password='')
 

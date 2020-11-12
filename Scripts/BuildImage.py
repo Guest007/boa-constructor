@@ -37,15 +37,15 @@ def copyFilePath(srcFilepath, dstFilepath):
                     else:
                         try:
                             filename = string.split(txtEntry, '/')[1]
-                            print 'copying ', os.path.join(dstFilepath, filename)
+                            print('copying ', os.path.join(dstFilepath, filename))
                             try: os.makedirs(dstFilepath)
                             except OSError: pass
                             shutil.copy(os.path.join(srcFilepath, filename),
                               os.path.join(dstFilepath, filename))
-                        except IOError: print 'Error', filename
+                        except IOError: print('Error', filename)
         finally:
             f.close()
     except IOError:
-        print 'CVS does not exist'
+        print('CVS does not exist')
 
 copyFilePath(buildRoot, buildDest)

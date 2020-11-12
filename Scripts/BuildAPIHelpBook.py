@@ -50,14 +50,14 @@ def build_project():
 def build_contents():
     def traverse(l, r):
         for i in l:
-            if type(i) is types.ListType:
+            if type(i) is list:
                 r.append('<UL>'+os.linesep)
                 traverse(i, r)
                 r.append('</UL>'+os.linesep)
-            elif type(i) is types.TupleType:
+            elif type(i) is tuple:
                 r.append(entry_hhx%i)
             else:
-                raise Exception, 'Unhandled type: %s'%type(i)
+                raise Exception('Unhandled type: %s'%type(i))
 
     data = read_segment(os.path.join(api_path, 'trees.html'),
           '<!-- =========== START OF CLASS HIERARCHY =========== -->',
@@ -173,9 +173,9 @@ class APIIndicesParser(htmllib.HTMLParser):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    print 'Building project...'
+    print('Building project...')
     build_project()    
-    print 'Building contents...'
+    print('Building contents...')
     build_contents()
-    print 'Building keywords...'
+    print('Building keywords...')
     build_keywords()

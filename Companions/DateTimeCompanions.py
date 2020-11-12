@@ -1,7 +1,7 @@
 import wx
 import  wx.calendar
 
-import BaseCompanions, EventCollections
+from . import BaseCompanions, EventCollections
 from PropEdit import PropertyEditors
 
 class CalendarConstr:
@@ -29,7 +29,7 @@ class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
                 'pos': position,
                 'size': size,
                 'style': 'wx.calendar.CAL_SHOW_HOLIDAYS',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return BaseCompanions.WindowDTC.events(self) + ['CalendarEvent']
@@ -79,7 +79,7 @@ class DatePickerCtrlDTC(BaseCompanions.WindowDTC):
         return {'pos': position,
                 'size': size,
                 'style': 'wx.DP_SHOWCENTURY',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return BaseCompanions.WindowDTC.events(self) + ['DatePickerCtrlEvent']

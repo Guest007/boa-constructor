@@ -42,7 +42,7 @@ class FormatParagraph:
         if comment_header:
             # Reformat the comment lines - convert to text sans header.
             lines = data.split(text.eol)
-            lines = map(lambda st, l=len(comment_header): st[l:], lines)
+            lines = list(map(lambda st, l=len(comment_header): st[l:], lines))
             data = text.eol.join(lines)
             # Reformat to 70 chars or a 20 char width, whichever is greater.
             format_width = max(70-len(comment_header), 20)

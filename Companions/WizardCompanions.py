@@ -10,16 +10,16 @@
 # Licence:     GPL
 #-----------------------------------------------------------------------------
 
-print 'importing Companions.WizardCompanions'
+print('importing Companions.WizardCompanions')
 
 import wx
 import wx.wizard
 
 from Preferences import wxDefaultFrameSize, wxDefaultFramePos
-from FrameCompanions import DialogDTC, FramePanelDTC
+from .FrameCompanions import DialogDTC, FramePanelDTC
 from PropEdit.PropertyEditors import BitmapConstrPropEdit, StrConstrPropEdit
 
-import EventCollections
+from . import EventCollections
 import sourceconst
 
 ##defWizardImport = 'import wx.wizard'
@@ -48,8 +48,8 @@ class WizardDTC(DialogDTC):
         return {'Title': 'title', 'Position': 'pos', 'Bitmap': 'bitmap'}
 
     def designTimeSource(self):
-        return {'title': `self.name`,
-                'pos':   `wxDefaultFramePos`,
+        return {'title': repr(self.name),
+                'pos':   repr(wxDefaultFramePos),
                 'bitmap': 'wx.NullBitmap'}
 
     def hideDesignTime(self):

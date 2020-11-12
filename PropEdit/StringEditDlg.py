@@ -72,7 +72,7 @@ class StringEditDlg(wx.Dialog):
         self.stringTC.SetValue(companion.eval(strSrc))
 
     def getStrSrc(self):
-        strSrc = `self.stringTC.GetValue()`
+        strSrc = repr(self.stringTC.GetValue())
         if self.i18nCB.GetValue():
             return'_(%r)'%self.stringTC.GetValue()
         else:

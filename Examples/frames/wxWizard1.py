@@ -54,7 +54,7 @@ class wxWizard1(wx.wizard.Wizard):
         self._init_ctrls(parent)
 
     def OnButton1Button(self, event):
-        wx.LogMessage(`self.GetChildren()`) #GetSizer().
+        wx.LogMessage(repr(self.GetChildren())) #GetSizer().
 
     def OnWxwizard1WizardPageChanging(self, event):
         self.staticText1.SetLabel('Changing...')

@@ -11,13 +11,13 @@
 # Licence:      GPL
 #----------------------------------------------------------------------------
 
-import sys, thread, threading, Queue
+import sys, _thread, threading, queue
 import pprint
 from os import chdir
 from os import path
 import bdb
 from bdb import Bdb, BdbQuit, Breakpoint
-from repr import Repr
+from reprlib import Repr
 from types import TupleType
 
 
@@ -291,7 +291,7 @@ class DebuggerController:
         global exclusive_mode
         if exclusive_mode:
             # Kill existing servers.
-            for id in self._debug_servers.keys():
+            for id in list(self._debug_servers.keys()):
                 self.deleteServer(id)
         ds = DebugServer()
         id = self._newServerId()
@@ -331,7 +331,7 @@ class ServerMessage:
 
 class MethodCall (ServerMessage):
     def __init__(self, func_name, args, kw, do_return):
-        self.func_name = func_name
+        self.__name__ = func_name
         self.args = args
         self.kw = kw
         self.do_return = do_return
@@ -345,7 +345,7 @@ class MethodCall (ServerMessage):
 
     def execute(self, ob):
         try:
-            result = getattr(ob, self.func_name)(*self.args, **self.kw)
+            result = getattr(ob, self.__name__)(*self.args, **self.kw)
         except (SystemExit, BdbQuit):
             raise
         except:
@@ -377,12 +377,12 @@ class MethodCall (ServerMessage):
         self.wait()
         if hasattr(self, 'exc'):
             try:
-                raise self.exc[0], self.exc[1], self.exc[2]
+                raise self.exc[0](self.exc[1]).with_traceback(self.exc[2])
             finally:
                 # Circ ref
                 del self.exc
         if not hasattr(self, 'result'):
-            raise DebugError, 'Timed out while waiting for debug server.'
+            raise DebugError('Timed out while waiting for debug server.')
         return self.result
 
 
@@ -393,10 +393,10 @@ class ThreadChoiceLock:
 
     def __init__(self):
         self._owner = None
-        self._block = thread.allocate_lock()
+        self._block = _thread.allocate_lock()
 
     def acquire(self, blocking=1):
-        me = thread.get_ident()
+        me = _thread.get_ident()
         if self._owner == me:
             return 1
         rc = self._block.acquire(blocking)
@@ -405,13 +405,13 @@ class ThreadChoiceLock:
         return rc
 
     def release(self):
-        me = thread.get_ident()
+        me = _thread.get_ident()
         assert me == self._owner, "release of unacquired lock"
         self._owner = None
         self._block.release()
 
     def releaseIfOwned(self):
-        me = thread.get_ident()
+        me = _thread.get_ident()
         if me == self._owner:
             self.release()
 
@@ -453,7 +453,7 @@ class DebugServer (Bdb):
         self.fncache = {}
         self.botframe = None
 
-        self.__queue = Queue.Queue(0)
+        self.__queue = queue.Queue(0)
 
         # self._lock governs which thread the debugger will stop in.
         self._lock = ThreadChoiceLock()
@@ -504,7 +504,7 @@ class DebugServer (Bdb):
         if sm.doExecute():
             sm.execute(self)
         if sm.doExit():
-            thread.exit()
+            _thread.exit()
         if sm.doReturn():
             # Return to user code
             self.beforeResume()
@@ -558,7 +558,7 @@ class DebugServer (Bdb):
 
     def break_here(self, frame):
         filename, lineno = self.getFilenameAndLine(frame)
-        if not self.breaks.has_key(filename):
+        if filename not in self.breaks:
             return 0
 
         if not lineno in self.breaks[filename]:
@@ -576,7 +576,7 @@ class DebugServer (Bdb):
 
     def break_anywhere(self, frame):
         filename, lineno = self.getFilenameAndLine(frame)
-        return self.breaks.has_key(filename)
+        return filename in self.breaks
 
     def stop_here(self, frame):
         # Redefine stopping.
@@ -620,7 +620,7 @@ class DebugServer (Bdb):
     def remove_trace_hooks(self):
         sys.settrace(None)
         try:
-            raise Exception, 'gen_exc_info'
+            raise Exception('gen_exc_info')
         except:
             frame = sys.exc_info()[2].tb_frame
             while frame:
@@ -654,7 +654,7 @@ class DebugServer (Bdb):
         this thread, but allow other threads to continue.
         """
         self.set_continue(1)
-        raise BdbQuit, 'Client disconnected'
+        raise BdbQuit('Client disconnected')
 
     def set_traceable(self, enable=1):
         """Allows user code to enable/disable tracing without changing the
@@ -665,7 +665,7 @@ class DebugServer (Bdb):
         if enable:
             # Add trace hooks.
             try:
-                raise Exception, 'gen_exc_info'
+                raise Exception('gen_exc_info')
             except:
                 frame = sys.exc_info()[2].tb_frame.f_back
             self.add_trace_hooks(frame)
@@ -697,7 +697,7 @@ class DebugServer (Bdb):
         Called by hard breakpoints.
         """
         try:
-            raise Exception, 'gen_exc_info'
+            raise Exception('gen_exc_info')
         except:
             frame = sys.exc_info()[2].tb_frame.f_back
         stop = self.hard_break_here(frame)
@@ -726,7 +726,7 @@ class DebugServer (Bdb):
 
     def set_internal_breakpoint(self, filename, lineno, temporary=0,
                                 cond=None):
-        if not self.breaks.has_key(filename):
+        if filename not in self.breaks:
             self.breaks[filename] = []
         list = self.breaks[filename]
         if not lineno in list:
@@ -743,7 +743,7 @@ class DebugServer (Bdb):
 
     def clearTemporaryBreakpoints(self, filename, lineno):
         filename = self.canonic(filename)
-        if not self.breaks.has_key(filename):
+        if filename not in self.breaks:
             return
         if lineno not in self.breaks[filename]:
             return
@@ -752,7 +752,7 @@ class DebugServer (Bdb):
         for bp in Breakpoint.bplist[filename, lineno][:]:
             if bp.temporary:
                 bp.deleteMe()
-        if not Breakpoint.bplist.has_key((filename, lineno)):
+        if (filename, lineno) not in Breakpoint.bplist:
             self.breaks[filename].remove(lineno)
         if not self.breaks[filename]:
             del self.breaks[filename]
@@ -967,7 +967,7 @@ class DebugServer (Bdb):
                 brk.line = brk.line + delta
                 breaklines.append(brk.line)
                 # merge in moved breaks
-                if bplist.has_key((filename, brk.line)):
+                if (filename, brk.line) in bplist:
                     bplist[filename, brk.line].append(brk)
                 else:
                     bplist[filename, brk.line] = [brk]
@@ -1055,7 +1055,7 @@ class DebugServer (Bdb):
 
     def getBreakpointStats(self):
         rval = []
-        for bps in bdb.Breakpoint.bplist.values():
+        for bps in list(bdb.Breakpoint.bplist.values()):
             for bp in bps:
                 filename = bp.file  # Already canonic
                 rval.append({'filename':filename,
@@ -1101,12 +1101,12 @@ class DebugServer (Bdb):
                 primaryDict = localsDict
             else:
                 primaryDict = globalsDict
-            if primaryDict.has_key(name):
+            if name in primaryDict:
                 value = primaryDict[name]
             else:
                 try:
                     value = eval(name, globalsDict, localsDict)
-                except Exception, message:
+                except Exception as message:
                     value = '??? (%s)' % message
             svalue = self.safeRepr(value)
             rval[name] = svalue
@@ -1127,12 +1127,12 @@ class DebugServer (Bdb):
         return inst_items + clss_items
 
     def pythonShell(self, code, globalsDict, localsDict, name='<debug>'):
-        from cStringIO import StringIO
+        from io import StringIO
 
         _ts, sys.stdout = sys.stdout, StringIO('')
         try:
             co = compile(code, name, 'single')
-            exec co in globalsDict, localsDict
+            exec(co, globalsDict, localsDict)
             return sys.stdout.getvalue()
 # lame attempt at handling None values
 ##            res = sys.stdout.getvalue()
@@ -1165,7 +1165,7 @@ class DebugServer (Bdb):
 
     def safeReprDict(self, dict):
         rval = {}
-        l = dict.items()
+        l = list(dict.items())
         if len(l) >= self.maxdict2:
             l = l[:self.maxdict2]
         for key, value in l:

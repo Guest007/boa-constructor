@@ -1,2 +1,2 @@
-from ChildProcessServer import main
+from .ChildProcessServer import main
 main()

@@ -11,13 +11,13 @@ import types, sys, os
 """
 
 def mod_refs(x):
-    return x.__dict__.values()
+    return list(x.__dict__.values())
 
 def mod_tag(x, i):
-    return "." + x.__dict__.keys()[i]
+    return "." + list(x.__dict__.keys())[i]
 
 def func_refs(x):
-    return x.func_globals, x.func_defaults
+    return x.__globals__, x.__defaults__
 
 def func_tag(x, i):
     return (".func_globals", ".func_defaults")[i]
@@ -88,5 +88,5 @@ def handle_error(f):
       '<br>'.join(traceback.format_exception(tp, vl, tb))
     f.write(err)
 
-print 'RunCyclops'
+print('RunCyclops')
 run()

@@ -36,7 +36,7 @@ class MyToolBar(wx.ToolBar):
         self.toolCount = self.toolCount - 1
 
     def ClearTools(self):
-        posLst = range(self.toolCount)
+        posLst = list(range(self.toolCount))
         posLst.reverse()
         for pos in posLst:
             self.DeleteToolByPos(pos)
@@ -74,7 +74,7 @@ class EditorToolBar(MyToolBar):
 
 
 # fields
-sbfIcon, sbfBrwsBtns, sbfStatus, sbfCrsInfo, sbfProgress = range(5)
+sbfIcon, sbfBrwsBtns, sbfStatus, sbfCrsInfo, sbfProgress = list(range(5))
 
 class EditorStatusBar(wx.StatusBar):
     """ Displays information about the current view. Also global stats/
@@ -179,7 +179,7 @@ def HistoryPopup(parent, hist, imgs):
     lc = wx.ListCtrl(f, style=wx.LC_REPORT | wx.LC_VRULES | wx.LC_NO_HEADER)
     lc.il = wx.ImageList(16, 16)
     idxs = {}
-    for tpe, img in imgs.items():
+    for tpe, img in list(imgs.items()):
         idxs[tpe] = lc.il.Add(img)
     lc.SetImageList(lc.il, wx.IMAGE_LIST_SMALL)
     lc.InsertColumn(0, _('Time'))
@@ -259,7 +259,7 @@ class ModulePage:
 
         self.viewMenu.Destroy()
 
-        for view in self.model.views.values():
+        for view in list(self.model.views.values()):
             if view:
                 view.close()
         self.notebook.DeleteAllPages()
@@ -302,7 +302,7 @@ class ModulePage:
         if idx is None: idx = self.notebook.GetSelection()
         if idx == -1: return None
 
-        for name, view in self.model.views.items():
+        for name, view in list(self.model.views.items()):
             if view.pageIdx == idx:
                 return view
 
@@ -337,7 +337,7 @@ class ModulePage:
                 self.editor.Disconnect(wId)
 
     def setActiveViewsMenu(self):
-        viewClss = [x.__class__ for x in self.model.views.values()]
+        viewClss = [x.__class__ for x in list(self.model.views.values())]
         for view, wId in self.adtViews:
             self.viewMenu.Check(wId, view in viewClss)
 
@@ -404,7 +404,7 @@ class ModulePage:
             from Explorers.ExplorerNodes import TransportModifiedSaveError
             try:
                 model.save()
-            except TransportModifiedSaveError, err:
+            except TransportModifiedSaveError as err:
                 choice = wx.MessageBox(_('%s\nDo you want to overwrite these '
                   'changes (Yes), reload your file (No) or cancel this operation '
                   '(Cancel)?')%str(err), _('Overwrite newer file warning'),
@@ -496,7 +496,7 @@ class Listener(threading.Thread):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.bind((host, port))
-        except socket.error, err:
+        except socket.error as err:
             self.closed.set()
             return
 

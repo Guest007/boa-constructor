@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 import os
 
-import Client
+from . import Client
 
 class ZClient:
     def __init__(self, url, user, passwd, timeout=None, argnames=()):
@@ -21,10 +21,9 @@ class ZClient:
         self.__timeout = timeout
         self.__argnames = argnames
     def __request(self, methodname, *args, **kwargs):
-        msg, res = apply(Client.Function(self.__url+'/'+methodname,
+        msg, res = Client.Function(self.__url+'/'+methodname,
                   username=self.__user, password=self.__passwd,
-                  timeout=self.__timeout, arguments=self.__argnames),
-                args, kwargs)
+                  timeout=self.__timeout, arguments=self.__argnames)(*args, **kwargs)
         return res
     def __getattr__(self, name):
         return _MethodDisp(self.__request, name)
@@ -36,14 +35,14 @@ class _MethodDisp:
     def __getattr__(self, name):
         return _MethodDisp(self.__request, '%s/%s' % (self.__name, name))
     def __call__(self, *args, **kwargs):
-        return apply(self.__request, (self.__name,) + args, kwargs)
+        return self.__request(*(self.__name,) + args, **kwargs)
 
 def installZopeScript(conninfo, name, body):
     url, user, passwd = conninfo
     z = ZClient(url, user, passwd)
     try:
         z.manage_addProduct.PythonScripts.manage_addPythonScript(id=name, file=body)
-    except Client.ServerError, error:
+    except Client.ServerError as error:
         if error.http_code != 302:
             raise
 

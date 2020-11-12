@@ -1,10 +1,10 @@
 import sys, os
 import threading
 import base64
-from SocketServer import TCPServer
+from socketserver import TCPServer
 
-from IsolatedDebugger import DebugServer, DebuggerConnection
-from Tasks import ThreadedTaskHandler
+from .IsolatedDebugger import DebugServer, DebuggerConnection
+from .Tasks import ThreadedTaskHandler
 
 
 try:
@@ -28,7 +28,7 @@ class DebugRequestHandler (RequestHandler):
         if auth_str:
             s = h.get('authentication')
             if not s or s.split()[-1] != auth_str:
-                raise Exception, 'Unauthorized: Authentication header missing or incorrect'
+                raise Exception('Unauthorized: Authentication header missing or incorrect')
 
     def call(self, method, params):
         # Override of xmlrpcserver.RequestHandler.call()
@@ -60,16 +60,16 @@ def start(username, password, host='127.0.0.1', port=26200,
     global auth_str, debug_server, connection
 
     if debug_server is not None:
-        raise RuntimeError, 'The debug server is already running'
+        raise RuntimeError('The debug server is already running')
 
     # Create the debug server.
     if server_type == 'zope':
-        from ZopeScriptDebugServer import ZopeScriptDebugServer
+        from .ZopeScriptDebugServer import ZopeScriptDebugServer
         ds = ZopeScriptDebugServer()
     elif server_type == 'basic':
         ds = DebugServer()
     else:
-        raise ValueError, 'Unknown debug server type: %s' % server_type
+        raise ValueError('Unknown debug server type: %s' % server_type)
 
     connection = DebuggerConnection(ds)
     connection.allowEnvChanges()  # Allow changing of sys.path, etc.
@@ -99,8 +99,8 @@ def start(username, password, host='127.0.0.1', port=26200,
     startDaemon(serve_forever, (server,))
     #startDaemon(debug_server.servicerThread)
 
-    print >> sys.stderr, "Debug server listening on %s:%s" % tuple(
-        server.socket.getsockname()[:2])
+    print("Debug server listening on %s:%s" % tuple(
+        server.socket.getsockname()[:2]), file=sys.stderr)
 
     try:
         import atexit

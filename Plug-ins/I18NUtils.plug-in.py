@@ -70,7 +70,7 @@ def msgfmt_add(id, str, fuzzy, MESSAGES):
 
 def msgfmt_generate(MESSAGES):
     "Return the generated output."
-    keys = MESSAGES.keys()
+    keys = list(MESSAGES.keys())
     # the keys are sorted in the .mo file
     keys.sort()
     offsets = []
@@ -97,7 +97,7 @@ def msgfmt_generate(MESSAGES):
         voffsets += [l2, o2+valuestart]
     offsets = koffsets + voffsets
     output = struct.pack("Iiiiiii",
-                         0x950412deL,       # Magic
+                         0x950412de,       # Magic
                          0,                 # Version
                          len(keys),         # # of entries
                          7*4,               # start of key index
@@ -164,9 +164,9 @@ def msgfmt_make(filename, outfile, MESSAGES):
         elif section == STR:
             msgstr += l
         else:
-            print >> sys.stderr, 'Syntax error on %s:%d' % (infile, lno), \
-                  'before:'
-            print >> sys.stderr, l
+            print('Syntax error on %s:%d' % (infile, lno), \
+                  'before:', file=sys.stderr)
+            print(l, file=sys.stderr)
             return
     # Add last entry
     if section == STR:
@@ -177,8 +177,8 @@ def msgfmt_make(filename, outfile, MESSAGES):
 
     try:
         open(outfile,"wb").write(output)
-    except IOError,msg:
-        print >> sys.stderr, msg
+    except IOError as msg:
+        print(msg, file=sys.stderr)
         return False
     else:
         return True

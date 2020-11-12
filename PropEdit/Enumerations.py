@@ -10,31 +10,31 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 import wx
-from wxCompat import wxNO_3D
+# from wxCompat import wxNO_3D
 
 def reverseDict(dict):
     rev = {}
-    for k in dict.keys():
+    for k in list(dict.keys()):
         rev[dict[k]] = k
     return rev
 
-windowStyles =[wx.CAPTION, wx.MINIMIZE_BOX, wx.MAXIMIZE_BOX, wx.THICK_FRAME,
+windowStyles =[wx.CAPTION, wx.MINIMIZE_BOX, wx.MAXIMIZE_BOX, # wx.THICK_FRAME,
 wx.SIMPLE_BORDER, wx.DOUBLE_BORDER, wx.SUNKEN_BORDER, wx.RAISED_BORDER,
-wx.STATIC_BORDER, wx.TRANSPARENT_WINDOW, wxNO_3D, wx.TAB_TRAVERSAL, wx.VSCROLL,
+wx.STATIC_BORDER, wx.TRANSPARENT_WINDOW, wx.TAB_TRAVERSAL, wx.VSCROLL,
 wx.HSCROLL, wx.CLIP_CHILDREN]
 
 windowNameStyles = {'wx.CAPTION':wx.CAPTION, 'wx.MINIMIZE_BOX':wx.MINIMIZE_BOX,
-'wx.MAXIMIZE_BOX':wx.MAXIMIZE_BOX, 'wx.THICK_FRAME':wx.THICK_FRAME,
+'wx.MAXIMIZE_BOX':wx.MAXIMIZE_BOX, # 'wx.THICK_FRAME':wx.THICK_FRAME,
 'wx.SIMPLE_BORDER':wx.SIMPLE_BORDER, 'wx.DOUBLE_BORDER':wx.DOUBLE_BORDER,
 'wx.SUNKEN_BORDER':wx.SUNKEN_BORDER, 'wx.RAISED_BORDER':wx.RAISED_BORDER,
 'wx.STATIC_BORDER':wx.STATIC_BORDER, 'wx.TRANSPARENT_WINDOW':wx.TRANSPARENT_WINDOW,
 'wx.TAB_TRAVERSAL':wx.TAB_TRAVERSAL, 'wx.VSCROLL':wx.VSCROLL,
 'wx.HSCROLL':wx.HSCROLL, 'wx.CLIP_CHILDREN':wx.CLIP_CHILDREN}
 
-if hasattr(wx, 'NO_3D'):
-    windowNameStyles.update({'wx.NO_3D':wxNO_3D})
-elif hasattr(wx, 'wxNO_3D'):
-    windowNameStyles.update({'wx.wxNO_3D':wxNO_3D})
+# if hasattr(wx, 'NO_3D'):
+#     windowNameStyles.update({'wx.NO_3D':wxNO_3D})
+# elif hasattr(wx, 'wxNO_3D'):
+#     windowNameStyles.update({'wx.wxNO_3D':wxNO_3D})
 
 # Fonts
 fontFamily = [wx.DEFAULT, wx.DECORATIVE, wx.ROMAN, wx.SCRIPT, wx.SWISS, wx.MODERN]

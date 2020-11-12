@@ -35,7 +35,7 @@ def imgIdxRange(cnt=0):
     """ Allocates either a range of image indexes or a single one """
     global imgCounter
     if cnt:
-        rng = range(imgCounter, imgCounter + cnt)
+        rng = list(range(imgCounter, imgCounter + cnt))
         imgCounter = imgCounter + cnt
         return rng
     else:
@@ -107,6 +107,6 @@ def getBinaryFiles():
 
 def initExtMap():
     # All non python files identified by extension
-    for mod in modelReg.values():
-        if mod.ext not in ['.*', '.intfile', '.pybin'] +inspectableFilesReg.keys():
+    for mod in list(modelReg.values()):
+        if mod.ext not in ['.*', '.intfile', '.pybin'] +list(inspectableFilesReg.keys()):
             extMap[mod.ext] = mod

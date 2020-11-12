@@ -102,7 +102,7 @@ class FlexGridGrowablesDlg(wx.Dialog):
 
         self.colIds = {}
         self.colBtns = []
-        for idx, col in zip(range(len(cols)), cols):
+        for idx, col in zip(list(range(len(cols))), cols):
             wid = wx.NewId()
             tb = ToggleButton(self, wid, str(idx))
             if col: tb.SetValue(1)
@@ -112,7 +112,7 @@ class FlexGridGrowablesDlg(wx.Dialog):
 
         self.rowIds = {}
         self.rowBtns = []
-        for idx, row in zip(range(len(rows)), rows):
+        for idx, row in zip(list(range(len(rows))), rows):
             wid =wx.NewId()
             tb = ToggleButton(self, wid, str(idx))
             if row: tb.SetValue(1)
@@ -187,12 +187,12 @@ class FlexGridGrowablesDlg(wx.Dialog):
 
         rows, cols = self.rows, self.cols
         self.flex.Add(wx.Size(10, 10))
-        for idx, col in zip(range(len(cols)), cols):
+        for idx, col in zip(list(range(len(cols))), cols):
             self.flex.Add(self.colBtns[idx], 0, wx.GROW)
             if col:
                 self.flex.AddGrowableCol(idx+1)
 
-        for idx, row in zip(range(len(rows)), rows):
+        for idx, row in zip(list(range(len(rows))), rows):
             self.flex.Add(self.rowBtns[idx], 0, wx.GROW)
             for s in range(len(cols)):
                 self.flex.Add(wx.Size(10, 10))

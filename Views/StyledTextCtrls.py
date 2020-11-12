@@ -23,7 +23,7 @@ import Preferences
 from Utils import _
 
 import methodparse
-import STCStyleEditor
+from . import STCStyleEditor
 
 # from PythonWin from IDLE :)
 _is_block_opener = re.compile(r':\s*(#.*)?$').search
@@ -363,7 +363,7 @@ class AutoCompleteCodeHelpSTCMix(CodeHelpStyledTextCtrlMix):
         # remove duplicates and sort
         unqNms = {}
         for name in names: unqNms[name] = None
-        names = unqNms.keys()
+        names = list(unqNms.keys())
 
         sortnames = [(name.upper(), name) for name in names]
         sortnames.sort()
@@ -549,7 +549,7 @@ class DebuggingViewSTCMix:
         # remove
         index = (bpt.file, bpt.line)
 
-        if index not in bpt.bplist.keys():
+        if index not in list(bpt.bplist.keys()):
             return
 
         bpt.bplist[index].remove(bpt)
@@ -562,7 +562,7 @@ class DebuggingViewSTCMix:
 
         # re-add
         index = (bpt.file, bpt.line)
-        if bpt.bplist.has_key(index):
+        if index in bpt.bplist:
             bpt.bplist[index].append(bpt)
         else:
             bpt.bplist[index] = [bpt]
@@ -643,7 +643,7 @@ class DebuggingViewSTCMix:
                 setBreaks = []
 
                 # store reference and remove from (fn, ln) refed dict.
-                for bpFile, bpLine in bpList.keys():
+                for bpFile, bpLine in list(bpList.keys()):
                     if bpFile == filename and bpLine > line:
                         setBreaks.append(bpList[bpFile, bpLine])
                         del bpList[bpFile, bpLine]
@@ -653,7 +653,7 @@ class DebuggingViewSTCMix:
                     for brk in brks:
                         brk.line = brk.line + linesAdded
                         # merge in moved breaks
-                        if bpList.has_key((filename, brk.line)):
+                        if (filename, brk.line) in bpList:
                             bpList[filename, brk.line].append(brk)
                         else:
                             bpList[filename, brk.line] = [brk]
@@ -747,7 +747,7 @@ class LanguageSTCMix:
     def handleSpecialEuropeanKeys(self, event, countryKeymap='euro'):
         key = event.GetKeyCode()
         keymap = self.keymap[countryKeymap]
-        if event.AltDown() and event.ControlDown() and keymap.has_key(key):
+        if event.AltDown() and event.ControlDown() and key in keymap:
             currPos = self.GetCurrentPos()
             self.InsertText(currPos, keymap[key])
             self.SetCurrentPos(self.GetCurrentPos()+1)
@@ -875,7 +875,7 @@ class STCLinesList:
                 res.append(self[idx])
             return res
         else:
-            raise TypeError, _('%s not supported') % `type(key)`
+            raise TypeError(_('%s not supported') % repr(type(key)))
 
     def __setitem__(self, key, value):
         stc = self.__STC
@@ -892,7 +892,7 @@ class STCLinesList:
                   stc.GetLineEndPosition(key.stop))
             stc.ReplaceSelection(lines)
         else:
-            raise TypeError, _('%s not supported') % `type(key)`
+            raise TypeError(_('%s not supported') % repr(type(key)))
 
     def __delitem__(self, key):
         stc = self.__STC
@@ -904,7 +904,7 @@ class STCLinesList:
                   stc.GetLineEndPosition(key.stop)+1)
             stc.ReplaceSelection('')
         else:
-            raise TypeError, _('%s not supported') % `type(key)`
+            raise TypeError(_('%s not supported') % repr(type(key)))
 
     def __getattr__(self, name):
         if name == 'current':
@@ -920,7 +920,7 @@ class STCLinesList:
         if name == 'pos':
             return self.__STC.GetCurrentPos()
 
-        raise AttributeError, name
+        raise AttributeError(name)
 
     def __len__(self):
         return self.__STC.GetLineCount()

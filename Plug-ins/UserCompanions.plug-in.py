@@ -16,7 +16,7 @@ from PropEdit import PropertyEditors
 try:
     import wx.lib.bcrtl
 except ImportError:
-    raise ImportError, 'The "bcrtl" package is not installed, turn on "installBCRTL" under Preferences'
+    raise ImportError('The "bcrtl" package is not installed, turn on "installBCRTL" under Preferences')
 
 #-------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ class StaticTextCtrlDTC(BasicCompanions.TextCtrlDTC):
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
         dts = BasicCompanions.TextCtrlDTC.designTimeSource(self, position, size)
-        dts['caption'] = `self.name`
+        dts['caption'] = repr(self.name)
         return dts
 
 

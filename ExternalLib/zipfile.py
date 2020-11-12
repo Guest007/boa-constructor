@@ -97,10 +97,9 @@ class ZipFile:
             pass
         elif compression == ZIP_DEFLATED:
             if not zlib:
-                raise RuntimeError,\
-                "Compression requires the (missing) zlib module"
+                raise RuntimeError("Compression requires the (missing) zlib module")
         else:
-            raise RuntimeError, "That compression method is not supported"
+            raise RuntimeError("That compression method is not supported")
         self.debug = 0  # Level of printing: 0 through 3
         self.NameToInfo = {}    # Find file info given name
         self.filelist = []      # List of ZipInfo instances for archive
@@ -124,7 +123,7 @@ class ZipFile:
             else:               # file is not a zip file, just append
                 fp.seek(0, 2)
         else:
-            raise RuntimeError, 'Mode must be "r", "w" or "a"'
+            raise RuntimeError('Mode must be "r", "w" or "a"')
 
     def _GetContents(self):
         "Read in the table of contents for the zip file"
@@ -133,17 +132,17 @@ class ZipFile:
         filesize = fp.tell() + 22       # Get file size
         endrec = fp.read(22)    # Archive must not end with a comment!
         if endrec[0:4] != stringEndArchive or endrec[-2:] != "\000\000":
-            raise error, "File is not a zip file, or ends with a comment"
+            raise error("File is not a zip file, or ends with a comment")
         endrec = struct.unpack(structEndArchive, endrec)
         if self.debug > 1:
-            print endrec
+            print(endrec)
         size_cd = endrec[5]             # bytes in central directory
         offset_cd = endrec[6]   # offset of central directory
         x = filesize - 22 - size_cd
         # "concat" is zero, unless zip was concatenated to another file
         concat = x - offset_cd
         if self.debug > 2:
-            print "given, inferred, offset", offset_cd, x, concat
+            print("given, inferred, offset", offset_cd, x, concat)
         # self.start_dir:  Position of start of central directory
         self.start_dir = offset_cd + concat
         fp.seek(self.start_dir, 0)
@@ -152,10 +151,10 @@ class ZipFile:
             centdir = fp.read(46)
             total = total + 46
             if centdir[0:4] != stringCentralDir:
-                raise error, "Bad magic number for central directory"
+                raise error("Bad magic number for central directory")
             centdir = struct.unpack(structCentralDir, centdir)
             if self.debug > 2:
-                print centdir
+                print(centdir)
             filename = fp.read(centdir[12])
             # Create ZipInfo instance to store file information
             x = ZipInfo(filename)
@@ -174,18 +173,17 @@ class ZipFile:
             self.filelist.append(x)
             self.NameToInfo[x.filename] = x
             if self.debug > 2:
-                print "total", total
+                print("total", total)
         for data in self.filelist:
             fp.seek(data.header_offset, 0)
             fheader = fp.read(30)
             if fheader[0:4] != stringFileHeader:
-                raise error, "Bad magic number for file header"
+                raise error("Bad magic number for file header")
             fheader = struct.unpack(structFileHeader, fheader)
             fname = fp.read(fheader[10])
             if fname != data.filename:
-                raise RuntimeError, \
- 'File name in Central Directory "%s" and File Header "%s" differ.' % (
-                             data.filename, fname)
+                raise RuntimeError('File name in Central Directory "%s" and File Header "%s" differ.' % (
+                             data.filename, fname))
 
     def namelist(self):
         "Return a list of file names in the archive"
@@ -200,10 +198,10 @@ class ZipFile:
 
     def printdir(self):
         "Print a table of contents for the zip file"
-        print "%-46s %19s %12s" % ("File Name", "Modified    ", "Size")
+        print("%-46s %19s %12s" % ("File Name", "Modified    ", "Size"))
         for zinfo in self.filelist:
             date = "%d-%02d-%02d %02d:%02d:%02d" % zinfo.date_time
-            print "%-46s %s %12d" % (zinfo.filename, date, zinfo.file_size)
+            print("%-46s %s %12d" % (zinfo.filename, date, zinfo.file_size))
 
     def testzip(self):
         "Read all the files and check the CRC"
@@ -220,10 +218,9 @@ class ZipFile:
     def read(self, name):
         "Return file bytes (as a string) for name"
         if self.mode not in ("r", "a"):
-            raise RuntimeError, 'read() requires mode "r" or "a"'
+            raise RuntimeError('read() requires mode "r" or "a"')
         if not self.fp:
-            raise RuntimeError, \
-            "Attempt to read ZIP archive that was already closed"
+            raise RuntimeError("Attempt to read ZIP archive that was already closed")
         zinfo = self.getinfo(name)
         filepos = self.fp.tell()
         self.fp.seek(zinfo.file_offset, 0)
@@ -233,8 +230,7 @@ class ZipFile:
             pass
         elif zinfo.compress_type == ZIP_DEFLATED:
             if not zlib:
-                raise RuntimeError, \
-                "De-compression requires the (missing) zlib module"
+                raise RuntimeError("De-compression requires the (missing) zlib module")
             # zlib compress/decompress code by Jeremy Hylton of CNRI
             dc = zlib.decompressobj(-15)
             bytes = dc.decompress(bytes)
@@ -243,30 +239,26 @@ class ZipFile:
             if ex:
                 bytes = bytes + ex
         else:
-            raise error, \
-            "Unsupported compression method %d for file %s" % \
-            (zinfo.compress_type, name)
+            raise error("Unsupported compression method %d for file %s" % \
+            (zinfo.compress_type, name))
         crc = binascii.crc32(bytes)
         if crc != zinfo.CRC:
-            raise error, "Bad CRC-32 for file %s" % name
+            raise error("Bad CRC-32 for file %s" % name)
         return bytes
 
     def _writecheck(self, zinfo):
         'Check for errors before writing a file to the archive'
-        if self.NameToInfo.has_key(zinfo.filename):
+        if zinfo.filename in self.NameToInfo:
             if self.debug:      # Warning for duplicate names
-                print "Duplicate name:", zinfo.filename
+                print("Duplicate name:", zinfo.filename)
         if self.mode not in ("w", "a"):
-            raise RuntimeError, 'write() requires mode "w" or "a"'
+            raise RuntimeError('write() requires mode "w" or "a"')
         if not self.fp:
-            raise RuntimeError, \
-            "Attempt to write ZIP archive that was already closed"
+            raise RuntimeError("Attempt to write ZIP archive that was already closed")
         if zinfo.compress_type == ZIP_DEFLATED and not zlib:
-            raise RuntimeError, \
-            "Compression requires the (missing) zlib module"
+            raise RuntimeError("Compression requires the (missing) zlib module")
         if zinfo.compress_type not in (ZIP_STORED, ZIP_DEFLATED):
-            raise RuntimeError, \
-            "That compression method is not supported"
+            raise RuntimeError("That compression method is not supported")
 
     def write(self, filename, arcname=None, compress_type=None):
         'Put the bytes from filename into the archive under the name arcname.'
@@ -404,10 +396,10 @@ This method will compile the module.py into module.pyc if necessary."""
                 else:
                     basename = name
                 if self.debug:
-                    print "Adding package in", pathname, "as", basename
+                    print("Adding package in", pathname, "as", basename)
                 fname, arcname = self._get_codename(initname[0:-3], basename)
                 if self.debug:
-                    print "Adding", arcname
+                    print("Adding", arcname)
                 self.write(fname, arcname)
                 dirlist = os.listdir(pathname)
                 dirlist.remove("__init__.py")
@@ -423,12 +415,12 @@ This method will compile the module.py into module.pyc if necessary."""
                         fname, arcname = self._get_codename(path[0:-3],
                                          basename)
                         if self.debug:
-                            print "Adding", arcname
+                            print("Adding", arcname)
                         self.write(fname, arcname)
             else:
                 # This is NOT a package directory, add its files at top level
                 if self.debug:
-                    print "Adding files from directory", pathname
+                    print("Adding files from directory", pathname)
                 for filename in os.listdir(pathname):
                     path = os.path.join(pathname, filename)
                     root, ext = os.path.splitext(filename)
@@ -436,15 +428,14 @@ This method will compile the module.py into module.pyc if necessary."""
                         fname, arcname = self._get_codename(path[0:-3],
                                          basename)
                         if self.debug:
-                            print "Adding", arcname
+                            print("Adding", arcname)
                         self.write(fname, arcname)
         else:
             if pathname[-3:] != ".py":
-                raise RuntimeError, \
-                'Files added with writepy() must end with ".py"'
+                raise RuntimeError('Files added with writepy() must end with ".py"')
             fname, arcname = self._get_codename(pathname[0:-3], basename)
             if self.debug:
-                print "Adding file", arcname
+                print("Adding file", arcname)
             self.write(fname, arcname)
 
     def _get_codename(self, pathname, basename):
@@ -462,7 +453,7 @@ return (/python/lib/string.pyc, string)"""
         elif not os.path.isfile(file_pyc) or \
                             os.stat(file_pyc)[8] < os.stat(file_py)[8]:
             if self.debug:
-                print "Compiling", file_py
+                print("Compiling", file_py)
             py_compile.compile(file_py, file_pyc)
             fname = file_pyc
         else:

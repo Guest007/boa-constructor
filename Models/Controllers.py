@@ -9,7 +9,7 @@
 # Copyright:   (c) 2001 - 2007 Riaan Booysen
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing Models.Controllers'
+print('importing Models.Controllers')
 
 import os, codecs
 
@@ -160,7 +160,7 @@ class PersistentController(EditorController):
     def OnSave(self, event):
         try:
             self.editor.activeModSaveOrSaveAs()
-        except ExplorerNodes.TransportModifiedSaveError, err:
+        except ExplorerNodes.TransportModifiedSaveError as err:
             errStr = err.args[0]
             if errStr == 'Reload':
                 self.OnReload(event)
@@ -168,13 +168,13 @@ class PersistentController(EditorController):
                 pass
             else:
                 wx.LogError(str(err))
-        except ExplorerNodes.TransportSaveError, err:
+        except ExplorerNodes.TransportSaveError as err:
             wx.LogError(str(err))
 
     def OnSaveAs(self, event):
         try:
             self.editor.activeModSaveOrSaveAs(forceSaveAs=True)
-        except ExplorerNodes.TransportModifiedSaveError, err:
+        except ExplorerNodes.TransportModifiedSaveError as err:
             errStr = err.args[0]
             if errStr == 'Reload':
                 self.OnReload(event)
@@ -182,7 +182,7 @@ class PersistentController(EditorController):
                 pass
             else:
                 wx.LogError(str(err))
-        except ExplorerNodes.TransportSaveError, err:
+        except ExplorerNodes.TransportSaveError as err:
             wx.LogError(str(err))
 
     def OnReload(self, event):
@@ -202,17 +202,17 @@ class PersistentController(EditorController):
                 model.load()
 
                 self.editor.updateModuleState(model)
-            except ExplorerNodes.TransportLoadError, error:
+            except ExplorerNodes.TransportLoadError as error:
                 wx.LogError(str(error))
 
     def OnToggleReadOnly(self, event):
         model = self.getModel()
-        if model and model.transport and model.transport.stdAttrs.has_key('read-only'):
+        if model and model.transport and 'read-only' in model.transport.stdAttrs:
             model.transport.updateStdAttrs()
             ro = model.transport.stdAttrs['read-only']
             model.transport.setStdAttr('read-only', not ro)
 
-            if model.views.has_key('Source'):
+            if 'Source' in model.views:
                 model.views['Source'].updateFromAttrs()
 
             self.editor.updateModuleState(model)
@@ -228,7 +228,7 @@ class PersistentController(EditorController):
                 filename = self.editor.openFileDlg(curfile=os.path.basename(model.filename))
             if filename:
                 tbName = 'Diff with : '+filename
-                if not model.views.has_key(tbName):
+                if tbName not in model.views:
                     resultView = self.editor.addNewView(tbName,
                           DiffView.PythonSourceDiffView)
                 else:
@@ -307,11 +307,11 @@ def identifyFilename(filename):
     base, ext = os.path.splitext(filename)
     lext = ext.lower()
 
-    if fullnameTypes.has_key(name):
+    if name in fullnameTypes:
         return fullnameTypes[name]
     if not ext and base.upper() == base:
         return EditorModels.TextModel, '', lext
-    if EditorHelper.extMap.has_key(lext):
+    if lext in EditorHelper.extMap:
         return EditorHelper.extMap[lext], '', lext
     if lext in EditorHelper.internalFilesReg:
         return EditorModels.InternalFileModel, '', lext
@@ -330,11 +330,11 @@ def identifyFile(filename, source=None, localfs=True):
         BaseModel = EditorModels.UnknownFileModel
 
     if source is None and not localfs:
-        if lext in EditorHelper.inspectableFilesReg.keys():
+        if lext in list(EditorHelper.inspectableFilesReg.keys()):
             return EditorHelper.inspectableFilesReg[lext], ''
         else:
             return BaseModel, ''
-    elif lext in EditorHelper.inspectableFilesReg.keys():
+    elif lext in list(EditorHelper.inspectableFilesReg.keys()):
         BaseModel = EditorHelper.inspectableFilesReg[lext]
         if source is not None:
             return identifySource[lext](source.split('\n'))
@@ -349,7 +349,7 @@ def identifyFile(filename, source=None, localfs=True):
                     line = line.strip()
                     if line.startswith(codecs.BOM_UTF8):
                         line = line[len(codecs.BOM_UTF8):]
-                    if line and headerStartChar.has_key(lext):
+                    if line and lext in headerStartChar:
                         if line[0] != headerStartChar[lext]:
                             return BaseModel, ''
                         headerInfo = identifyHeader[lext](line)

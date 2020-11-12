@@ -57,11 +57,11 @@ class wxFrame1(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.OnCheckbox, id=self.xrcCheck.GetId())
 
     def OnButton1Button(self, event):
-        print 'Entered %s'%self.xrcTextCtrl.GetValue()
+        print(('Entered %s'%self.xrcTextCtrl.GetValue()))
         self.Close()
 
     def OnCheckbox(self, event):
-        print 'Checkbox clicked'
+        print('Checkbox clicked')
 
 
 if __name__ == '__main__':

@@ -71,7 +71,7 @@ class ExternalMethodFinder:
         import moduleparse
         module = moduleparse.Module('test', srclines)
 
-        return module.functions.keys()
+        return list(module.functions.keys())
 
 
 [wxID_EXTMETHDLG, wxID_EXTMETHDLGBTCANCEL, wxID_EXTMETHDLGBTOK, 

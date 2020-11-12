@@ -9,17 +9,17 @@
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing Companions.ListCompanions'
+print('importing Companions.ListCompanions')
 
 import wx
 import wx.grid
 
 from Utils import _
 
-from BaseCompanions import WindowDTC, ChoicedDTC, CollectionDTC, CollectionIddDTC
+from .BaseCompanions import WindowDTC, ChoicedDTC, CollectionDTC, CollectionIddDTC
 
-import Constructors
-from EventCollections import *
+from . import Constructors
+from .EventCollections import *
 
 from PropEdit.PropertyEditors import *
 from PropEdit.Enumerations import *
@@ -42,7 +42,7 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         self.subCompanions['Columns'] = ListCtrlColumnsCDTC
         self.listTypeNameMap = {'ImageListSmall'  : wx.IMAGE_LIST_SMALL,
                                 'ImageListNormal' : wx.IMAGE_LIST_NORMAL}
-        for name in self.listTypeNameMap.keys():
+        for name in list(self.listTypeNameMap.keys()):
             self.customPropEvaluators[name] = self.EvalImageList
         self.customPropEvaluators['ImageList'] = self.EvalImageList
 
@@ -51,7 +51,7 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         props['Columns'] =  ('NoneRoute', None, None)
 
         prop = ('NameRoute', self.GetImageList, self.SetImageList)
-        for name in self.listTypeNameMap.keys():
+        for name in list(self.listTypeNameMap.keys()):
             props[name] = prop
 
         return props
@@ -60,7 +60,7 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.LC_ICON',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return WindowDTC.events(self) + ['ListEvent']
@@ -87,7 +87,7 @@ class ListCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
             for propName, typeName in (('ImageListSmall', 'wx.IMAGE_LIST_SMALL'),
                                        ('ImageListNormal', 'wx.IMAGE_LIST_NORMAL')):
                 imgLst, imgLstType = self.GetImageList(propName)
-                if imgLst and `imgLst` == `compn.control`:
+                if imgLst and repr(imgLst) == repr(compn.control):
                     self.SetImageList(propName, (None,))
                     idx = 0
                     while idx < len(self.textPropList):
@@ -141,10 +141,10 @@ class ListCtrlColumnsCDTC(CollectionDTC):
         return props
 
     def designTimeSource(self, wId, method=None):
-        return {'col': `wId`,
-                'heading': `'%s%d'%(self.propName, wId)`,
+        return {'col': repr(wId),
+                'heading': repr('%s%d'%(self.propName, wId)),
                 'format': 'wx.LIST_FORMAT_LEFT',
-                'width': `-1`}
+                'width': repr(-1)}
 
     def appendItem(self, method=None):
         if not (self.control.GetWindowStyleFlag() & wx.LC_REPORT):
@@ -188,7 +188,7 @@ class TreeCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
         return {'pos': position,
                 'size': size,
                 'style': 'wx.TR_HAS_BUTTONS',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + ['StateImageList']
@@ -199,7 +199,7 @@ class TreeCtrlDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def notification(self, compn, action):
         WindowDTC.notification(self, compn, action)
         if action == 'delete':
-            if `self.control.GetImageList()` == `compn.control`:
+            if repr(self.control.GetImageList()) == repr(compn.control):
                 self.propRevertToDefault('ImageList', 'SetImageList')
                 self.control.SetImageList(None)
 
@@ -225,7 +225,7 @@ class ListBoxDTC(Constructors.ListConstr, ChoicedDTC):
                 'size': size,
                 'choices': '[]',
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return ChoicedDTC.events(self) + ['ListBoxEvent']
@@ -256,13 +256,13 @@ class RadioBoxDTC(ChoicedDTC):
                 'Style': 'style', 'Name': 'name'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'label': `self.name`,
+        return {'label': repr(self.name),
                 'pos': position,
                 'size': size,
-                'choices': `['asd']`,
+                'choices': repr(['asd']),
                 'majorDimension': '1',
                 'style': 'wx.RA_SPECIFY_COLS',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def events(self):
         return ChoicedDTC.events(self) + ['RadioBoxEvent']
@@ -293,7 +293,7 @@ class GenericDirCtrlDTC(WindowDTC):
                 'style': 'wx.DIRCTRL_3D_INTERNAL | wx.SUNKEN_BORDER',
                 'filter': "''",
                 'defaultFilter': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
 
 EventCategories['GridEvent'] = ('wx.grid.EVT_GRID_CELL_LEFT_CLICK',
@@ -327,7 +327,7 @@ class GridDTC(Constructors.WindowConstr, WindowDTC):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
 
     def properties(self):
         props = WindowDTC.properties(self)

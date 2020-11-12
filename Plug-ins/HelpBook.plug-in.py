@@ -12,7 +12,7 @@
 #Boa:Dialog:HelpBookItemDlg
 
 import wx
-from wxCompat import wxNO_3D
+# from wxCompat import wxNO_3D
 
 from Utils import _
 
@@ -168,7 +168,7 @@ class HelpConfigParser:
 
     def generateConfigData(self):
         res = ['[OPTIONS]']
-        res.extend(['%s=%s'%(key, val) for key, val in self.options.items()])
+        res.extend(['%s=%s'%(key, val) for key, val in list(self.options.items())])
         res.append('')
         res.append('[WINDOWS]')
         # I have no idea what the magic numbers mean
@@ -278,7 +278,7 @@ class HtmlDocDetailParser(htmllib.HTMLParser):
             self.title = self.result[0] = data.strip()
 
             if self.breakOnTitle:
-                raise BreakOnTitle, self.title
+                raise BreakOnTitle(self.title)
 
 
     def do_param(self, attrs):
@@ -291,11 +291,11 @@ def _testHPP():
     #i = parseHelpFile(open('../Docs/boa/apphelp/apphelp.hhc').read())
     #print i
     ##writeHelpBook(i)
-    print parseHelpFile(open('../Docs/boa/apphelp/debugger.html').read(), Parser=HtmlDocDetailParser).result
+    print(parseHelpFile(open('../Docs/boa/apphelp/debugger.html').read(), Parser=HtmlDocDetailParser).result)
 
 def _testHCP():
     h = HelpConfigParser(open('../Docs/wxpython/wx/wx.hhp').readlines())
-    print h.options, h.windows, h.files
+    print(h.options, h.windows, h.files)
 
 
 if __name__ == '__main__':
@@ -314,7 +314,7 @@ from Explorers import Explorer, ExplorerNodes
 import ProcessProgressDlg
 
 import glob, zipfile
-from cStringIO import StringIO
+from io import StringIO
 
 
 class HelpBookModel(EditorModels.SourceModel):
@@ -382,9 +382,8 @@ class HelpBookModel(EditorModels.SourceModel):
         newDir, newName = os.path.split(filename)
         oldDir, oldName = os.path.split(self.filename)
         if self.savedAs and newDir != oldDir:
-            raise ExplorerNodes.TransportSaveError, \
-                  _('Once saved, help books files cannot be moved, only renamed.\n'\
-                  'Please move the entrire directory.')
+            raise ExplorerNodes.TransportSaveError(_('Once saved, help books files cannot be moved, only renamed.\n'\
+                  'Please move the entrire directory.'))
 
         if newName != oldName:
             self.config.updateFilenameOptions(os.path.splitext(newName)[0])
@@ -492,7 +491,7 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
                     except ExplorerNodes.TransportError: return ''
                     fmtr = formatter.NullFormatter(formatter.NullWriter())
                     try: HtmlDocDetailParser(fmtr, breakOnTitle=True).feed(data)
-                    except BreakOnTitle, title: return str(title)
+                    except BreakOnTitle as title: return str(title)
                     except: return ''
                     else: return ''
                 finally:
@@ -553,9 +552,9 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
 
     def updateOtherViews(self):
         views = self.model.views
-        if views.has_key('Contents'):
+        if 'Contents' in views:
             views['Contents'].files.refreshCtrl()
-        if views.has_key('Index'):
+        if 'Index' in views:
             views['Index'].files.refreshCtrl()
 
     def OnOpenFile(self, event):
@@ -575,7 +574,7 @@ class HelpBookFilesView(EditorViews.VirtualListCtrlView):
     def OnNormalisePaths(self, event):
         helpBookDir = os.path.dirname(self.model.localFilename())
         delidxs = []
-        for idx, filename in zip(range(len(self.model.config.files)),
+        for idx, filename in zip(list(range(len(self.model.config.files))),
                                  self.model.config.files):
             absfn = os.path.normpath(os.path.join(helpBookDir, filename))
             if absfn[:len(helpBookDir)] != helpBookDir:
@@ -684,7 +683,7 @@ class HelpBookIndexView(wx.SplitterWindow, EditorViews.EditorView):
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
         wx.SplitterWindow.__init__(self, parent, -1,
-              style=wx.CLIP_CHILDREN | wxNO_3D | wx.SP_3DSASH)
+              style=wx.CLIP_CHILDREN | wx.SP_3DSASH)  # | wxNO_3D
 
         self.indexes = HelpBookIndexListView(self, model, self)
         self.files = HelpBookFilesView(self, model, False)
@@ -855,7 +854,7 @@ class HelpBookContentsView(wx.SplitterWindow, EditorViews.EditorView):
     delBmp = 'Images/Shared/DeleteItem.png'
     def __init__(self, parent, model):
         wx.SplitterWindow.__init__(self, parent, -1,
-              style=wx.CLIP_CHILDREN | wxNO_3D | wx.SP_3DSASH)
+              style=wx.CLIP_CHILDREN | wx.SP_3DSASH)  # | wxNO_3D
 
         self.contents = HelpBookContentsTreeView(self, model, self)
         self.files = HelpBookFilesView(self, model, False)

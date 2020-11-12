@@ -74,7 +74,7 @@ class ResourceModuleFrm(wx.Frame):
 
     def __init__(self, parent):
         self._init_ctrls(parent)
-        for i, name in zip(range(len(BoaSectionIcons)), BoaSectionIcons):
+        for i, name in zip(list(range(len(BoaSectionIcons))), BoaSectionIcons):
             self.listView.InsertImageStringItem(i, name, i)
 
     def OnBitmapbuttonButton(self, event):

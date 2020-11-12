@@ -83,7 +83,7 @@ class PathsPanel(wx.Panel):
         self.grid.SetColSize(0, colWidth)
         self.grid.SetColSize(1, colWidth)
 
-        for row, (svr, clnt) in zip(range(numRows), self.paths):
+        for row, (svr, clnt) in zip(list(range(numRows)), self.paths):
             self.grid.SetCellValue(row, 0, svr)
             self.grid.SetCellValue(row, 1, clnt)
         self.grid.ForceRefresh()

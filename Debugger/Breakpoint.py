@@ -5,7 +5,7 @@ getBreakpointList()).
 
 import os
 
-try: from cPickle import Pickler, Unpickler
+try: from pickle import Pickler, Unpickler
 except: from pickle import Pickler, Unpickler
 
 
@@ -35,7 +35,7 @@ class FileBreakpointList:
             if len(self.lines):
                 savelines = {}
                 # Filter out the temporary lines when saving.
-                for lineno, linebreaks in self.lines.items():
+                for lineno, linebreaks in list(self.lines.items()):
                     savelines[lineno] = saveline = []
                     for brk in linebreaks:
                         if not brk['temporary']:
@@ -50,7 +50,7 @@ class FileBreakpointList:
 
     def addBreakpoint(self, lineno, temp=0, cond='', ignore=0):
         newbrk = {'temporary':temp, 'cond':cond, 'enabled':1, 'ignore':ignore}
-        if self.lines.has_key(lineno):
+        if lineno in self.lines:
             linebreaks = self.lines[lineno]
             for brk in linebreaks:
                 if brk['temporary'] == temp and brk['cond'] == cond:
@@ -61,11 +61,11 @@ class FileBreakpointList:
             self.lines[lineno] = linebreaks = [newbrk]
 
     def deleteBreakpoints(self, lineno):
-        if self.lines.has_key(lineno):
+        if lineno in self.lines:
             del self.lines[lineno]
 
     def moveBreakpoint(self, lineno, newlineno):
-        if lineno != newlineno and self.lines.has_key(lineno):
+        if lineno != newlineno and lineno in self.lines:
             bp = self.lines[lineno]
             del self.lines[lineno]
             self.lines[lineno] = bp
@@ -74,7 +74,7 @@ class FileBreakpointList:
         set_breaks = []
         # traverse list twice, first deleting then re-adding to avoid stepping
         # on our own toes
-        for brklineno, breaks in self.lines.items():
+        for brklineno, breaks in list(self.lines.items()):
             if lineno < brklineno-1:
                 del self.lines[brklineno]
                 set_breaks.append( (brklineno+delta, breaks) )
@@ -82,26 +82,26 @@ class FileBreakpointList:
             self.lines[brklineno] = breaks
 
     def enableBreakpoints(self, lineno, enable=1):
-        if self.lines.has_key(lineno):
+        if lineno in self.lines:
             linebreaks = self.lines[lineno]
             for brk in linebreaks:
                 brk['enabled'] = enable
 
     def ignoreBreakpoints(self, lineno, ignore=0):
-        if self.lines.has_key(lineno):
+        if lineno in self.lines:
             linebreaks = self.lines[lineno]
             for brk in linebreaks:
                 brk['ignore'] = ignore
 
     def conditionalBreakpoints(self, lineno, cond=''):
-        if self.lines.has_key(lineno):
+        if lineno in self.lines:
             linebreaks = self.lines[lineno]
             for brk in linebreaks:
                 brk['cond'] = cond
 
     def listBreakpoints(self):
         rval = []
-        for lineno, linebreaks in self.lines.items():
+        for lineno, linebreaks in list(self.lines.items()):
             for brk in linebreaks:
                 brkinfo = {'lineno':lineno}
                 brkinfo.update(brk)
@@ -110,15 +110,15 @@ class FileBreakpointList:
 
     def hasBreakpoint(self, lineno, endlineno=-1):
         if endlineno < 0:
-            return self.lines.has_key(lineno)
+            return lineno in self.lines
         else:
-            for line in self.lines.keys():
+            for line in list(self.lines.keys()):
                 if line >= lineno and line <= endlineno:
                     return 1
             return 0
 
     def clearTemporaryBreakpoints(self, lineno):
-        if self.lines.has_key(lineno):
+        if lineno in self.lines:
             linebreaks = self.lines[lineno]
             idx = 0
             while idx < len(linebreaks):
@@ -148,50 +148,50 @@ class BreakpointList:
 
     def deleteBreakpoints(self, filename, lineno):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             filelist.deleteBreakpoints(lineno)
 
     def moveBreakpoint(self, filename, lineno, newlineno):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             filelist.moveBreakpoint(lineno, newlineno)
 
     def adjustBreakpoints(self, filename, lineno, delta):
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             return filelist.adjustBreakpoints(lineno, delta)
         return 0
 
     def enableBreakpoints(self, filename, lineno, enable=1):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             filelist.enableBreakpoints(lineno, enable)
 
     def ignoreBreakpoints(self, filename, lineno, ignore=0):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             filelist.ignoreBreakpoints(lineno, ignore)
 
     def conditionalBreakpoints(self, filename, lineno, cond=''):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             filelist.conditionalBreakpoints(lineno, cond)
 
     def clearTemporaryBreakpoints(self, filename, lineno):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             filelist.clearTemporaryBreakpoints(lineno)
 
     def renameFileBreakpoints(self, oldname, newname):
         oldname = self.normalize(oldname)
         newname = self.normalize(newname)
-        if self.files.has_key(oldname):
+        if oldname in self.files:
             filelist = self.files[oldname]
             filelist.clearAllBreakpoints()
             del self.files[oldname]
@@ -199,7 +199,7 @@ class BreakpointList:
 
     def getFileBreakpoints(self, filename):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             return self.files[filename]
         else:
             self.files[filename] = filelist = FileBreakpointList()
@@ -207,7 +207,7 @@ class BreakpointList:
 
     def hasBreakpoint(self, filename, lineno, endlineno=-1):
         filename = self.normalize(filename)
-        if self.files.has_key(filename):
+        if filename in self.files:
             filelist = self.files[filename]
             return filelist.hasBreakpoint(lineno, endlineno)
         return 0
@@ -221,9 +221,9 @@ class BreakpointList:
         rval = []
         if fn is not None:
             fn = self.normalize(fn)
-        for filename, filelist in self.files.items():
+        for filename, filelist in list(self.files.items()):
             if fn is None or filename == fn:
-                for lineno, linebreaks in filelist.lines.items():
+                for lineno, linebreaks in list(filelist.lines.items()):
                     for brk in linebreaks:
                         brkinfo = {'filename': filename,
                                    'lineno': lineno}

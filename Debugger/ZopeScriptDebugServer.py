@@ -1,4 +1,4 @@
-from IsolatedDebugger import DebugServer
+from .IsolatedDebugger import DebugServer
 
 __traceable__ = 0
 

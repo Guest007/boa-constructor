@@ -72,15 +72,15 @@ class HTTP:
                 host, port = host[:i], host[i+1:]
                 try: port = string.atoi(port)
                 except string.atoi_error:
-                    raise socket.error, "nonnumeric port"
+                    raise socket.error("nonnumeric port")
         if not port: port = HTTP_PORT
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self.debuglevel > 0: print 'connect:', (host, port)
+        if self.debuglevel > 0: print('connect:', (host, port))
         self.sock.connect( (host, port) )
 
     def send(self, str):
         """Send `str' to the server."""
-        if self.debuglevel > 0: print 'send:', `str`
+        if self.debuglevel > 0: print('send:', repr(str))
         self.sock.send(str)
 
     def putrequest(self, request, selector):
@@ -119,7 +119,7 @@ class HTTP:
         """
         self.file = self.sock.makefile('rb')
         line = self.file.readline()
-        if self.debuglevel > 0: print 'reply:', `line`
+        if self.debuglevel > 0: print('reply:', repr(line))
         try:
             [ver, code, msg] = string.split(line, None, 2)
         except ValueError:
@@ -180,13 +180,13 @@ def test():
     h.putrequest('GET', selector)
     h.endheaders()
     errcode, errmsg, headers = h.getreply()
-    print 'errcode =', errcode
-    print 'errmsg  =', errmsg
-    print
+    print('errcode =', errcode)
+    print('errmsg  =', errmsg)
+    print()
     if headers:
-        for header in headers.headers: print string.strip(header)
-    print
-    print h.getfile().read()
+        for header in headers.headers: print(string.strip(header))
+    print()
+    print(h.getfile().read())
 
 
 if __name__ == '__main__':

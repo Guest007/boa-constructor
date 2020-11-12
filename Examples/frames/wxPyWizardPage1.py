@@ -45,4 +45,4 @@ class wxPyWizardPage1(wx.wizard.PyWizardPage):
     Prev = property(GetPrev, SetPrev)
 
     def OnButton1Button(self, event):
-        self.staticText1.SetLabel(`self.GetSize()`)
+        self.staticText1.SetLabel(repr(self.GetSize()))

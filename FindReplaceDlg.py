@@ -55,7 +55,7 @@ def findAgain(parent, finder, view, invertFinderReverse = False):
     else:
         try:
             finder.findNextInSource(view)
-        except FindError, err:
+        except FindError as err:
             wx.MessageBox(str(err), _('Find/Replace'), wx.OK | wx.ICON_INFORMATION, view)
     finder.reverse = oldFinderReverse 
 
@@ -491,7 +491,7 @@ class FindReplaceDlg(wx.Dialog):
                 self.EndModal(wx.ID_OK)
             else:
                 self._checkSelectionDlgOverlap()
-        except FindError, err:
+        except FindError as err:
             wx.MessageBox(str(err), _('Find/Replace'), wx.OK | wx.ICON_INFORMATION, self)
 
     def findAll(self):
@@ -512,7 +512,7 @@ class FindReplaceDlg(wx.Dialog):
             self.engine.replaceInSource(self.view, pattern, replacement)
             self._checkSelectionDlgOverlap()
             self.setComboBoxes('replace')
-        except FindError, err:
+        except FindError as err:
             wx.MessageBox(str(err), _('Find/Replace'), wx.OK | wx.ICON_INFORMATION, self)
 
     def replaceAll(self):
@@ -660,7 +660,7 @@ class FindReplaceDlg(wx.Dialog):
         event.Skip()
 
     def OnBuildInFind(self, event):
-        dlg = wx.SingleChoiceDialog(self, _('Find'), _('Build in finds'), self._mapBuildInFinds.keys())
+        dlg = wx.SingleChoiceDialog(self, _('Find'), _('Build in finds'), list(self._mapBuildInFinds.keys()))
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 selected = dlg.GetStringSelection()

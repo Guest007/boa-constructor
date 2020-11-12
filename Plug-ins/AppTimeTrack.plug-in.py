@@ -44,7 +44,7 @@ class AppTimeTrackView(ListCtrlView):
             #if not path.exists(fn): open(fn, 'w')
 
         i = 0
-        modSort = self.model.modules.keys()
+        modSort = list(self.model.modules.keys())
         modSort.sort()
         for start, end, desc in self.times:
             i = self.addReportItems(i,
@@ -61,17 +61,17 @@ class AppTimeTrackView(ListCtrlView):
         return os.path.splitext(self.model.filename)[0]+'.ttv'
 
     def writeTimeEntry(self, file, start, end, desc):
-        file.write("(%s, %s, %s)\n" % (`start`, `end`, `desc`))
+        file.write("(%s, %s, %s)\n" % (repr(start), repr(end), repr(desc)))
 
     def readTimes(self):
-        from cStringIO import StringIO
+        from io import StringIO
         transp = Explorer.openEx(self.getTTVFilename())
         data = StringIO(transp.load())
 
-        return map(lambda line: eval(line), data.readlines())
+        return [eval(line) for line in data.readlines()]
 
     def writeTimes(self):
-        from cStringIO import StringIO
+        from io import StringIO
         timesFile = StringIO('')#open(self.getTTVFilename(), 'w')
         for start, end, desc in self.times:
             self.writeTimeEntry(timesFile, start, end, desc)

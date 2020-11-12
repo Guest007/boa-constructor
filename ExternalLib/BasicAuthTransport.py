@@ -1,7 +1,7 @@
 from base64 import *
 import string
-import httplib
-import xmlrpclib
+import http.client
+from . import xmlrpclib
 
 class BasicAuthTransport(xmlrpclib.Transport):
     def __init__(self,username=None,password=None):
@@ -9,7 +9,7 @@ class BasicAuthTransport(xmlrpclib.Transport):
         self.password=password
         self.verbose=0
     def request(self,host,handler,request_body,verbose=0):
-        h=httplib.HTTP(host)
+        h=http.client.HTTP(host)
         h.putrequest("POST",handler)
         h.putheader("Host",host)
         h.putheader("User-Agent",self.user_agent)

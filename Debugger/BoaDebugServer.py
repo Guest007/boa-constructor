@@ -6,7 +6,7 @@ __traceable__ = 0
 def StartDebugServer():
     sys.path.append('c:/Path/To/Boa')
 
-    from Debugger.RemoteServer import start
+    from .Debugger.RemoteServer import start
     start('', '') # username, password
 
     return 'Debug Server started, attach to it from the IDE.'

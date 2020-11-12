@@ -129,7 +129,7 @@ style.java.037=
 [style.java.default]
 
 [java]
-displaysrc='''+`javaSource`[1:-1]+'''
+displaysrc='''+repr(javaSource)[1:-1]+'''
 braces={'good': (5, 10), 'bad': (5, 38)}
 keywords=abstract double int strictfp boolean else interface super break extends long switch byte final native synchronized case finally new this catch float package throw har for private throws class goto protected transient const if public try continue implements return void default import short volatile do instanceof static while True False null
 lexer=wx.stc.STC_LEX_CPP

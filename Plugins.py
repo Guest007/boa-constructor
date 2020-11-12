@@ -56,11 +56,11 @@ def importFromPlugins(name):
         if os.path.isfile(modpath):
             break
     else:
-        raise ImportError, _('Module %s could not be found in Plug-ins')%modname
+        raise ImportError(_('Module %s could not be found in Plug-ins')%modname)
 
     mod = new.module(name)
 
-    execfile(modpath, mod.__dict__)
+    exec(compile(open(modpath, "rb").read(), modpath, 'exec'), mod.__dict__)
 
     return mod
 
@@ -224,15 +224,15 @@ def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
     lines = [l.rstrip() for l in open(pluginPrefs).readlines()]
     import moduleparse
     m = moduleparse.Module(pluginName, lines)
-    if not m.globals.has_key(prefName):
-        breakLineNames = m.break_lines.values()
+    if prefName not in m.globals:
+        breakLineNames = list(m.break_lines.values())
         if pluginName not in breakLineNames:
             lineNo = addBlankLine(m, len(lines))
             lineNo = addBlankLine(m, lineNo)
             m.addLine('#-%s%s'%(pluginName, '-' * (80-2-len(pluginName))), lineNo)
             lineNo = addBlankLine(m, lineNo + 1)
         else:
-            for l, n in m.break_lines.items():
+            for l, n in list(m.break_lines.items()):
                 if pluginName == n:
                     lineNo = l + 1
                     break
@@ -247,7 +247,7 @@ def registerPreference(pluginName, prefName, defPrefValSrc, docs=[], info=''):
         
         try:
             value = eval(defPrefValSrc, Preferences.__dict__)
-        except Exception, err:
+        except Exception as err:
             raise PluginError(
                   (_('Could not create default value from "%s" for %s. (%s:%s)')%(
                   defPrefValSrc, prefName, err.__class__, err)))

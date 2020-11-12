@@ -15,7 +15,7 @@ import wx
 
 import Preferences
 from Preferences import IS
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 # Centralised i18n gettext compatible definition
 _ = wx.GetTranslation
@@ -25,7 +25,7 @@ def toPyPath(filename):
     return os.path.join(Preferences.pyPath, filename)
 
 def ShowErrorMessage(parent, caption, mess):
-    dlg = wx.MessageDialog(parent, mess.__class__.__name__ +': '+`mess`,
+    dlg = wx.MessageDialog(parent, mess.__class__.__name__ +': '+repr(mess),
                           caption, wx.OK | wx.ICON_EXCLAMATION)
     try: dlg.ShowModal()
     finally: dlg.Destroy()
@@ -135,8 +135,8 @@ def duplicateMenu(source):
 def getValidName(usedNames, baseName, ext = '', n = 1, itemCB = lambda x:x):
     def tryName(baseName, ext, n):
         return '%s%d%s' %(baseName, n, ext and '.'+ext)
-    while filter(lambda key, name = tryName(baseName, ext, n), itemCB = itemCB: \
-                 itemCB(key) == name, usedNames): n = n + 1
+    while list(filter(lambda key, name = tryName(baseName, ext, n), itemCB = itemCB: \
+                 itemCB(key) == name, usedNames)): n = n + 1
     return tryName(baseName, ext, n)
 
 def srcRefFromCtrlName(ctrlName):
@@ -156,12 +156,12 @@ def winIdRange(count):
 wxNewIds = winIdRange
 
 def methodLooksLikeEvent(method):
-    return len(method) >= 3 and method[:2] == 'On' and method[2] in string.uppercase
+    return len(method) >= 3 and method[:2] == 'On' and method[2].isupper()  # in string.uppercase
 
 def startswith(str, substr):
     return len(str) >= len(substr) and str[:len(substr)] == substr
 
-ws2s = string.maketrans(string.whitespace, ' '*len(string.whitespace))
+ws2s = str.maketrans(string.whitespace, ' '*len(string.whitespace))
 def whitespacetospace(str):
     return str.translate(ws2s)
 
@@ -365,13 +365,13 @@ def wxProxyPanel(parent, Win, *args, **kwargs):
     """
     panel = wx.Panel(parent, -1, style=wx.TAB_TRAVERSAL | wx.CLIP_CHILDREN)
 
-    if type(Win) is types.ClassType or type(Win) is types.TypeType:
+    if type(Win) is type or type(Win) is type:
         win = Win(*((panel,) + args), **kwargs)
     elif isinstance(Win, wx.Window):
         win = Win
         win.Reparent(panel)
     else:
-        raise Exception, _('Unhandled type for Win')
+        raise Exception(_('Unhandled type for Win'))
 
     def OnWinSize(evt, win=win):
         win.SetSize(evt.GetSize())
@@ -396,7 +396,7 @@ def updateFile(src, dst):
         if os.path.splitext(src)[-1] in dofiles and \
               ( not os.path.exists(dst) or \
               os.stat(dst)[stat.ST_MTIME] < os.stat(src)[stat.ST_MTIME]):
-            print 'copying', src, dst
+            print(('copying', src, dst))
             shutil.copy2(src, dst)
 
 
@@ -414,7 +414,7 @@ def visit_update(paths, dirname, names):
     if os.path.basename(dirname) in skipdirs:
         return
     if not os.path.exists(dstdirname):
-        print 'creating', dstdirname
+        print(('creating', dstdirname))
         os.makedirs(dstdirname)
     for name in names:
         srcname = os.path.join(dirname, name)
@@ -443,7 +443,7 @@ class PseudoFile:
         self.output = output
 
     def writelines(self, l):
-        map(self.write, l)
+        list(map(self.write, l))
 
     def write(self, s):
         pass
@@ -514,12 +514,12 @@ def getCtrlsFromDialog(dlg, className):
     """ Returns children of given class from dialog.
 
     This is useful for standard dialogs that does not expose their children """
-    return filter(lambda d, cn=className: d.__class__.__name__ == cn,
-                  dlg.GetChildren())
+    return list(filter(lambda d, cn=className: d.__class__.__name__ == cn,
+                  dlg.GetChildren()))
 
 def html2txt(htmlblock):
-    import htmllib, formatter, StringIO
-    s = StringIO.StringIO('')
+    import htmllib, formatter, io
+    s = io.StringIO('')
     w = formatter.DumbWriter(s)
     f = formatter.AbstractFormatter(w)
     p = htmllib.HTMLParser(f)
@@ -596,7 +596,7 @@ class FrameRestorerMixin:
         if dims == ():
             dims = self.getDimensions()
         conf = createAndReadConfig(self.confFile)
-        conf.set(self.confSection, self.winConfOption, `dims`)
+        conf.set(self.confSection, self.winConfOption, repr(dims))
         writeConfig(conf)
 
     def restoreDefDims(self):
@@ -604,7 +604,7 @@ class FrameRestorerMixin:
         self.loadDims()
 
 def callOnFrameRestorers(method):
-    for name, window in FrameRestorerMixin.frameRestorerWindows.items():
+    for name, window in list(FrameRestorerMixin.frameRestorerWindows.items()):
         if not window:
             del FrameRestorerMixin.frameRestorerWindows[name]
         else:
@@ -936,7 +936,7 @@ def coding_spec(str):
         codecs.lookup(name)
     except LookupError:
         # The standard encoding error does not indicate the encoding
-        raise LookupError, _('Unknown encoding %s')%name
+        raise LookupError(_('Unknown encoding %s')%name)
     return name
 
 unicodeErrorMsg = 'Please change the defaultencoding in sitecustomize.py or '\
@@ -949,23 +949,23 @@ def stringFromControl(u):
     if wx.USE_UNICODE:
         try:
             return str(u)
-        except UnicodeError, err:
+        except UnicodeError as err:
             try:
                 spec = coding_spec(u)
                 if spec is None:
                     raise
                 return u.encode(spec)
-            except UnicodeError, err:
+            except UnicodeError as err:
                 try:
                     s = _('Unable to encode unicode string, please change '\
                           'the defaultencoding in sitecustomize.py to handle this '\
                           'encoding.\nError message %s')%str(err)
-                except UnicodeError, err:
-                    raise Exception, 'Unable to encode unicode string, please change '\
+                except UnicodeError as err:
+                    raise Exception('Unable to encode unicode string, please change '\
                           'the defaultencoding in sitecustomize.py to handle this '\
-                          'encoding.\nError message %s'%str(err)
+                          'encoding.\nError message %s'%str(err))
                 else:
-                    raise Exception, s
+                    raise Exception(s)
     else:
         return u
 
@@ -978,24 +978,24 @@ def stringToControl(s, safe=False):
             if safe:
                 return s.decode(sys.getdefaultencoding(), 'ignore')
             else:
-                return unicode(s)
-        except UnicodeError, err:
+                return str(s)
+        except UnicodeError as err:
             try:
                 spec = coding_spec(s)
                 if spec is None:
                     raise
                 return s.decode(spec)
-            except UnicodeError, err:
+            except UnicodeError as err:
                 try:
                     s = _('Unable to decode unicode string, please change '\
                           'the defaultencoding in sitecustomize.py to handle this '\
                           'encoding.\n Error message %s')
-                except UnicodeError, err:
-                    raise Exception, 'Unable to decode unicode string, please change '\
+                except UnicodeError as err:
+                    raise Exception('Unable to decode unicode string, please change '\
                           'the defaultencoding in sitecustomize.py to handle this '\
-                          'encoding.\n Error message %s'%str(err)
+                          'encoding.\n Error message %s'%str(err))
                 else:
-                    raise Exception, s
+                    raise Exception(s)
     else:
         return s
 

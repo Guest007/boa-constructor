@@ -1,7 +1,7 @@
 #Boa:FramePanel:ImageEditorPanel
 
 import os, math, tempfile
-from cStringIO import StringIO
+from io import StringIO
 
 import wx
 from wx.lib.anchors import LayoutAnchors
@@ -298,7 +298,7 @@ class ImageEditorPanel(wx.Panel):
 
     def setMemDCBmp(self, bmp):
         if not bmp or not bmp.Ok():
-            raise Exception, _('Invalid bitmap')
+            raise Exception(_('Invalid bitmap'))
         self.mDC.SelectObject(wx.NullBitmap)
         self.bmp = bmp
         self.mDC.SelectObject(self.bmp)
@@ -1025,7 +1025,7 @@ class BitmapEditorFileController(Controllers.PersistentController):
 
     def OnGotoEditView(self, event):
         model = self.getModel()
-        if not model.views.has_key('Edit'):
+        if 'Edit' not in model.views:
             modPge = self.editor.getActiveModulePage()
             for View, wid in modPge.adtViews:
                 if View == ImageEditorView:
@@ -1069,7 +1069,7 @@ class PyResourceImagesViewPlugin:
             if name:
                 viewName += ':'+name
 
-            if not self.model.views.has_key(viewName):
+            if viewName not in self.model.views:
                 modPge = self.model.editor.getActiveModulePage()
                 view = modPge.addView(CloseableImageEditorView, viewName)
                 view.tabName = view.viewName = viewName

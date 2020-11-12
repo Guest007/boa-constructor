@@ -9,19 +9,19 @@
 # Copyright:   (c) 2003 - 2007
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing Companions.LibCompanions'
+print('importing Companions.LibCompanions')
 
 import wx
 
 from Utils import _
 
-import Constructors, ContainerCompanions, BasicCompanions
-from BaseCompanions import WindowDTC
-from BasicCompanions import StaticTextDTC, TextCtrlDTC, ComboBoxDTC
-from ContainerCompanions import PanelDTC
+from . import Constructors, ContainerCompanions, BasicCompanions
+from .BaseCompanions import WindowDTC
+from .BasicCompanions import StaticTextDTC, TextCtrlDTC, ComboBoxDTC
+from .ContainerCompanions import PanelDTC
 
 from PropEdit import PropertyEditors, InspectorEditorControls
-import EventCollections
+from . import EventCollections
 
 from PropEdit import MaskedEditFmtCodeDlg, BitmapListEditorDlg
 
@@ -68,7 +68,7 @@ class AutoFormatPropMixin:
         self.editors['Autoformat'] = PropertyEditors.StringEnumPropEdit
 
         from wx.lib.masked import maskededit
-        autofmt = maskededit.masktags.keys()
+        autofmt = list(maskededit.masktags.keys())
         autofmt.sort()
         self.options['Autoformat'] = [s for s in ['']+autofmt]
         self.names['Autoformat'] = {}
@@ -222,7 +222,7 @@ class SpinButtonEnumConstrPropEdit(PropertyEditors.ObjEnumConstrPropEdit):
     def getObjects(self):
         designer = self.companion.designer#.controllerView
         windows = designer.getObjectsOfClass(wx.SpinButton)
-        windowNames = windows.keys()
+        windowNames = list(windows.keys())
         windowNames.sort()
         res = ['None'] + windowNames
         if self.value != 'None':
@@ -230,7 +230,7 @@ class SpinButtonEnumConstrPropEdit(PropertyEditors.ObjEnumConstrPropEdit):
         return res
 
     def getDisplayValue(self):
-        return `self.valueToIECValue()`
+        return repr(self.valueToIECValue())
 
     def getCtrlValue(self):
         return self.companion.GetSpinButton()
@@ -432,7 +432,7 @@ class ScrolledPanelDTC(Constructors.WindowConstr,
         return {'pos':   position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.TAB_TRAVERSAL',
-                'name':  `self.name`}
+                'name':  repr(self.name)}
 
     def writeImports(self):
         return '\n'.join( (ContainerCompanions.ScrolledWindowDTC.writeImports(self),
@@ -515,13 +515,13 @@ class FileBrowseButtonDTC(PanelDTC):
         return {'pos':   position,
                 'size': 'wx.Size(296, 48)',
                 'style': 'wx.TAB_TRAVERSAL',
-                'labelText': `'File Entry:'`,
-                'buttonText': `'Browse'`,
-                'toolTip': `'Type filename or click browse to choose file'`,
-                'dialogTitle': `'Choose a file'`,
-                'startDirectory': `'.'`,
-                'initialValue': `''`,
-                'fileMask': `'*.*'`,
+                'labelText': repr('File Entry:'),
+                'buttonText': repr('Browse'),
+                'toolTip': repr('Type filename or click browse to choose file'),
+                'dialogTitle': repr('Choose a file'),
+                'startDirectory': repr('.'),
+                'initialValue': repr(''),
+                'fileMask': repr('*.*'),
                 }
 
     def constructor(self):
@@ -543,11 +543,11 @@ class DirBrowseButtonDTC(FileBrowseButtonDTC):
         return {'pos':   position,
                 'size': 'wx.Size(296, 48)',
                 'style': 'wx.TAB_TRAVERSAL',
-                'labelText': `'Select a directory:'`,
-                'buttonText': `'Browse'`,
-                'toolTip': `'Type directory name or browse to select'`,
-                'dialogTitle': `''`,
-                'startDirectory': `'.'`,
+                'labelText': repr('Select a directory:'),
+                'buttonText': repr('Browse'),
+                'toolTip': repr('Type directory name or browse to select'),
+                'dialogTitle': repr(''),
+                'startDirectory': repr('.'),
                 'newDirectory': 'False',
                 }
 
@@ -594,7 +594,7 @@ class ThrobberDTC(PanelDTC):
         return {'pos':   position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
-                'name': `self.name`,
+                'name': repr(self.name),
                 'bitmap': '[wx.NullBitmap]', 
                 'frameDelay': '0.1',
                 'label': 'None',
@@ -629,13 +629,13 @@ class TickerDTC(WindowDTC):
                 'Direction': 'direction'}
 
     def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'text': `self.name`,
+        return {'text': repr(self.name),
                 'start': 'False',
-                'direction': `'rtl'`,
+                'direction': repr('rtl'),
                 'pos': position,
                 'size': size,
                 'style': '0',
-                'name': `self.name`}
+                'name': repr(self.name)}
                                 
 #-------------------------------------------------------------------------------
 

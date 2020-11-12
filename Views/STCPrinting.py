@@ -249,7 +249,7 @@ class STCPrintout(wx.Printout):
         # printing
         if not self.IsPreview():
             if ep < stcEndPos:
-                print _('warning: on page %s: not enough chars rendered, diff:')%(page, stcEndPos-ep)
+                print(_('warning: on page %s: not enough chars rendered, diff:')%(page, stcEndPos-ep))
 
         return True
 
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     frame.stc = wx.stc.StyledTextCtrl(frame, -1)
     frame.stc.SetText(open(testFile).read())
     config = os.path.abspath('../Config/stc-styles.rc.cfg')
-    from STCStyleEditor import initSTC
+    from .STCStyleEditor import initSTC
     initSTC(frame.stc, config, 'python')
     # print dlg for prepared stc
     dlg = STCPrintDlg(frame, frame.stc, testFile)

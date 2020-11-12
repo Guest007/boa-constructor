@@ -35,7 +35,7 @@ this to start and stop the dragging.
 try:
     import wx.lib.dragscroller
 except ImportError:
-    raise Plugins.SkipPluginSilently, _('Module %s not found')%'wx.lib.dragscroller'
+    raise Plugins.SkipPluginSilently(_('Module %s not found')%'wx.lib.dragscroller')
 
 from Companions import UtilCompanions
 from PropEdit import PropertyEditors

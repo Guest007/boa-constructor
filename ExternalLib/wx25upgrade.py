@@ -49,7 +49,7 @@
 # A lot is converted however manual inspection and correction of code
 # IS STILL REQUIRED!
 
-from pyparsing import *
+from .pyparsing import *
 import string
 import copy
 
@@ -305,7 +305,7 @@ class Upgrade:
         imp.setParseAction(self.impAction)
 
         # Specific name space changes
-        repWXSpec = Or(map(Literal, self.specialNames2.keys()))
+        repWXSpec = Or(list(map(Literal, list(self.specialNames2.keys()))))
         repWXSpec.setParseAction(self.repNamespace)
 
         # wx to wx. e.g. wxFrame1(wxFrame)to wxFrame1(wx.Frame)
@@ -488,7 +488,7 @@ class Upgrade:
     def custClassAction(self, s, l, t):
         res = "_custom_classes" + " = {"
         dictTokens = t.dictData
-        for k in dictTokens.keys():
+        for k in list(dictTokens.keys()):
             res = res + k.replace("wx", "wx.")  + ": "
             res = res + str(dictTokens[k])
             res = res + ","
@@ -503,11 +503,11 @@ if __name__ == "__main__":
     import sys
     u = Upgrade()
     if len(sys.argv) < 2:
-        print "usage: python wx25update.py <boafile>"
+        print("usage: python wx25update.py <boafile>")
         sys.exit(1)
     filename = sys.argv[1]
     fin = file(filename, "r")
     try:
-        print u.upgrade(fin.read())
+        print(u.upgrade(fin.read()))
     finally:
         fin.close()

@@ -9,7 +9,7 @@
 # Copyright:   (c) 2001 - 2007
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing ZopeLib.ZopeViews'
+print('importing ZopeLib.ZopeViews')
 
 import os, time
 
@@ -89,11 +89,11 @@ class ZopeHTMLView(HTMLView):
     viewName = 'View'
     viewTitle = 'View'
     def generatePage(self):
-        import urllib
+        import urllib.request, urllib.parse, urllib.error
         url = 'http://%s:%d/%s'%(self.model.transport.properties['host'],
               self.model.transport.properties['httpport'],
               self.model.transport.whole_name())
-        f = urllib.urlopen(url)
+        f = urllib.request.urlopen(url)
         s = f.read()
         return s
 
@@ -116,7 +116,7 @@ class ZopeUndoView(ListCtrlView):
 
         try:
             undos = self.model.transport.getUndoableTransactions()
-        except xmlrpclib.Fault, error:
+        except xmlrpclib.Fault as error:
             wx.LogError(Utils.html2txt(error.faultString))
         else:
             i = 0
@@ -132,9 +132,9 @@ class ZopeUndoView(ListCtrlView):
         if self.selected != -1:
             try:
                 self.model.transport.undoTransaction([self.undoIds[self.selected]])
-            except xmlrpclib.Fault, error:
+            except xmlrpclib.Fault as error:
                 wx.LogError(Utils.html2txt(error.faultString))
-            except xmlrpclib.ProtocolError, error:
+            except xmlrpclib.ProtocolError as error:
                 if error.errmsg == 'Moved Temporarily':
                     # This is actually a successful move
                     self.refreshCtrl()
@@ -168,8 +168,7 @@ class ZopeSecurityView(ListCtrlView):
         i = 0
         for perm in perms:
             self.addReportItems(*(i, ((perm['acquire'] == 'CHECKED' and '*' or '',
-                  perm['name']) + tuple(map( lambda x: x['checked'] == 'CHECKED' and '*' or '',
-                  perm['roles'])) )))
+                  perm['name']) + tuple([x['checked'] == 'CHECKED' and '*' or '' for x in perm['roles']]) )))
             i = i + 1
 
         self.pastelise()
@@ -259,7 +258,7 @@ class ZopeSiteErrorLogView(ListCtrlView):
 
         try:
             entries = errLogNode.getResource().getLogEntries()
-        except xmlrpclib.Fault, error:
+        except xmlrpclib.Fault as error:
             wx.LogError(Utils.html2txt(error.faultString))
         else:
 
@@ -287,7 +286,7 @@ class ZopeSiteErrorLogView(ListCtrlView):
             errLogNode = self.model.transport
             try:
                 textEntry = errLogNode.getResource().getLogEntryAsText(logId)
-            except xmlrpclib.Fault, error:
+            except xmlrpclib.Fault as error:
                 wx.LogError(Utils.html2txt(error.faultString))
             else:
                 lines = textEntry.split('\n')

@@ -3,7 +3,7 @@ import wx
 import Preferences, Utils, Plugins
 
 if not Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
-    raise Plugins.SkipPlugin, 'Zope support is not enabled'
+    raise Plugins.SkipPlugin('Zope support is not enabled')
 
 from ZopeLib.ZopeCompanions import ZopeCompanion, DBAdapterZC
 from Models import EditorHelper, Controllers, XMLSupport, HTMLSupport
@@ -78,7 +78,7 @@ class LFNode(LFSNode):
         zc = ZopeConnection()
         zc.connect(props['host'], props['httpport'],
                    props['username'], props['passwd'])
-        from cStringIO import StringIO
+        from io import StringIO
         file = StringIO(data)
         dirname, file.name = os.path.split(filename)
         zc.callkw(dirname, 'manage_upload',

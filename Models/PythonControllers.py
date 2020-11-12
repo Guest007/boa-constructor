@@ -9,7 +9,7 @@
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
 #-----------------------------------------------------------------------------
-print 'importing Models.PythonControllers'
+print('importing Models.PythonControllers')
 
 import os, sys, time, imp, marshal, stat
 
@@ -21,9 +21,9 @@ from Utils import _
 
 import PaletteStore
 
-import Controllers
-from Controllers import SourceController, EditorController, addTool
-import EditorHelper, EditorModels, PythonEditorModels
+from . import Controllers
+from .Controllers import SourceController, EditorController, addTool
+from . import EditorHelper, EditorModels, PythonEditorModels
 
 from Views import EditorViews, AppViews, SourceViews, PySourceView, OGLViews, ProfileView
 
@@ -120,7 +120,7 @@ class ModuleController(SourceController):
 
         try:
             statFile, modtime, profDir = model.profile()
-        except Exception, err:
+        except Exception as err:
             wx.LogError(str(err))
             return
 
@@ -138,7 +138,7 @@ class ModuleController(SourceController):
 
         resName = _('Profile stats: %s')%time.strftime('%H:%M:%S', 
               time.localtime(time.time()))
-        if not model.views.has_key(resName):
+        if resName not in model.views:
             resultView = self.editor.addNewView(resName,
               ProfileView.ProfileStatsView)
         else:
@@ -195,7 +195,7 @@ class ModuleController(SourceController):
         
         try:
             Preferences.getPythonInterpreterPath()
-        except Exception, err:
+        except Exception as err:
             wx.LogError(str(err))
             return
         
@@ -365,7 +365,7 @@ class ModuleController(SourceController):
                 wx.EndBusyCursor()
 
             resName = _('Cyclops report: %s')%time.strftime('%H:%M:%S', time.localtime(time.time()))
-            if not model.views.has_key(resName):
+            if resName not in model.views:
                 resultView = self.editor.addNewView(resName, EditorViews.CyclopsView)
             else:
                 resultView = model.views[resName]
@@ -392,7 +392,7 @@ class ModuleController(SourceController):
         chooseApps = {}
         for app in openApps:
             chooseApps[os.path.basename(app.filename)] = app
-        dlg = wx.SingleChoiceDialog(self.editor, msg, capt, chooseApps.keys())
+        dlg = wx.SingleChoiceDialog(self.editor, msg, capt, list(chooseApps.keys()))
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 return chooseApps[dlg.GetStringSelection()]
@@ -497,7 +497,7 @@ class BaseAppController(ModuleController):
     def OnSaveAll(self, event):
         model = self.getModel()
         if model:
-            for modulePage in self.editor.modules.values():
+            for modulePage in list(self.editor.modules.values()):
                 mod = modulePage.model
                 if mod != model:
                     if hasattr(mod, 'app') and mod.app == model and \
@@ -516,7 +516,7 @@ class BaseAppController(ModuleController):
             if fn:
                 filename = model.assertLocalFile(fn)
                 tbName = 'App. Compare : '+filename
-                if not model.views.has_key(tbName):
+                if tbName not in model.views:
                     from Views.AppViews import AppCompareView
                     resultView = self.editor.addNewView(tbName, AppCompareView)
                 else:
@@ -577,7 +577,7 @@ class PythonExtensionController(EditorController):
         return self.Model(source, filename, self.editor, saved)
 
     def createNewModel(self, modelParent=None):
-        raise Exception, _('Cannot create a new Python Extension, use distutils to build it')
+        raise Exception(_('Cannot create a new Python Extension, use distutils to build it'))
 
     def new(self):
         pass
@@ -632,7 +632,7 @@ class SetupController(ModuleController):
         os.chdir(filedir)
         try:
             ProcessModuleRunner(self.editor.erroutFrm, filedir).run(\
-            '"%s" setup.py %s'%(`Preferences.getPythonInterpreterPath()`[1:-1], cmd),
+            '"%s" setup.py %s'%(repr(Preferences.getPythonInterpreterPath())[1:-1], cmd),
             caption=_('Running distutil command...'))
         finally:
             os.chdir(cwd)

@@ -15,7 +15,7 @@
 import wx
 from wx.lib.anchors import LayoutAnchors
 
-import os, time, sys, StringIO
+import os, time, sys, io
 
 # XXX Change to be non-modal, minimizable and run CVS operation in thread !!
 
@@ -188,8 +188,8 @@ class ProcessProgressDlg(wx.Dialog, ProcessRunnerMix):
             event.Skip()
 
     def prepareResult(self):
-        self.output = StringIO.StringIO(''.join(self.output)).readlines()
-        self.errors = StringIO.StringIO(''.join(self.errors)).readlines()
+        self.output = io.StringIO(''.join(self.output)).readlines()
+        self.errors = io.StringIO(''.join(self.errors)).readlines()
 
     def OnCancelbtnButton(self, event):
         if not self.finished:
@@ -227,11 +227,11 @@ if __name__ == '__main__':
         class TestProcessRunner(ProcessRunner):
             def updateErrStream(self, stream, data):
                 txt = ProcessRunner.updateErrStream(self, stream, data)
-                if txt is not None: print 'error: %s'%txt
+                if txt is not None: print(('error: %s'%txt))
 
             def updateOutStream(self, stream, data):
                 txt = ProcessRunner.updateOutStream(self, stream, data)
-                if txt is not None: print 'output: %s'%txt
+                if txt is not None: print(('output: %s'%txt))
 
             def OnProcessEnded(self, event):
                 ProcessRunnerMix.OnProcessEnded(self, event)

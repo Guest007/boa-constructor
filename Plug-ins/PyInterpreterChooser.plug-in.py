@@ -153,7 +153,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
 
     def populateFoundInstallations(self):
         paths = self.installedPaths = self.getInstallations()
-        for idx, (version, path) in zip(range(len(paths)), paths):
+        for idx, (version, path) in zip(list(range(len(paths))), paths):
             self.lcInstallations.InsertStringItem(idx, version)
             self.lcInstallations.SetStringItem(idx, 1, path)
 
@@ -179,7 +179,7 @@ class PyInterpreterChooserDlg(wx.Dialog):
         # XXX search common locations on Linux and Mac?
 
         try:
-            import _winreg as winreg
+            import winreg as winreg
         except ImportError:
             return res
 

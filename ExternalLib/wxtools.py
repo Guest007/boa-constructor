@@ -6,7 +6,7 @@ Created on Jul 28, 2014
 
 # Code from wxPython-2.8 wx.tools.img2py
 import zlib
-import cStringIO
+import io
 def crunch_data(data, compressed):
     # compress it?
     if compressed:
@@ -16,7 +16,7 @@ def crunch_data(data, compressed):
     data = repr(data)
 
     # This next bit is borrowed from PIL.  It is used to wrap the text intelligently.
-    fp = cStringIO.StringIO()
+    fp = io.StringIO()
     data = data + " "  # buffer for the +1 test
     c = i = 0
     word = ""

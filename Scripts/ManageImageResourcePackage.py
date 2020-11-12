@@ -38,7 +38,8 @@ if not hasattr(sys, 'frozen'):
             )
 '''
 
-def visitDir((onlyCleanup, packages), dirname, names):
+def visitDir(xxx_todo_changeme, dirname, names):
+    (onlyCleanup, packages) = xxx_todo_changeme
     for name in names:
         path = os.path.join(dirname, name)
         if os.path.isdir(path):
@@ -71,7 +72,7 @@ def createPackageInitFiles(paths, onlyCleanup=False):
             cur_path = sys.path
             try:
                 sys.path = [os.path.dirname(init_file)]+cur_path
-                execfile(init_file, {'__file__': init_file})
+                exec(compile(open(init_file, "rb").read(), init_file, 'exec'), {'__file__': init_file})
             finally:
                 sys.path = cur_path
         

@@ -344,13 +344,13 @@ __version__ = 0, 9, 4
 # printed.
 
 def _dict_refs(x):
-    return x.keys() + x.values()
+    return list(x.keys()) + list(x.values())
 def _dict_tag(x, i):
     n = len(x)
     if i < n:
         return ".keys()[%d]" % i
     else:
-        return "[%s]" % _quickrepr(x.keys()[i-n])
+        return "[%s]" % _quickrepr(list(x.keys())[i-n])
 
 def _list_refs(x):
     return x
@@ -362,37 +362,37 @@ _tuple_tag = _list_tag
 
 def _instance_refs(x):
     # the keys are strings, so not interesting to return
-    return x.__dict__.values()
+    return list(x.__dict__.values())
 def _instance_tag(x, i):
-    return "." + x.__dict__.keys()[i]
+    return "." + list(x.__dict__.keys())[i]
 
 _class_refs = _instance_refs
 _class_tag = _instance_tag
 
 def _instance_method_refs(x):
-    return (x.im_self, x.im_class)
+    return (x.__self__, x.__self__.__class__)
 def _instance_method_tag(x, i):
     return (".im_self", ".im_class")[i]
 
 import types
 _default_refs_dispatcher = {
-    types.DictType: _dict_refs,
-    types.ListType: _list_refs,
-    types.TupleType: _tuple_refs,
+    dict: _dict_refs,
+    list: _list_refs,
+    tuple: _tuple_refs,
     types.InstanceType: _instance_refs,
-    types.ClassType: _class_refs,
+    type: _class_refs,
     types.MethodType: _instance_method_refs,
 }
 _default_tag_dispatcher = {
-    types.DictType: _dict_tag,
-    types.ListType: _list_tag,
-    types.TupleType: _tuple_tag,
+    dict: _dict_tag,
+    list: _list_tag,
+    tuple: _tuple_tag,
     types.InstanceType: _instance_tag,
-    types.ClassType: _class_tag,
+    type: _class_tag,
     types.MethodType: _instance_method_tag,
 }
 _InstanceType = types.InstanceType
-_ClassType = types.ClassType
+_ClassType = type
 del types
 
 del _dict_refs, _list_refs, _tuple_refs, _instance_refs, \
@@ -409,7 +409,7 @@ del _dict_tag, _list_tag, _tuple_tag, _instance_tag, \
 # chopping their reprs at all.  We're only trying to prevent massive
 # expense for massive lists, tuples & dicts.
 
-import repr
+import reprlib
 _repr = repr
 del repr
 
@@ -434,7 +434,7 @@ class _CyclopsRepr(_repr.Repr):
         if level <= 0:
             return '{...}'
         s = ''
-        for k, v in x.items()[:min(n, self.maxdict)]:
+        for k, v in list(x.items())[:min(n, self.maxdict)]:
             if s:
                 s = s + ', '
             s = s + self.repr1(k, level-1)
@@ -447,7 +447,7 @@ class _CyclopsRepr(_repr.Repr):
 
     def repr_instance(self, x, level):
         try:
-            return `x`
+            return repr(x)
             # Bugs in x.__repr__() can cause arbitrary
             # exceptions -- then make up something
         except:
@@ -455,7 +455,7 @@ class _CyclopsRepr(_repr.Repr):
                    hex(id(x))[2:] + '>'
 
     def repr_class(self, x, level):
-        return `x`
+        return repr(x)
 
     repr_instance_method = repr_class
 
@@ -517,7 +517,7 @@ class CycleFinder:
         import sys
         sys.setprofile(self.__init_tracer)
         try:
-            return apply(func, args, kwargs)
+            return func(*args, **kwargs)
         finally:
             sys.setprofile(None)
 
@@ -560,7 +560,7 @@ class CycleFinder:
         # Compute true refcounts for objects in cycles.
         id2rc = self.id2rc
         from sys import getrefcount
-        for x in self.cycleobjs.values():
+        for x in list(self.cycleobjs.values()):
             # From the system refcount, subtract one for each of:
             #    being an element in the loop temp cycleobjs.values()
             #    being bound to "x"
@@ -589,10 +589,10 @@ class CycleFinder:
         # root set objects.
         for x in self.roots:
             xid = id(x)
-            if id2rc.has_key(xid):
+            if xid in id2rc:
                 id2rc[xid] = id2rc[xid] - 1
             else:
-                assert not self.cycleobjs.has_key(xid)
+                assert xid not in self.cycleobjs
                 # Subtract one for each of:
                 #     being bound to "x"
                 #     being an argument to getrefcount
@@ -615,24 +615,24 @@ class CycleFinder:
         """Print statistics for the last run of find_cycles."""
 
         self._print_separator()
-        print "# objects in root set:", len(self.roots)
-        print "# distinct structured objects reachable:", len(self.seenids)
-        print "# distinct structured objects in cycles:", len(self.cycleobjs)
-        print "# cycles found:", len(self.cycles)
-        print "# cycles filtered out:", self.ncyclesignored
-        print "# strongly-connected components:", len(self.sccno2objs)
-        print "# arcs examined:", self.narcs
+        print("# objects in root set:", len(self.roots))
+        print("# distinct structured objects reachable:", len(self.seenids))
+        print("# distinct structured objects in cycles:", len(self.cycleobjs))
+        print("# cycles found:", len(self.cycles))
+        print("# cycles filtered out:", self.ncyclesignored)
+        print("# strongly-connected components:", len(self.sccno2objs))
+        print("# arcs examined:", self.narcs)
 
     def show_cycles(self):
         """Print all cycles to stdout."""
 
         self._print_separator()
-        print "# all cycles:"
+        print("# all cycles:")
         n = len(self.cycles)
-        for i in xrange(n):
+        for i in range(n):
             self._print_cycle(self.cycles[i])
             if i < n-1:
-                print "-" * 20
+                print("-" * 20)
 
     def show_cycleobjs(self, compare=typename_address_cmp):
         """compare=typename_address_cmp -> print all objects in cycles.
@@ -647,8 +647,8 @@ class CycleFinder:
         """
 
         self._print_separator()
-        print "# objects involved in cycles:"
-        objs = self.cycleobjs.values()
+        print("# objects involved in cycles:")
+        objs = list(self.cycleobjs.values())
         objs.sort(compare)
         for obj in objs:
             self.show_obj(obj)
@@ -664,11 +664,11 @@ class CycleFinder:
         """
 
         self._print_separator()
-        print "# cycle objects partitioned into maximal SCCs:"
-        sccs = self.sccno2objs.values()
+        print("# cycle objects partitioned into maximal SCCs:")
+        sccs = list(self.sccno2objs.values())
         n = len(sccs)
-        for i in xrange(n):
-            print "--- SCC", i+1, "of", n
+        for i in range(n):
+            print("--- SCC", i+1, "of", n)
             objs = sccs[i]
             objs.sort(compare)
             for obj in objs:
@@ -687,14 +687,14 @@ class CycleFinder:
         """
 
         self._print_separator()
-        print "# arc types involved in cycles:"
-        items = self.arctypes.items()
+        print("# arc types involved in cycles:")
+        items = list(self.arctypes.items())
         if compare:
             items.sort(compare)
         else:
             items.sort()
         for triple, count in items:
-            print "%6d %-20s %-20s -> %-20s" % ((count,) + triple)
+            print("%6d %-20s %-20s -> %-20s" % ((count,) + triple))
 
     def get_rootset(self):
         """Return the root set, as a list of (rc, cyclic?, obj) tuples.
@@ -744,7 +744,7 @@ class CycleFinder:
     def get_chased_types(self):
         """Return the set of chased types, as a list."""
 
-        return self.refs_dispatcher.keys()
+        return list(self.refs_dispatcher.keys())
 
     def __init_tracer(self, frame, event, args):
         try:
@@ -763,7 +763,7 @@ class CycleFinder:
                     # first argname is first element of locals
                     self.register(frame.f_locals[locals[0]])
         except:
-            print `event`, frame, frame.f_code, frame.f_code.co_name
+            print(repr(event), frame, frame.f_code, frame.f_code.co_name)
 
 
     def __reset(self):
@@ -841,7 +841,7 @@ class CycleFinder:
         stack.append((obj, i))
         refs = refs_dispatcher[type(obj)](obj)
         self.narcs = self.narcs + len(refs)
-        for i in xrange(len(refs)):
+        for i in range(len(refs)):
             child = refs[i]
             if is_interesting_type(type(child)):
                 childid = id(child)
@@ -882,7 +882,7 @@ class CycleFinder:
             self.sccno2objs[sccnowinner] = []
         classwinner = self.sccno2objs[sccnowinner]
 
-        for i in xrange(len(slice)-1):
+        for i in range(len(slice)-1):
             obj1 = slice[i][0]
             key1 = self.__obj2arcname(obj1)
 
@@ -945,34 +945,34 @@ class CycleFinder:
 
         objid = id(obj)
         rc = self.id2rc.get(objid, "?")
-        print hex(objid), "rc:" + str(rc), type(obj).__name__,
+        print(hex(objid), "rc:" + str(rc), type(obj).__name__, end=' ')
         if hasattr(obj, "__class__"):
-            print obj.__class__,
-        print
-        print "    repr:", _quickrepr(obj)
+            print(obj.__class__, end=' ')
+        print()
+        print("    repr:", _quickrepr(obj))
 
     def _print_separator(self):
-        print "*" * 70
+        print("*" * 70)
 
     def _print_cycle(self, slice):
         n = len(slice)
         assert n >= 2
-        print "%d-element cycle" % (n-1)
-        for i in xrange(n):
+        print("%d-element cycle" % (n-1))
+        for i in range(n):
             obj = slice[i][0]
             self.show_obj(obj)
             if i < n-1:
                 index = slice[i+1][1]
-                print "    this" + \
+                print("    this" + \
                       self.tag_dispatcher[type(obj)](obj, index), \
-                      "->"
+                      "->")
 
 def _test():
     class X:
         def __init__(self, name):
             self.name = name
         def __repr__(self):
-            return "X(" + `self.name` + ")"
+            return "X(" + repr(self.name) + ")"
 
     a, b, c, d = X('a'), X('b'), X('c'), X('d')
     a.k = b
@@ -1001,7 +1001,7 @@ def _test():
     z.show_cycleobjs()
     z.show_sccs()
     z.show_arcs()
-    print "dead root set objects:"
+    print("dead root set objects:")
     for rc, cyclic, x in z.get_rootset():
         if rc == 0:
             z.show_obj(x)

@@ -15,8 +15,8 @@ This module is (c) 2006 Riaan Booysen and licensed under the Python license.
 """
 
 import wx
-from wx import ImageFromStream, BitmapFromImage
-import cStringIO
+from wx import Image as ImageFromStream, Bitmap as BitmapFromImage
+import io
 
 catalog = {}
 index = []
@@ -42,7 +42,7 @@ def getAEBitmap():
     return BitmapFromImage(getAEImage())
 
 def getAEImage():
-    stream = cStringIO.StringIO(getAEData())
+    stream = io.StringIO(getAEData())
     return ImageFromStream(stream)
 
 index.append('AE')
@@ -77,7 +77,7 @@ def getAFBitmap():
     return BitmapFromImage(getAFImage())
 
 def getAFImage():
-    stream = cStringIO.StringIO(getAFData())
+    stream = io.StringIO(getAFData())
     return ImageFromStream(stream)
 
 index.append('AF')
@@ -113,7 +113,7 @@ def getALBitmap():
     return BitmapFromImage(getALImage())
 
 def getALImage():
-    stream = cStringIO.StringIO(getALData())
+    stream = io.StringIO(getALData())
     return ImageFromStream(stream)
 
 index.append('AL')
@@ -145,7 +145,7 @@ def getAMBitmap():
     return BitmapFromImage(getAMImage())
 
 def getAMImage():
-    stream = cStringIO.StringIO(getAMData())
+    stream = io.StringIO(getAMData())
     return ImageFromStream(stream)
 
 index.append('AM')
@@ -178,7 +178,7 @@ def getARBitmap():
     return BitmapFromImage(getARImage())
 
 def getARImage():
-    stream = cStringIO.StringIO(getARData())
+    stream = io.StringIO(getARData())
     return ImageFromStream(stream)
 
 index.append('AR')
@@ -208,7 +208,7 @@ def getATBitmap():
     return BitmapFromImage(getATImage())
 
 def getATImage():
-    stream = cStringIO.StringIO(getATData())
+    stream = io.StringIO(getATData())
     return ImageFromStream(stream)
 
 index.append('AT')
@@ -249,7 +249,7 @@ def getAUBitmap():
     return BitmapFromImage(getAUImage())
 
 def getAUImage():
-    stream = cStringIO.StringIO(getAUData())
+    stream = io.StringIO(getAUData())
     return ImageFromStream(stream)
 
 index.append('AU')
@@ -284,7 +284,7 @@ def getAZBitmap():
     return BitmapFromImage(getAZImage())
 
 def getAZImage():
-    stream = cStringIO.StringIO(getAZData())
+    stream = io.StringIO(getAZData())
     return ImageFromStream(stream)
 
 index.append('AZ')
@@ -314,7 +314,7 @@ def getBEBitmap():
     return BitmapFromImage(getBEImage())
 
 def getBEImage():
-    stream = cStringIO.StringIO(getBEData())
+    stream = io.StringIO(getBEData())
     return ImageFromStream(stream)
 
 index.append('BE')
@@ -345,7 +345,7 @@ def getBGBitmap():
     return BitmapFromImage(getBGImage())
 
 def getBGImage():
-    stream = cStringIO.StringIO(getBGData())
+    stream = io.StringIO(getBGData())
     return ImageFromStream(stream)
 
 index.append('BG')
@@ -377,7 +377,7 @@ def getBHBitmap():
     return BitmapFromImage(getBHImage())
 
 def getBHImage():
-    stream = cStringIO.StringIO(getBHData())
+    stream = io.StringIO(getBHData())
     return ImageFromStream(stream)
 
 index.append('BH')
@@ -417,7 +417,7 @@ def getBIBitmap():
     return BitmapFromImage(getBIImage())
 
 def getBIImage():
-    stream = cStringIO.StringIO(getBIData())
+    stream = io.StringIO(getBIData())
     return ImageFromStream(stream)
 
 index.append('BI')
@@ -439,7 +439,7 @@ def getBLANKBitmap():
     return BitmapFromImage(getBLANKImage())
 
 def getBLANKImage():
-    stream = cStringIO.StringIO(getBLANKData())
+    stream = io.StringIO(getBLANKData())
     return ImageFromStream(stream)
 
 index.append('BLANK')
@@ -477,7 +477,7 @@ def getBNBitmap():
     return BitmapFromImage(getBNImage())
 
 def getBNImage():
-    stream = cStringIO.StringIO(getBNData())
+    stream = io.StringIO(getBNData())
     return ImageFromStream(stream)
 
 index.append('BN')
@@ -509,7 +509,7 @@ def getBOBitmap():
     return BitmapFromImage(getBOImage())
 
 def getBOImage():
-    stream = cStringIO.StringIO(getBOData())
+    stream = io.StringIO(getBOData())
     return ImageFromStream(stream)
 
 index.append('BO')
@@ -547,7 +547,7 @@ def getBRBitmap():
     return BitmapFromImage(getBRImage())
 
 def getBRImage():
-    stream = cStringIO.StringIO(getBRData())
+    stream = io.StringIO(getBRData())
     return ImageFromStream(stream)
 
 index.append('BR')
@@ -585,7 +585,7 @@ def getBTBitmap():
     return BitmapFromImage(getBTImage())
 
 def getBTImage():
-    stream = cStringIO.StringIO(getBTData())
+    stream = io.StringIO(getBTData())
     return ImageFromStream(stream)
 
 index.append('BT')
@@ -617,7 +617,7 @@ def getBWBitmap():
     return BitmapFromImage(getBWImage())
 
 def getBWImage():
-    stream = cStringIO.StringIO(getBWData())
+    stream = io.StringIO(getBWData())
     return ImageFromStream(stream)
 
 index.append('BW')
@@ -651,7 +651,7 @@ def getBYBitmap():
     return BitmapFromImage(getBYImage())
 
 def getBYImage():
-    stream = cStringIO.StringIO(getBYData())
+    stream = io.StringIO(getBYData())
     return ImageFromStream(stream)
 
 index.append('BY')
@@ -689,7 +689,7 @@ def getBZBitmap():
     return BitmapFromImage(getBZImage())
 
 def getBZImage():
-    stream = cStringIO.StringIO(getBZData())
+    stream = io.StringIO(getBZData())
     return ImageFromStream(stream)
 
 index.append('BZ')
@@ -726,7 +726,7 @@ def getCABitmap():
     return BitmapFromImage(getCAImage())
 
 def getCAImage():
-    stream = cStringIO.StringIO(getCAData())
+    stream = io.StringIO(getCAData())
     return ImageFromStream(stream)
 
 index.append('CA')
@@ -761,7 +761,7 @@ def getCBBitmap():
     return BitmapFromImage(getCBImage())
 
 def getCBImage():
-    stream = cStringIO.StringIO(getCBData())
+    stream = io.StringIO(getCBData())
     return ImageFromStream(stream)
 
 index.append('CB')
@@ -799,7 +799,7 @@ def getCDBitmap():
     return BitmapFromImage(getCDImage())
 
 def getCDImage():
-    stream = cStringIO.StringIO(getCDData())
+    stream = io.StringIO(getCDData())
     return ImageFromStream(stream)
 
 index.append('CD')
@@ -836,7 +836,7 @@ def getCFBitmap():
     return BitmapFromImage(getCFImage())
 
 def getCFImage():
-    stream = cStringIO.StringIO(getCFData())
+    stream = io.StringIO(getCFData())
     return ImageFromStream(stream)
 
 index.append('CF')
@@ -864,7 +864,7 @@ def getCHBitmap():
     return BitmapFromImage(getCHImage())
 
 def getCHImage():
-    stream = cStringIO.StringIO(getCHData())
+    stream = io.StringIO(getCHData())
     return ImageFromStream(stream)
 
 index.append('CH')
@@ -895,7 +895,7 @@ def getCLBitmap():
     return BitmapFromImage(getCLImage())
 
 def getCLImage():
-    stream = cStringIO.StringIO(getCLData())
+    stream = io.StringIO(getCLData())
     return ImageFromStream(stream)
 
 index.append('CL')
@@ -927,7 +927,7 @@ def getCNBitmap():
     return BitmapFromImage(getCNImage())
 
 def getCNImage():
-    stream = cStringIO.StringIO(getCNData())
+    stream = io.StringIO(getCNData())
     return ImageFromStream(stream)
 
 index.append('CN')
@@ -958,7 +958,7 @@ def getCOBitmap():
     return BitmapFromImage(getCOImage())
 
 def getCOImage():
-    stream = cStringIO.StringIO(getCOData())
+    stream = io.StringIO(getCOData())
     return ImageFromStream(stream)
 
 index.append('CO')
@@ -991,7 +991,7 @@ def getCRBitmap():
     return BitmapFromImage(getCRImage())
 
 def getCRImage():
-    stream = cStringIO.StringIO(getCRData())
+    stream = io.StringIO(getCRData())
     return ImageFromStream(stream)
 
 index.append('CR')
@@ -1024,7 +1024,7 @@ def getCZBitmap():
     return BitmapFromImage(getCZImage())
 
 def getCZImage():
-    stream = cStringIO.StringIO(getCZData())
+    stream = io.StringIO(getCZData())
     return ImageFromStream(stream)
 
 index.append('CZ')
@@ -1057,7 +1057,7 @@ def getDEBitmap():
     return BitmapFromImage(getDEImage())
 
 def getDEImage():
-    stream = cStringIO.StringIO(getDEData())
+    stream = io.StringIO(getDEData())
     return ImageFromStream(stream)
 
 index.append('DE')
@@ -1089,7 +1089,7 @@ def getDKBitmap():
     return BitmapFromImage(getDKImage())
 
 def getDKImage():
-    stream = cStringIO.StringIO(getDKData())
+    stream = io.StringIO(getDKData())
     return ImageFromStream(stream)
 
 index.append('DK')
@@ -1123,7 +1123,7 @@ def getDOBitmap():
     return BitmapFromImage(getDOImage())
 
 def getDOImage():
-    stream = cStringIO.StringIO(getDOData())
+    stream = io.StringIO(getDOData())
     return ImageFromStream(stream)
 
 index.append('DO')
@@ -1160,7 +1160,7 @@ def getDZBitmap():
     return BitmapFromImage(getDZImage())
 
 def getDZImage():
-    stream = cStringIO.StringIO(getDZData())
+    stream = io.StringIO(getDZData())
     return ImageFromStream(stream)
 
 index.append('DZ')
@@ -1193,7 +1193,7 @@ def getECBitmap():
     return BitmapFromImage(getECImage())
 
 def getECImage():
-    stream = cStringIO.StringIO(getECData())
+    stream = io.StringIO(getECData())
     return ImageFromStream(stream)
 
 index.append('EC')
@@ -1224,7 +1224,7 @@ def getEEBitmap():
     return BitmapFromImage(getEEImage())
 
 def getEEImage():
-    stream = cStringIO.StringIO(getEEData())
+    stream = io.StringIO(getEEData())
     return ImageFromStream(stream)
 
 index.append('EE')
@@ -1257,7 +1257,7 @@ def getEGBitmap():
     return BitmapFromImage(getEGImage())
 
 def getEGImage():
-    stream = cStringIO.StringIO(getEGData())
+    stream = io.StringIO(getEGData())
     return ImageFromStream(stream)
 
 index.append('EG')
@@ -1289,7 +1289,7 @@ def getESBitmap():
     return BitmapFromImage(getESImage())
 
 def getESImage():
-    stream = cStringIO.StringIO(getESData())
+    stream = io.StringIO(getESData())
     return ImageFromStream(stream)
 
 index.append('ES')
@@ -1317,7 +1317,7 @@ def getESPERANTOBitmap():
     return BitmapFromImage(getESPERANTOImage())
 
 def getESPERANTOImage():
-    stream = cStringIO.StringIO(getESPERANTOData())
+    stream = io.StringIO(getESPERANTOData())
     return ImageFromStream(stream)
 
 index.append('ESPERANTO')
@@ -1353,7 +1353,7 @@ def getETBitmap():
     return BitmapFromImage(getETImage())
 
 def getETImage():
-    stream = cStringIO.StringIO(getETData())
+    stream = io.StringIO(getETData())
     return ImageFromStream(stream)
 
 index.append('ET')
@@ -1386,7 +1386,7 @@ def getFIBitmap():
     return BitmapFromImage(getFIImage())
 
 def getFIImage():
-    stream = cStringIO.StringIO(getFIData())
+    stream = io.StringIO(getFIData())
     return ImageFromStream(stream)
 
 index.append('FI')
@@ -1425,7 +1425,7 @@ def getFJBitmap():
     return BitmapFromImage(getFJImage())
 
 def getFJImage():
-    stream = cStringIO.StringIO(getFJData())
+    stream = io.StringIO(getFJData())
     return ImageFromStream(stream)
 
 index.append('FJ')
@@ -1458,7 +1458,7 @@ def getFOBitmap():
     return BitmapFromImage(getFOImage())
 
 def getFOImage():
-    stream = cStringIO.StringIO(getFOData())
+    stream = io.StringIO(getFOData())
     return ImageFromStream(stream)
 
 index.append('FO')
@@ -1492,7 +1492,7 @@ def getFRBitmap():
     return BitmapFromImage(getFRImage())
 
 def getFRImage():
-    stream = cStringIO.StringIO(getFRData())
+    stream = io.StringIO(getFRData())
     return ImageFromStream(stream)
 
 index.append('FR')
@@ -1533,7 +1533,7 @@ def getGBBitmap():
     return BitmapFromImage(getGBImage())
 
 def getGBImage():
-    stream = cStringIO.StringIO(getGBData())
+    stream = io.StringIO(getGBData())
     return ImageFromStream(stream)
 
 index.append('GB')
@@ -1571,7 +1571,7 @@ def getGEBitmap():
     return BitmapFromImage(getGEImage())
 
 def getGEImage():
-    stream = cStringIO.StringIO(getGEData())
+    stream = io.StringIO(getGEData())
     return ImageFromStream(stream)
 
 index.append('GE')
@@ -1603,7 +1603,7 @@ def getGHBitmap():
     return BitmapFromImage(getGHImage())
 
 def getGHImage():
-    stream = cStringIO.StringIO(getGHData())
+    stream = io.StringIO(getGHData())
     return ImageFromStream(stream)
 
 index.append('GH')
@@ -1636,7 +1636,7 @@ def getGLBitmap():
     return BitmapFromImage(getGLImage())
 
 def getGLImage():
-    stream = cStringIO.StringIO(getGLData())
+    stream = io.StringIO(getGLData())
     return ImageFromStream(stream)
 
 index.append('GL')
@@ -1670,7 +1670,7 @@ def getGRBitmap():
     return BitmapFromImage(getGRImage())
 
 def getGRImage():
-    stream = cStringIO.StringIO(getGRData())
+    stream = io.StringIO(getGRData())
     return ImageFromStream(stream)
 
 index.append('GR')
@@ -1702,7 +1702,7 @@ def getGTBitmap():
     return BitmapFromImage(getGTImage())
 
 def getGTImage():
-    stream = cStringIO.StringIO(getGTData())
+    stream = io.StringIO(getGTData())
     return ImageFromStream(stream)
 
 index.append('GT')
@@ -1736,7 +1736,7 @@ def getHKBitmap():
     return BitmapFromImage(getHKImage())
 
 def getHKImage():
-    stream = cStringIO.StringIO(getHKData())
+    stream = io.StringIO(getHKData())
     return ImageFromStream(stream)
 
 index.append('HK')
@@ -1771,7 +1771,7 @@ def getHNBitmap():
     return BitmapFromImage(getHNImage())
 
 def getHNImage():
-    stream = cStringIO.StringIO(getHNData())
+    stream = io.StringIO(getHNData())
     return ImageFromStream(stream)
 
 index.append('HN')
@@ -1807,7 +1807,7 @@ def getHRBitmap():
     return BitmapFromImage(getHRImage())
 
 def getHRImage():
-    stream = cStringIO.StringIO(getHRData())
+    stream = io.StringIO(getHRData())
     return ImageFromStream(stream)
 
 index.append('HR')
@@ -1837,7 +1837,7 @@ def getHUBitmap():
     return BitmapFromImage(getHUImage())
 
 def getHUImage():
-    stream = cStringIO.StringIO(getHUData())
+    stream = io.StringIO(getHUData())
     return ImageFromStream(stream)
 
 index.append('HU')
@@ -1868,7 +1868,7 @@ def getIDBitmap():
     return BitmapFromImage(getIDImage())
 
 def getIDImage():
-    stream = cStringIO.StringIO(getIDData())
+    stream = io.StringIO(getIDData())
     return ImageFromStream(stream)
 
 index.append('ID')
@@ -1900,7 +1900,7 @@ def getIEBitmap():
     return BitmapFromImage(getIEImage())
 
 def getIEImage():
-    stream = cStringIO.StringIO(getIEData())
+    stream = io.StringIO(getIEData())
     return ImageFromStream(stream)
 
 index.append('IE')
@@ -1932,7 +1932,7 @@ def getILBitmap():
     return BitmapFromImage(getILImage())
 
 def getILImage():
-    stream = cStringIO.StringIO(getILData())
+    stream = io.StringIO(getILData())
     return ImageFromStream(stream)
 
 index.append('IL')
@@ -1965,7 +1965,7 @@ def getINBitmap():
     return BitmapFromImage(getINImage())
 
 def getINImage():
-    stream = cStringIO.StringIO(getINData())
+    stream = io.StringIO(getINData())
     return ImageFromStream(stream)
 
 index.append('IN')
@@ -1999,7 +1999,7 @@ def getIQBitmap():
     return BitmapFromImage(getIQImage())
 
 def getIQImage():
-    stream = cStringIO.StringIO(getIQData())
+    stream = io.StringIO(getIQData())
     return ImageFromStream(stream)
 
 index.append('IQ')
@@ -2034,7 +2034,7 @@ def getIRBitmap():
     return BitmapFromImage(getIRImage())
 
 def getIRImage():
-    stream = cStringIO.StringIO(getIRData())
+    stream = io.StringIO(getIRData())
     return ImageFromStream(stream)
 
 index.append('IR')
@@ -2069,7 +2069,7 @@ def getISBitmap():
     return BitmapFromImage(getISImage())
 
 def getISImage():
-    stream = cStringIO.StringIO(getISData())
+    stream = io.StringIO(getISData())
     return ImageFromStream(stream)
 
 index.append('IS')
@@ -2099,7 +2099,7 @@ def getITBitmap():
     return BitmapFromImage(getITImage())
 
 def getITImage():
-    stream = cStringIO.StringIO(getITData())
+    stream = io.StringIO(getITData())
     return ImageFromStream(stream)
 
 index.append('IT')
@@ -2138,7 +2138,7 @@ def getJMBitmap():
     return BitmapFromImage(getJMImage())
 
 def getJMImage():
-    stream = cStringIO.StringIO(getJMData())
+    stream = io.StringIO(getJMData())
     return ImageFromStream(stream)
 
 index.append('JM')
@@ -2171,7 +2171,7 @@ def getJOBitmap():
     return BitmapFromImage(getJOImage())
 
 def getJOImage():
-    stream = cStringIO.StringIO(getJOData())
+    stream = io.StringIO(getJOData())
     return ImageFromStream(stream)
 
 index.append('JO')
@@ -2203,7 +2203,7 @@ def getJPBitmap():
     return BitmapFromImage(getJPImage())
 
 def getJPImage():
-    stream = cStringIO.StringIO(getJPData())
+    stream = io.StringIO(getJPData())
     return ImageFromStream(stream)
 
 index.append('JP')
@@ -2238,7 +2238,7 @@ def getKEBitmap():
     return BitmapFromImage(getKEImage())
 
 def getKEImage():
-    stream = cStringIO.StringIO(getKEData())
+    stream = io.StringIO(getKEData())
     return ImageFromStream(stream)
 
 index.append('KE')
@@ -2271,7 +2271,7 @@ def getKGBitmap():
     return BitmapFromImage(getKGImage())
 
 def getKGImage():
-    stream = cStringIO.StringIO(getKGData())
+    stream = io.StringIO(getKGData())
     return ImageFromStream(stream)
 
 index.append('KG')
@@ -2306,7 +2306,7 @@ def getKHBitmap():
     return BitmapFromImage(getKHImage())
 
 def getKHImage():
-    stream = cStringIO.StringIO(getKHData())
+    stream = io.StringIO(getKHData())
     return ImageFromStream(stream)
 
 index.append('KH')
@@ -2345,7 +2345,7 @@ def getKRBitmap():
     return BitmapFromImage(getKRImage())
 
 def getKRImage():
-    stream = cStringIO.StringIO(getKRData())
+    stream = io.StringIO(getKRData())
     return ImageFromStream(stream)
 
 index.append('KR')
@@ -2378,7 +2378,7 @@ def getKWBitmap():
     return BitmapFromImage(getKWImage())
 
 def getKWImage():
-    stream = cStringIO.StringIO(getKWData())
+    stream = io.StringIO(getKWData())
     return ImageFromStream(stream)
 
 index.append('KW')
@@ -2415,7 +2415,7 @@ def getKZBitmap():
     return BitmapFromImage(getKZImage())
 
 def getKZImage():
-    stream = cStringIO.StringIO(getKZData())
+    stream = io.StringIO(getKZData())
     return ImageFromStream(stream)
 
 index.append('KZ')
@@ -2450,7 +2450,7 @@ def getLABitmap():
     return BitmapFromImage(getLAImage())
 
 def getLAImage():
-    stream = cStringIO.StringIO(getLAData())
+    stream = io.StringIO(getLAData())
     return ImageFromStream(stream)
 
 index.append('LA')
@@ -2485,7 +2485,7 @@ def getLBBitmap():
     return BitmapFromImage(getLBImage())
 
 def getLBImage():
-    stream = cStringIO.StringIO(getLBData())
+    stream = io.StringIO(getLBData())
     return ImageFromStream(stream)
 
 index.append('LB')
@@ -2520,7 +2520,7 @@ def getLIBitmap():
     return BitmapFromImage(getLIImage())
 
 def getLIImage():
-    stream = cStringIO.StringIO(getLIData())
+    stream = io.StringIO(getLIData())
     return ImageFromStream(stream)
 
 index.append('LI')
@@ -2552,7 +2552,7 @@ def getLTBitmap():
     return BitmapFromImage(getLTImage())
 
 def getLTImage():
-    stream = cStringIO.StringIO(getLTData())
+    stream = io.StringIO(getLTData())
     return ImageFromStream(stream)
 
 index.append('LT')
@@ -2584,7 +2584,7 @@ def getLUBitmap():
     return BitmapFromImage(getLUImage())
 
 def getLUImage():
-    stream = cStringIO.StringIO(getLUData())
+    stream = io.StringIO(getLUData())
     return ImageFromStream(stream)
 
 index.append('LU')
@@ -2616,7 +2616,7 @@ def getLVBitmap():
     return BitmapFromImage(getLVImage())
 
 def getLVImage():
-    stream = cStringIO.StringIO(getLVData())
+    stream = io.StringIO(getLVData())
     return ImageFromStream(stream)
 
 index.append('LV')
@@ -2646,7 +2646,7 @@ def getLYBitmap():
     return BitmapFromImage(getLYImage())
 
 def getLYImage():
-    stream = cStringIO.StringIO(getLYData())
+    stream = io.StringIO(getLYData())
     return ImageFromStream(stream)
 
 index.append('LY')
@@ -2676,7 +2676,7 @@ def getMABitmap():
     return BitmapFromImage(getMAImage())
 
 def getMAImage():
-    stream = cStringIO.StringIO(getMAData())
+    stream = io.StringIO(getMAData())
     return ImageFromStream(stream)
 
 index.append('MA')
@@ -2705,7 +2705,7 @@ def getMCBitmap():
     return BitmapFromImage(getMCImage())
 
 def getMCImage():
-    stream = cStringIO.StringIO(getMCData())
+    stream = io.StringIO(getMCData())
     return ImageFromStream(stream)
 
 index.append('MC')
@@ -2740,7 +2740,7 @@ def getMDBitmap():
     return BitmapFromImage(getMDImage())
 
 def getMDImage():
-    stream = cStringIO.StringIO(getMDData())
+    stream = io.StringIO(getMDData())
     return ImageFromStream(stream)
 
 index.append('MD')
@@ -2771,7 +2771,7 @@ def getMGBitmap():
     return BitmapFromImage(getMGImage())
 
 def getMGImage():
-    stream = cStringIO.StringIO(getMGData())
+    stream = io.StringIO(getMGData())
     return ImageFromStream(stream)
 
 index.append('MG')
@@ -2808,7 +2808,7 @@ def getMKBitmap():
     return BitmapFromImage(getMKImage())
 
 def getMKImage():
-    stream = cStringIO.StringIO(getMKData())
+    stream = io.StringIO(getMKData())
     return ImageFromStream(stream)
 
 index.append('MK')
@@ -2840,7 +2840,7 @@ def getMMBitmap():
     return BitmapFromImage(getMMImage())
 
 def getMMImage():
-    stream = cStringIO.StringIO(getMMData())
+    stream = io.StringIO(getMMData())
     return ImageFromStream(stream)
 
 index.append('MM')
@@ -2872,7 +2872,7 @@ def getMNBitmap():
     return BitmapFromImage(getMNImage())
 
 def getMNImage():
-    stream = cStringIO.StringIO(getMNData())
+    stream = io.StringIO(getMNData())
     return ImageFromStream(stream)
 
 index.append('MN')
@@ -2909,7 +2909,7 @@ def getMOBitmap():
     return BitmapFromImage(getMOImage())
 
 def getMOImage():
-    stream = cStringIO.StringIO(getMOData())
+    stream = io.StringIO(getMOData())
     return ImageFromStream(stream)
 
 index.append('MO')
@@ -2939,7 +2939,7 @@ def getMTBitmap():
     return BitmapFromImage(getMTImage())
 
 def getMTImage():
-    stream = cStringIO.StringIO(getMTData())
+    stream = io.StringIO(getMTData())
     return ImageFromStream(stream)
 
 index.append('MT')
@@ -2975,7 +2975,7 @@ def getMXBitmap():
     return BitmapFromImage(getMXImage())
 
 def getMXImage():
-    stream = cStringIO.StringIO(getMXData())
+    stream = io.StringIO(getMXData())
     return ImageFromStream(stream)
 
 index.append('MX')
@@ -3012,7 +3012,7 @@ def getMYBitmap():
     return BitmapFromImage(getMYImage())
 
 def getMYImage():
-    stream = cStringIO.StringIO(getMYData())
+    stream = io.StringIO(getMYData())
     return ImageFromStream(stream)
 
 index.append('MY')
@@ -3048,7 +3048,7 @@ def getMZBitmap():
     return BitmapFromImage(getMZImage())
 
 def getMZImage():
-    stream = cStringIO.StringIO(getMZData())
+    stream = io.StringIO(getMZData())
     return ImageFromStream(stream)
 
 index.append('MZ')
@@ -3080,7 +3080,7 @@ def getNGBitmap():
     return BitmapFromImage(getNGImage())
 
 def getNGImage():
-    stream = cStringIO.StringIO(getNGData())
+    stream = io.StringIO(getNGData())
     return ImageFromStream(stream)
 
 index.append('NG')
@@ -3113,7 +3113,7 @@ def getNIBitmap():
     return BitmapFromImage(getNIImage())
 
 def getNIImage():
-    stream = cStringIO.StringIO(getNIData())
+    stream = io.StringIO(getNIData())
     return ImageFromStream(stream)
 
 index.append('NI')
@@ -3144,7 +3144,7 @@ def getNLBitmap():
     return BitmapFromImage(getNLImage())
 
 def getNLImage():
-    stream = cStringIO.StringIO(getNLData())
+    stream = io.StringIO(getNLData())
     return ImageFromStream(stream)
 
 index.append('NL')
@@ -3179,7 +3179,7 @@ def getNOBitmap():
     return BitmapFromImage(getNOImage())
 
 def getNOImage():
-    stream = cStringIO.StringIO(getNOData())
+    stream = io.StringIO(getNOData())
     return ImageFromStream(stream)
 
 index.append('NO')
@@ -3212,7 +3212,7 @@ def getNPBitmap():
     return BitmapFromImage(getNPImage())
 
 def getNPImage():
-    stream = cStringIO.StringIO(getNPData())
+    stream = io.StringIO(getNPData())
     return ImageFromStream(stream)
 
 index.append('NP')
@@ -3246,7 +3246,7 @@ def getNRBitmap():
     return BitmapFromImage(getNRImage())
 
 def getNRImage():
-    stream = cStringIO.StringIO(getNRData())
+    stream = io.StringIO(getNRData())
     return ImageFromStream(stream)
 
 index.append('NR')
@@ -3285,7 +3285,7 @@ def getNZBitmap():
     return BitmapFromImage(getNZImage())
 
 def getNZImage():
-    stream = cStringIO.StringIO(getNZData())
+    stream = io.StringIO(getNZData())
     return ImageFromStream(stream)
 
 index.append('NZ')
@@ -3317,7 +3317,7 @@ def getOMBitmap():
     return BitmapFromImage(getOMImage())
 
 def getOMImage():
-    stream = cStringIO.StringIO(getOMData())
+    stream = io.StringIO(getOMData())
     return ImageFromStream(stream)
 
 index.append('OM')
@@ -3351,7 +3351,7 @@ def getPABitmap():
     return BitmapFromImage(getPAImage())
 
 def getPAImage():
-    stream = cStringIO.StringIO(getPAData())
+    stream = io.StringIO(getPAData())
     return ImageFromStream(stream)
 
 index.append('PA')
@@ -3380,7 +3380,7 @@ def getPEBitmap():
     return BitmapFromImage(getPEImage())
 
 def getPEImage():
-    stream = cStringIO.StringIO(getPEData())
+    stream = io.StringIO(getPEData())
     return ImageFromStream(stream)
 
 index.append('PE')
@@ -3416,7 +3416,7 @@ def getPHBitmap():
     return BitmapFromImage(getPHImage())
 
 def getPHImage():
-    stream = cStringIO.StringIO(getPHData())
+    stream = io.StringIO(getPHData())
     return ImageFromStream(stream)
 
 index.append('PH')
@@ -3453,7 +3453,7 @@ def getPKBitmap():
     return BitmapFromImage(getPKImage())
 
 def getPKImage():
-    stream = cStringIO.StringIO(getPKData())
+    stream = io.StringIO(getPKData())
     return ImageFromStream(stream)
 
 index.append('PK')
@@ -3482,7 +3482,7 @@ def getPLBitmap():
     return BitmapFromImage(getPLImage())
 
 def getPLImage():
-    stream = cStringIO.StringIO(getPLData())
+    stream = io.StringIO(getPLData())
     return ImageFromStream(stream)
 
 index.append('PL')
@@ -3518,7 +3518,7 @@ def getPRBitmap():
     return BitmapFromImage(getPRImage())
 
 def getPRImage():
-    stream = cStringIO.StringIO(getPRData())
+    stream = io.StringIO(getPRData())
     return ImageFromStream(stream)
 
 index.append('PR')
@@ -3553,7 +3553,7 @@ def getPTBitmap():
     return BitmapFromImage(getPTImage())
 
 def getPTImage():
-    stream = cStringIO.StringIO(getPTData())
+    stream = io.StringIO(getPTData())
     return ImageFromStream(stream)
 
 index.append('PT')
@@ -3585,7 +3585,7 @@ def getPYBitmap():
     return BitmapFromImage(getPYImage())
 
 def getPYImage():
-    stream = cStringIO.StringIO(getPYData())
+    stream = io.StringIO(getPYData())
     return ImageFromStream(stream)
 
 index.append('PY')
@@ -3617,7 +3617,7 @@ def getQABitmap():
     return BitmapFromImage(getQAImage())
 
 def getQAImage():
-    stream = cStringIO.StringIO(getQAData())
+    stream = io.StringIO(getQAData())
     return ImageFromStream(stream)
 
 index.append('QA')
@@ -3649,7 +3649,7 @@ def getROBitmap():
     return BitmapFromImage(getROImage())
 
 def getROImage():
-    stream = cStringIO.StringIO(getROData())
+    stream = io.StringIO(getROData())
     return ImageFromStream(stream)
 
 index.append('RO')
@@ -3681,7 +3681,7 @@ def getRSBitmap():
     return BitmapFromImage(getRSImage())
 
 def getRSImage():
-    stream = cStringIO.StringIO(getRSData())
+    stream = io.StringIO(getRSData())
     return ImageFromStream(stream)
 
 index.append('RS')
@@ -3711,7 +3711,7 @@ def getRUBitmap():
     return BitmapFromImage(getRUImage())
 
 def getRUImage():
-    stream = cStringIO.StringIO(getRUData())
+    stream = io.StringIO(getRUData())
     return ImageFromStream(stream)
 
 index.append('RU')
@@ -3745,7 +3745,7 @@ def getRWBitmap():
     return BitmapFromImage(getRWImage())
 
 def getRWImage():
-    stream = cStringIO.StringIO(getRWData())
+    stream = io.StringIO(getRWData())
     return ImageFromStream(stream)
 
 index.append('RW')
@@ -3781,7 +3781,7 @@ def getSABitmap():
     return BitmapFromImage(getSAImage())
 
 def getSAImage():
-    stream = cStringIO.StringIO(getSAData())
+    stream = io.StringIO(getSAData())
     return ImageFromStream(stream)
 
 index.append('SA')
@@ -3820,7 +3820,7 @@ def getSBBitmap():
     return BitmapFromImage(getSBImage())
 
 def getSBImage():
-    stream = cStringIO.StringIO(getSBData())
+    stream = io.StringIO(getSBData())
     return ImageFromStream(stream)
 
 index.append('SB')
@@ -3853,7 +3853,7 @@ def getSDBitmap():
     return BitmapFromImage(getSDImage())
 
 def getSDImage():
-    stream = cStringIO.StringIO(getSDData())
+    stream = io.StringIO(getSDData())
     return ImageFromStream(stream)
 
 index.append('SD')
@@ -3887,7 +3887,7 @@ def getSEBitmap():
     return BitmapFromImage(getSEImage())
 
 def getSEImage():
-    stream = cStringIO.StringIO(getSEData())
+    stream = io.StringIO(getSEData())
     return ImageFromStream(stream)
 
 index.append('SE')
@@ -3920,7 +3920,7 @@ def getSGBitmap():
     return BitmapFromImage(getSGImage())
 
 def getSGImage():
-    stream = cStringIO.StringIO(getSGData())
+    stream = io.StringIO(getSGData())
     return ImageFromStream(stream)
 
 index.append('SG')
@@ -3954,7 +3954,7 @@ def getSIBitmap():
     return BitmapFromImage(getSIImage())
 
 def getSIImage():
-    stream = cStringIO.StringIO(getSIData())
+    stream = io.StringIO(getSIData())
     return ImageFromStream(stream)
 
 index.append('SI')
@@ -3991,7 +3991,7 @@ def getSKBitmap():
     return BitmapFromImage(getSKImage())
 
 def getSKImage():
-    stream = cStringIO.StringIO(getSKData())
+    stream = io.StringIO(getSKData())
     return ImageFromStream(stream)
 
 index.append('SK')
@@ -4023,7 +4023,7 @@ def getSNBitmap():
     return BitmapFromImage(getSNImage())
 
 def getSNImage():
-    stream = cStringIO.StringIO(getSNData())
+    stream = io.StringIO(getSNData())
     return ImageFromStream(stream)
 
 index.append('SN')
@@ -4057,7 +4057,7 @@ def getSVBitmap():
     return BitmapFromImage(getSVImage())
 
 def getSVImage():
-    stream = cStringIO.StringIO(getSVData())
+    stream = io.StringIO(getSVData())
     return ImageFromStream(stream)
 
 index.append('SV')
@@ -4089,7 +4089,7 @@ def getSYBitmap():
     return BitmapFromImage(getSYImage())
 
 def getSYImage():
-    stream = cStringIO.StringIO(getSYData())
+    stream = io.StringIO(getSYData())
     return ImageFromStream(stream)
 
 index.append('SY')
@@ -4127,7 +4127,7 @@ def getSZBitmap():
     return BitmapFromImage(getSZImage())
 
 def getSZImage():
-    stream = cStringIO.StringIO(getSZData())
+    stream = io.StringIO(getSZData())
     return ImageFromStream(stream)
 
 index.append('SZ')
@@ -4158,7 +4158,7 @@ def getTHBitmap():
     return BitmapFromImage(getTHImage())
 
 def getTHImage():
-    stream = cStringIO.StringIO(getTHData())
+    stream = io.StringIO(getTHData())
     return ImageFromStream(stream)
 
 index.append('TH')
@@ -4191,7 +4191,7 @@ def getTJBitmap():
     return BitmapFromImage(getTJImage())
 
 def getTJImage():
-    stream = cStringIO.StringIO(getTJData())
+    stream = io.StringIO(getTJData())
     return ImageFromStream(stream)
 
 index.append('TJ')
@@ -4227,7 +4227,7 @@ def getTMBitmap():
     return BitmapFromImage(getTMImage())
 
 def getTMImage():
-    stream = cStringIO.StringIO(getTMData())
+    stream = io.StringIO(getTMData())
     return ImageFromStream(stream)
 
 index.append('TM')
@@ -4260,7 +4260,7 @@ def getTNBitmap():
     return BitmapFromImage(getTNImage())
 
 def getTNImage():
-    stream = cStringIO.StringIO(getTNData())
+    stream = io.StringIO(getTNData())
     return ImageFromStream(stream)
 
 index.append('TN')
@@ -4291,7 +4291,7 @@ def getTOBitmap():
     return BitmapFromImage(getTOImage())
 
 def getTOImage():
-    stream = cStringIO.StringIO(getTOData())
+    stream = io.StringIO(getTOData())
     return ImageFromStream(stream)
 
 index.append('TO')
@@ -4324,7 +4324,7 @@ def getTRBitmap():
     return BitmapFromImage(getTRImage())
 
 def getTRImage():
-    stream = cStringIO.StringIO(getTRData())
+    stream = io.StringIO(getTRData())
     return ImageFromStream(stream)
 
 index.append('TR')
@@ -4363,7 +4363,7 @@ def getTTBitmap():
     return BitmapFromImage(getTTImage())
 
 def getTTImage():
-    stream = cStringIO.StringIO(getTTData())
+    stream = io.StringIO(getTTData())
     return ImageFromStream(stream)
 
 index.append('TT')
@@ -4394,7 +4394,7 @@ def getTWBitmap():
     return BitmapFromImage(getTWImage())
 
 def getTWImage():
-    stream = cStringIO.StringIO(getTWData())
+    stream = io.StringIO(getTWData())
     return ImageFromStream(stream)
 
 index.append('TW')
@@ -4425,7 +4425,7 @@ def getUABitmap():
     return BitmapFromImage(getUAImage())
 
 def getUAImage():
-    stream = cStringIO.StringIO(getUAData())
+    stream = io.StringIO(getUAData())
     return ImageFromStream(stream)
 
 index.append('UA')
@@ -4463,7 +4463,7 @@ def getUSBitmap():
     return BitmapFromImage(getUSImage())
 
 def getUSImage():
-    stream = cStringIO.StringIO(getUSData())
+    stream = io.StringIO(getUSData())
     return ImageFromStream(stream)
 
 index.append('US')
@@ -4498,7 +4498,7 @@ def getUYBitmap():
     return BitmapFromImage(getUYImage())
 
 def getUYImage():
-    stream = cStringIO.StringIO(getUYData())
+    stream = io.StringIO(getUYData())
     return ImageFromStream(stream)
 
 index.append('UY')
@@ -4532,7 +4532,7 @@ def getUZBitmap():
     return BitmapFromImage(getUZImage())
 
 def getUZImage():
-    stream = cStringIO.StringIO(getUZData())
+    stream = io.StringIO(getUZData())
     return ImageFromStream(stream)
 
 index.append('UZ')
@@ -4567,7 +4567,7 @@ def getVABitmap():
     return BitmapFromImage(getVAImage())
 
 def getVAImage():
-    stream = cStringIO.StringIO(getVAData())
+    stream = io.StringIO(getVAData())
     return ImageFromStream(stream)
 
 index.append('VA')
@@ -4602,7 +4602,7 @@ def getVEBitmap():
     return BitmapFromImage(getVEImage())
 
 def getVEImage():
-    stream = cStringIO.StringIO(getVEData())
+    stream = io.StringIO(getVEData())
     return ImageFromStream(stream)
 
 index.append('VE')
@@ -4633,7 +4633,7 @@ def getVNBitmap():
     return BitmapFromImage(getVNImage())
 
 def getVNImage():
-    stream = cStringIO.StringIO(getVNData())
+    stream = io.StringIO(getVNData())
     return ImageFromStream(stream)
 
 index.append('VN')
@@ -4669,7 +4669,7 @@ def getVOLAPUKBitmap():
     return BitmapFromImage(getVOLAPUKImage())
 
 def getVOLAPUKImage():
-    stream = cStringIO.StringIO(getVOLAPUKData())
+    stream = io.StringIO(getVOLAPUKData())
     return ImageFromStream(stream)
 
 index.append('VOLAPUK')
@@ -4706,7 +4706,7 @@ def getVUBitmap():
     return BitmapFromImage(getVUImage())
 
 def getVUImage():
-    stream = cStringIO.StringIO(getVUData())
+    stream = io.StringIO(getVUData())
     return ImageFromStream(stream)
 
 index.append('VU')
@@ -4738,7 +4738,7 @@ def getWSBitmap():
     return BitmapFromImage(getWSImage())
 
 def getWSImage():
-    stream = cStringIO.StringIO(getWSData())
+    stream = io.StringIO(getWSData())
     return ImageFromStream(stream)
 
 index.append('WS')
@@ -4769,7 +4769,7 @@ def getYEBitmap():
     return BitmapFromImage(getYEImage())
 
 def getYEImage():
-    stream = cStringIO.StringIO(getYEData())
+    stream = io.StringIO(getYEData())
     return ImageFromStream(stream)
 
 index.append('YE')
@@ -4801,7 +4801,7 @@ def getYUBitmap():
     return BitmapFromImage(getYUImage())
 
 def getYUImage():
-    stream = cStringIO.StringIO(getYUData())
+    stream = io.StringIO(getYUData())
     return ImageFromStream(stream)
 
 index.append('YU')
@@ -4840,7 +4840,7 @@ def getZABitmap():
     return BitmapFromImage(getZAImage())
 
 def getZAImage():
-    stream = cStringIO.StringIO(getZAData())
+    stream = io.StringIO(getZAData())
     return ImageFromStream(stream)
 
 index.append('ZA')
@@ -4877,7 +4877,7 @@ def getZWBitmap():
     return BitmapFromImage(getZWImage())
 
 def getZWImage():
-    stream = cStringIO.StringIO(getZWData())
+    stream = io.StringIO(getZWData())
     return ImageFromStream(stream)
 
 index.append('ZW')

@@ -15,7 +15,7 @@
     and interacts with the designer and companions
 """
 
-print 'importing Inspector'
+print('importing Inspector')
 
 # XXX Disable clipboards buttons when non Designer item is selected !!
 
@@ -24,7 +24,7 @@ from types import *
 
 import wx
 import wx.lib.stattext
-from wxCompat import wxNO_3D
+# from wxCompat import wxNO_3D
 
 import PaletteMapping, PaletteStore, Preferences, Help
 from PropEdit import PropertyEditors
@@ -152,7 +152,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
         self.destroying = False
 
-        for cmpInf in PaletteStore.compInfo.values():
+        for cmpInf in list(PaletteStore.compInfo.values()):
             filename ='Images/Palette/'+ cmpInf[0]+'.png'
             try:
                 cmpInf.append(self.paletteImages.Add(IS.load(filename)))
@@ -339,9 +339,9 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
     # While multiple components are selected the inspector does not persist
     # selected control value changes
     def directPositionUpdate(self, comp):
-        comp.persistProp('Position', 'SetPosition', `comp.control.GetPosition()`)
+        comp.persistProp('Position', 'SetPosition', repr(comp.control.GetPosition()))
     def directSizeUpdate(self, comp):
-        comp.persistProp('Size', 'SetSize', `comp.control.GetSize()`)
+        comp.persistProp('Size', 'SetSize', repr(comp.control.GetSize()))
 
 ##    def selectedCtrlHelpFile(self):
 ##        """ Return the help file/link associated with the selected control """
@@ -491,7 +491,7 @@ class ParentTree(wx.TreeCtrl):
     def addChildren(self, parent, dict, designer):
         """ Recursive method to construct parent/child relationships in a tree """
         for par in designer.objectOrder:
-            if dict.has_key(par):
+            if par in dict:
                 img = PaletteStore.compInfo[designer.objects[par][1].__class__][2]
                 itm = self.AppendItem(parent, par, img)
                 self.treeItems[par] = itm
@@ -680,7 +680,7 @@ class NameValue:
             if pw.routeType == 'CtrlRoute':
                 mthName = pw.getSetterName()
                 mthObj = getattr(self.propEditor.companion.control, mthName)
-                cls = mthObj.im_class.__name__
+                cls = mthObj.__self__.__class__.__name__
                 if cls[-3:] == 'Ptr': cls = cls[:-3]
                 return cls, cls + mthName
         return '', ''
@@ -731,7 +731,7 @@ class NameValue:
             self.valueBevelBottom.SetPosition(wx.Point(0, (idx + 1)*oiLineHeight -1))
 
     def resize(self, nameWidth, valueWidth):
-        if nameWidth <> self.lastSizeN:
+        if nameWidth != self.lastSizeN:
             if self.nameBevelTop:
                 self.nameBevelTop.SetSize(wx.Size(nameWidth, 1))
                 self.nameBevelBottom.SetSize(wx.Size(nameWidth, 1))
@@ -743,7 +743,7 @@ class NameValue:
 
             self.separatorN.SetSize(wx.Size(nameWidth, 1))
 
-        if valueWidth <> self.lastSizeV:
+        if valueWidth != self.lastSizeV:
             if self.valueBevelTop:
                 self.valueBevelTop.SetSize(wx.Size(valueWidth, 1))
                 self.valueBevelBottom.SetSize(wx.Size(valueWidth, 1))
@@ -797,7 +797,7 @@ class NameValue:
                     # swallow exceptions as autoposted values can not be canceled
                     try:
                         self.propEditor.inspectorPost()
-                    except Exception, err:
+                    except Exception as err:
                         wx.LogError(_('Could not post %s because: %s: %s')%(
                               self.propName, err.__class__.__name__, str(err)))
                 else:
@@ -872,7 +872,7 @@ class EventsWindow(wx.SplitterWindow):
           style = Preferences.splitterStyle)
 
         self.categories = wx.SplitterWindow(self, -1,
-              style=wxNO_3D | wx.SP_3D | wx.SP_LIVE_UPDATE)
+              style=wx.SP_LIVE_UPDATE)  # wxNO_3D | wx.SP_3D | wx.SP_LIVE_UPDATE)
         self.definitions = InspectorEventScrollWin(self, -1,
               style=wx.SUNKEN_BORDER | wx.TAB_TRAVERSAL)
 
@@ -929,7 +929,7 @@ class EventsWindow(wx.SplitterWindow):
         for macro in EventCollections.EventCategories[\
               self.categoryClasses.GetItemText(self.selCatClass)]:
             if macro == name: return macro
-        raise Exception, _('Macro: %s not found.')%name
+        raise Exception(_('Macro: %s not found.')%name)
 
     def addEvent(self, name, value, wid = None):
         self.inspector.selCmp.persistEvt(name, value, wid)
@@ -1219,7 +1219,7 @@ class InspectorScrollWin(NameValueEditorScrollWin):
             if nv.editing:
                 try:
                     nv.propEditor.inspectorPost(False)
-                except Exception, err:
+                except Exception as err:
                     wx.MessageBox('%s: %s'%(err.__class__, str(err)),
                           _('Unable to post, please correct.'),
                           wx.OK | wx.CENTER | wx.ICON_ERROR, self)
@@ -1338,7 +1338,7 @@ class InspectorConstrScrollWin(InspectorScrollWin):
     # read in the root object
     def readObject(self, constrList):
         params = self.inspector.selCmp.constructor()
-        paramNames = params.keys() + self.inspector.selCmp.extraConstrProps().keys()
+        paramNames = list(params.keys()) + list(self.inspector.selCmp.extraConstrProps().keys())
 
         paramNames.sort()
 
@@ -1389,7 +1389,7 @@ class InspectorConstrScrollWin(InspectorScrollWin):
 
     def addConstr(self, name, compn, rootCompn, indent = 0, insIdx = -1):
         props = compn.properties()
-        if props.has_key(name):
+        if name in props:
             rType, getter, setter = props[name]
             propWrap = RTTI.PropertyWrapper(name, rType, getter, setter)
         else:

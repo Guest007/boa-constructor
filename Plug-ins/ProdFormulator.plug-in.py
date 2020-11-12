@@ -3,7 +3,7 @@ import os, sys, string
 import Preferences, Utils, Plugins
 
 if not Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
-    raise Plugins.SkipPlugin, 'Zope support is not enabled'
+    raise Plugins.SkipPlugin('Zope support is not enabled')
 
 #---Model-----------------------------------------------------------------------
 
@@ -200,7 +200,7 @@ class FormulatorFormOrderView(wx.TreeCtrl, EditorView):
         if lev != 2:
             wx.LogError('Not a field')
         else:
-            groups = map(lambda d: d[0], self._groupedFields)
+            groups = [d[0] for d in self._groupedFields]
             fld, mta, fromGroup = self.GetItemData(ti).GetData()
             groups.remove(fromGroup)
             dlg = wx.SingleChoiceDialog(self, 'Choose group to move to',
@@ -256,7 +256,7 @@ class FormulatorFormNode(ZopeItemNode):
     def isFolderish(self):
         return True
     def checkentry(self, name, metatype, path):
-        return apply(FormulatorFieldNode, (name, path, self.clipboard,
+        return FormulatorFieldNode(*(name, path, self.clipboard,
             -1, self, self.server, self.root, self.properties, metatype))
 
 class FormulatorFieldNode(ZopeNode):
@@ -281,7 +281,7 @@ class MethodEnumConfPropEdit(EnumConfPropEdit):
 #---Companion-------------------------------------------------------------------
 def fieldify(props, prefix='field_'):
     res = {}
-    for n, v in props.items():
+    for n, v in list(props.items()):
         if type(v) == type([]):
             res[prefix+n] = string.join(v, '\n')
         else:
@@ -380,7 +380,7 @@ def keyListFromDictList(key, dctLst):
 
 def dictListFind(name, value, dctLst):
     for dct in dctLst:
-        if dct.has_key(name) and dct[name] == value:
+        if name in dct and dct[name] == value:
             return dct
     return None
 
@@ -445,7 +445,7 @@ class FormulatorFieldZC(CustomZopePropsMixIn, ZopeCompanion):
         return propMap
 
     def getPropertyType(self, name):
-        if self.propTypeMap.has_key(name):
+        if name in self.propTypeMap:
             return self.propTypeMap[name][0]
         else:
             return 'default'

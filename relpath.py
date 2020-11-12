@@ -45,7 +45,7 @@ def relpath(base, comp):
     elif len(protsplitbase) == 3:
         baseprot, nbase, zipentry = protsplitbase
     else:
-        raise Exception, 'Unhandled path %s'%`protsplitbase`
+        raise Exception('Unhandled path %s'%repr(protsplitbase))
 
     protsplitcomp = comp.split('://')
     if len(protsplitcomp) == 1:
@@ -55,7 +55,7 @@ def relpath(base, comp):
     elif len(protsplitcomp) == 3:
         compprot, ncomp, zipentry = protsplitcomp
     else:
-        raise Exception, 'Unhandled path %s'%`protsplitcomp`
+        raise Exception('Unhandled path %s'%repr(protsplitcomp))
 
     if baseprot != compprot:
         return comp

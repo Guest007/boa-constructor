@@ -22,11 +22,11 @@
 # --------------------------------------------------------------------
 #
 
-import SocketServer, BaseHTTPServer
-import xmlrpclib
+import socketserver, http.server
+from . import xmlrpclib
 import sys
 
-class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
@@ -42,7 +42,7 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	    except:
 		# report exception back to server
 		response = xmlrpclib.dumps(
-		    xmlrpclib.Fault(1, "%s:%s" % (sys.exc_type, sys.exc_value))
+		    xmlrpclib.Fault(1, "%s:%s" % (sys.exc_info()[0], sys.exc_info()[1]))
 		    )
 	    else:
 		response = xmlrpclib.dumps(
@@ -67,9 +67,9 @@ class RequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def call(self, method, params):
 	# override this method to implement RPC methods
-	print "CALL", method, params
+	print("CALL", method, params)
 	return params
 
 if __name__ == '__main__':
-    server = SocketServer.TCPServer(('', 8000), RequestHandler)
+    server = socketserver.TCPServer(('', 8000), RequestHandler)
     server.serve_forever()

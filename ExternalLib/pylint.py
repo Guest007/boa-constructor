@@ -3,12 +3,12 @@
 
 import sys, string, tokenize, pprint
 ##import os, getopt
-import __builtin__
+import builtins
 
 warnings = []
 
 def terse_warn(file, linenum, line, message, start=0, end=0):
-    print '%s:%d: %s' % (file, linenum, message)
+    print('%s:%d: %s' % (file, linenum, message))
 
 def log_warn(file, linenum, line, message, start=0, end=0):
     warnings.append( (file, linenum, message) )
@@ -46,14 +46,14 @@ ignore_subobjs = 1
 ##    warn = tty_warn
 
 try: 1/0
-except: tb = sys.exc_traceback
+except: tb = sys.exc_info()[2]
 special = {}
 for name in string.split('and break class continue def del elif else except '
     'exec finally for from global if import in is lambda not or pass print '
     'raise return try while true false') + dir(__builtin__): special[name] = 1
 member = {}
 for name in [].__methods__ + {}.__methods__ + [].append.__members__ + \
-    warn.__members__ + warn.func_code.__members__ + \
+    warn.__members__ + warn.__code__.__members__ + \
     tb.__members__ + tb.tb_frame.__members__ + \
     ['__dict__', '__methods__', '__members__']: member[name] = 1
 #    file.__methods__ + file.__members__ + \
@@ -79,8 +79,10 @@ def init_globals(afilename):
     bracket_depth = 0
 
 init_globals('')
-def count(type, token, (srow, scol), (erow, ecol), line,
+def count(type, token, xxx_todo_changeme, xxx_todo_changeme1, line,
     seen = special.has_key, imported = modules.has_key):
+    (srow, scol) = xxx_todo_changeme
+    (erow, ecol) = xxx_todo_changeme1
     global sawimport, modfrom, last, parent, modules, bracket_depth
 
     if token == 'import': sawimport = 1
@@ -104,7 +106,7 @@ def count(type, token, (srow, scol), (erow, ecol), line,
                     for name in dir(__import__(token)):
                         modules[token][name] = 1
                 except: pass
-            if parent and member.has_key(token): pass
+            if parent and token in member: pass
             # RB:
             # Added the following two cases:
             #  Optionally ignore all sub_obj if not in importing mode
@@ -120,12 +122,12 @@ def count(type, token, (srow, scol), (erow, ecol), line,
             elif len(token) >= 3 and token[:2] == 'wx' and token[2] in string.uppercase: pass
             elif len(token) >= 5 and token[:4] == 'EVT_': pass
             # --
-            elif imported(parent) and modules[parent].has_key(token): pass
-            elif position.has_key(token):
+            elif imported(parent) and token in modules[parent]: pass
+            elif token in position:
                 del position[token]
                 special[token] = 1
             elif token[:2] == '__' == token[-2:]:
-                if not reserved.has_key(token):
+                if token not in reserved:
                     warn(filename, srow, line,
                         'dubious reserved name "%s"' % token, scol, ecol)
             elif last != 'from': position[token] = (srow, line, scol, ecol, bracket_depth)
@@ -140,17 +142,17 @@ def pylint(afile, filename):
 ##    pprint.pprint(special)
     init_globals(filename)
     try: tokenize.tokenize(afile.readline, count)
-    except tokenize.TokenError, message:
+    except tokenize.TokenError as message:
         warn(filename, 0, '', message)
         sys.exit(1)
     
     unique = []
-    for name, (linenum, line, start, end, brk_dpth) in position.items():
+    for name, (linenum, line, start, end, brk_dpth) in list(position.items()):
         unique.append( (linenum, (start, end, name, line, brk_dpth)) )
     unique.sort()
     for linenum, (start, end, name, line, brk_dpth) in unique:
         warn(filename, linenum, line, ('"%s" used only once (%d)',
-             '"%s" defined but unused (%d)')[defined.has_key(name)] % (name, brk_dpth), start, end)
+             '"%s" defined but unused (%d)')[name in defined] % (name, brk_dpth), start, end)
 
 if __name__ == '__main__':
     pylint(open('pylint.py'), 'pylint.py')

@@ -1,10 +1,10 @@
 import sys, os, time
 import random, sha, threading
 from time import sleep
-from SocketServer import TCPServer
+from socketserver import TCPServer
 
-from IsolatedDebugger import DebugServer, DebuggerConnection
-from Tasks import ThreadedTaskHandler
+from .IsolatedDebugger import DebugServer, DebuggerConnection
+from .Tasks import ThreadedTaskHandler
 
 # The process uses the Debugger dir as the main script dir
 # here we add the boa root so that Boa modules can be imported.
@@ -29,9 +29,9 @@ class DebugRequestHandler (RequestHandler):
 
     def _authenticate(self):
         h = self.headers
-        if auth_str and (not h.has_key('x-auth')
+        if auth_str and ('x-auth' not in h
                          or h['x-auth'] != auth_str):
-            raise Exception, 'Unauthorized: X-Auth header missing or incorrect'
+            raise Exception('Unauthorized: X-Auth header missing or incorrect')
 
     def call(self, method, params):
         # Override of xmlrpcserver.RequestHandler.call()
@@ -76,7 +76,7 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
     if args and '--zope' in args:
-        from ZopeScriptDebugServer import ZopeScriptDebugServer
+        from .ZopeScriptDebugServer import ZopeScriptDebugServer
         debug_server = ZopeScriptDebugServer()
     else:
         debug_server = DebugServer()

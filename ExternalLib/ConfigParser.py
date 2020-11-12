@@ -164,7 +164,7 @@ class ConfigParser:
     def sections(self):
         """Return a list of section names, excluding [DEFAULT]"""
         # self.__sections will never have [DEFAULT] in it
-        return self.__sections.keys()
+        return list(self.__sections.keys())
 
     def add_section(self, section):
         """Create a new section in the configuration.
@@ -172,7 +172,7 @@ class ConfigParser:
         Raise DuplicateSectionError if a section by the specified name
         already exists.
         """
-        if self.__sections.has_key(section):
+        if section in self.__sections:
             raise DuplicateSectionError(section)
         self.__sections[section] = {}
 
@@ -181,7 +181,7 @@ class ConfigParser:
 
         The DEFAULT section is not acknowledged.
         """
-        return self.__sections.has_key(section)
+        return section in self.__sections
 
     def options(self, section):
         """Return a list of option names for the given section name."""
@@ -190,16 +190,16 @@ class ConfigParser:
         except KeyError:
             raise NoSectionError(section)
         opts.update(self.__defaults)
-        return opts.keys()
+        return list(opts.keys())
 
     def has_option(self, section, option):
         """Check for the existence of a given option in a given section."""
         if not section or section == "DEFAULT":
-            return self.__defaults.has_key(option)
+            return option in self.__defaults
         elif not self.has_section(section):
             return 0
         else:
-            return self.__sections[section].has_key(option)
+            return option in self.__sections[section]
 
     def read(self, filenames):
         """Read and parse a filename or a list of filenames.
@@ -276,7 +276,7 @@ class ConfigParser:
             if string.find(value, "%(") >= 0:
                 try:
                     value = value % d
-                except KeyError, key:
+                except KeyError as key:
                     raise InterpolationError(key, option, section, rawval)
             else:
                 return value
@@ -294,7 +294,7 @@ class ConfigParser:
         v = self.get(section, option)
         val = string.atoi(v)
         if val not in (0, 1):
-            raise ValueError, 'Not a boolean: %s' % v
+            raise ValueError('Not a boolean: %s' % v)
         return val
 
     def optionxform(self, optionstr):
@@ -317,13 +317,13 @@ class ConfigParser:
         """Write an .ini-format representation of the configuration state."""
         if self.__defaults:
             fp.write("[DEFAULT]\n")
-            for (key, value) in self.__defaults.items():
+            for (key, value) in list(self.__defaults.items()):
                 fp.write("%s = %s\n" % (key, value))
             fp.write("\n")
         for section in self.sections():
             fp.write("[" + section + "]\n")
             sectdict = self.__sections[section]
-            for (key, value) in sectdict.items():
+            for (key, value) in list(sectdict.items()):
                 if key == "__name__":
                     continue
                 fp.write("%s = %s\n" % (key, value))
@@ -338,14 +338,14 @@ class ConfigParser:
                 sectdict = self.__sections[section]
             except KeyError:
                 raise NoSectionError(section)
-        existed = sectdict.has_key(option)
+        existed = option in sectdict
         if existed:
             del sectdict[option]
         return existed
 
     def remove_section(self, section):
         """Remove a file section."""
-        if self.__sections.has_key(section):
+        if section in self.__sections:
             del self.__sections[section]
             return 1
         else:
@@ -405,7 +405,7 @@ class ConfigParser:
                 mo = self.SECTCRE.match(line)
                 if mo:
                     sectname = mo.group('header')
-                    if self.__sections.has_key(sectname):
+                    if sectname in self.__sections:
                         cursect = self.__sections[sectname]
                     elif sectname == DEFAULTSECT:
                         cursect = self.__defaults
@@ -416,7 +416,7 @@ class ConfigParser:
                     optname = None
                 # no section header in the file?
                 elif cursect is None:
-                    raise MissingSectionHeaderError(fpname, lineno, `line`)
+                    raise MissingSectionHeaderError(fpname, lineno, repr(line))
                 # an option line?
                 else:
                     mo = self.OPTCRE.match(line)
@@ -440,7 +440,7 @@ class ConfigParser:
                         # list of all bogus lines
                         if not e:
                             e = ParsingError(fpname)
-                        e.append(lineno, `line`)
+                        e.append(lineno, repr(line))
         # if any parsing errors occurred, raise an exception
         if e:
             raise e

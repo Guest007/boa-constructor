@@ -92,9 +92,9 @@ class PropertyWrapper:
             if self.setterName:
                 return self.setterName
             if type(self.setter) == FunctionType:
-                return self.setter.func_name
+                return self.setter.__name__
             if type(self.setter) == MethodType:
-                return self.setter.im_func.func_name
+                return self.setter.__func__.__name__
             else:
                 return ''
         else:
@@ -115,7 +115,7 @@ def getPropList(obj, cmp):
 
     """
     def catalogProperty(name, methType, meths, constructors, propLst, constrLst):
-        if constructors.has_key(name):
+        if name in constructors:
             constrLst.append(PropertyWrapper(name, methType, meths[0], meths[1]))
         else:
             propLst.append(PropertyWrapper(name, methType, meths[0], meths[1]))
@@ -139,7 +139,7 @@ def getPropList(obj, cmp):
             constrNames = cmp.constructor()
         else:
             constrNames = {}
-        propNames = props['Properties'].keys()
+        propNames = list(props['Properties'].keys())
         propNames.sort()
         for propName in propNames:
             if cmp and propName in cmp.hideDesignTime():
@@ -153,7 +153,7 @@ def getPropList(obj, cmp):
                   constrNames, propLst, constrLst)
         if cmp:
             xtraProps = cmp.properties()
-            propNames = xtraProps.keys()
+            propNames = list(xtraProps.keys())
             propNames.sort()
             for propName in propNames:
                 #if propName in cmp.hideDesignTime():
@@ -170,7 +170,7 @@ def getPropList(obj, cmp):
         if cmp:
             constrNames = cmp.constructor()
             xtraProps = cmp.properties()
-            propNames = xtraProps.keys()
+            propNames = list(xtraProps.keys())
             propNames.sort()
             for propName in propNames:
                 propMeths = xtraProps[propName]
@@ -198,7 +198,7 @@ def getMethodType(method, obj, Class):
         return result
 
     if (type(meth) == MethodType):
-        func = meth.im_func
+        func = meth.__func__
         result = ('Methods', method, func, func)
         prefix = method[:3]
         property = method[3:]
@@ -211,23 +211,23 @@ def getMethodType(method, obj, Class):
             elif (prefix == 'Get') and hasattr(obj, setname) and property:
                 #see if getter breaks
                 v = func(obj)
-                result = ('Properties', property, func, getattr(obj, setname).im_func)
+                result = ('Properties', property, func, getattr(obj, setname).__func__)
             elif (prefix == 'Set') and hasattr(obj, getname) and property:
                 #see if getter breaks
-                getter = getattr(obj, getname).im_func
+                getter = getattr(obj, getname).__func__
                 v = getter(obj)
                 result = ('Properties', property, getter, func)
-        except Exception, err:
+        except Exception as err:
             pass
     return result
 
 def traverseAndBuildProps(props, vetoes, obj, Class):
-    for m in Class.__dict__.keys():
+    for m in list(Class.__dict__.keys()):
         if m not in vetoes:
             cat, name, methGetter, methSetter = \
               getMethodType(m, obj, Class.__dict__)
 
-            if not props[cat].has_key(name):
+            if name not in props[cat]:
                 props[cat][name] = (methGetter, methSetter)
 
     for Cls in Class.__bases__:

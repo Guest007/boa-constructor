@@ -77,7 +77,7 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
 
         clsDict = {}
 
-        for i in self.classes.keys():
+        for i in list(self.classes.keys()):
             travTilBase(i, self.classes, clsDict)
 
         buildTree(self.hierarchy, root, clsDict)
@@ -88,7 +88,7 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
         root = self.tree.AddRoot(_('Modules'))
         modules = {}
         moduleName = ''
-        for className in self.classes.keys():
+        for className in list(self.classes.keys()):
             moduleName = os.path.basename(self.classes[className].file)
             if not moduleName in modules:
                 modules[moduleName] = {}
@@ -96,7 +96,7 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
             modules[moduleName][className]['Properties'] = {}
             modules[moduleName][className]['Methods'] = {}
             modules[moduleName][className]['Built-in'] = {}
-            for method in self.classes[className].methods.keys():
+            for method in list(self.classes[className].methods.keys()):
                 if (method[:2] == '__'):
                     modules[moduleName][className]['Built-in'][method] = self.classes[className].lineno
                 elif (method[:3] == 'Get'):
@@ -111,22 +111,22 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
                         modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
                 else:
                     modules[moduleName][className]['Methods'][method] = self.classes[className].lineno
-        moduleLst = modules.keys()
+        moduleLst = list(modules.keys())
         moduleLst.sort()
         for module in moduleLst:
             roots = self.tree.AppendItem(root, module)
-            classLst = modules[module].keys()
+            classLst = list(modules[module].keys())
             classLst.sort()
             for classes in classLst:
                 aClass = self.tree.AppendItem(roots, classes)
                 methItem = self.tree.AppendItem(aClass, _('Methods'))
-                for methods in modules[module][classes]['Methods'].keys():
+                for methods in list(modules[module][classes]['Methods'].keys()):
                     methodsItem = self.tree.AppendItem(methItem, methods)
                 propItem = self.tree.AppendItem(aClass, _('Properties'))
-                for properties in modules[module][classes]['Properties'].keys():
+                for properties in list(modules[module][classes]['Properties'].keys()):
                     propertyItem = self.tree.AppendItem(propItem, properties)
                 bInItem = self.tree.AppendItem(aClass, _('Built-in'))
-                for builtIns in modules[module][classes]['Built-in'].keys():
+                for builtIns in list(modules[module][classes]['Built-in'].keys()):
                     builtInItem = self.tree.AppendItem(bInItem, builtIns)
                 suprItem = self.tree.AppendItem(aClass, _('Super'))
                 for supers in self.classes[classes].super:
@@ -180,11 +180,11 @@ def travTilBase(name, classes, root):
         return c[name]
 
 def buildTree(tree, parent, dict):
-    items = dict.keys()
+    items = list(dict.keys())
     items.sort()
     for item in items:
         child = tree.AppendItem(parent, item)
-        if len(dict[item].keys()):
+        if len(list(dict[item].keys())):
             buildTree(tree, child, dict[item])
 
 #-------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ from PropEdit import PropertyEditors
 try:
     import wx.lib.plot
 except ImportError:
-    raise Plugins.SkipPlugin, 'PyPlot can not be imported (it probably requires Numeric)'
+    raise Plugins.SkipPlugin('PyPlot can not be imported (it probably requires Numeric)')
 
 class PlotCanvasDTC(BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):

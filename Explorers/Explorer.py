@@ -10,7 +10,7 @@
 # Licence:     GPL
 #----------------------------------------------------------------------
 
-print 'importing Explorers'
+print('importing Explorers')
 
 from os import path
 import os, sys
@@ -25,9 +25,9 @@ from Utils import _
 
 from Models import EditorHelper
 
-import ExplorerNodes
-from ExplorerNodes import TransportError, TransportLoadError, TransportSaveError
-from ExplorerNodes import TransportCategoryError
+from . import ExplorerNodes
+from .ExplorerNodes import TransportError, TransportLoadError, TransportSaveError
+from .ExplorerNodes import TransportCategoryError
 
 #---Explorer utility functions--------------------------------------------------
 
@@ -48,7 +48,7 @@ def makeCategoryEx(protocol, name='', struct=None):
 
             return name
 
-    raise TransportCategoryError, _('No category found for protocol %s')%protocol
+    raise TransportCategoryError(_('No category found for protocol %s')%protocol)
 
 def openEx(filename, transports=None):
     """ Returns a transport node for the given uri """
@@ -72,7 +72,7 @@ def splitURI(filename):
         return 'file', '', filename, 'file://'+filename
     else:
         itemLen = len(protsplit)
-        if ExplorerNodes.uriSplitReg.has_key( (protsplit[0], itemLen) ):
+        if (protsplit[0], itemLen) in ExplorerNodes.uriSplitReg:
             return ExplorerNodes.uriSplitReg[(protsplit[0], itemLen)]\
                    (*([filename]+protsplit[1:]))
 
@@ -86,7 +86,7 @@ def splitURI(filename):
             return prot, category, respath, filename
 
 def getTransport(prot, category, respath, transports):
-    if ExplorerNodes.transportFindReg.has_key(prot):
+    if prot in ExplorerNodes.transportFindReg:
         return ExplorerNodes.transportFindReg[prot](category, respath, transports)
     elif category:
         return findCatExplorerNode(prot, category, respath, transports)
@@ -197,7 +197,7 @@ class BaseExplorerTree(wx.TreeCtrl):
 def importTransport(moduleName):
     try:
         __import__(moduleName, globals())
-    except ImportError, error:
+    except ImportError as error:
         if Preferences.pluginErrorHandling == 'raise':
             raise
         wx.LogWarning(_('%s not installed: %s') %(moduleName, str(error)))
@@ -217,7 +217,7 @@ class ExplorerStore:
 
         # Create clipboards for all registered nodes
         self.clipboards = {'global': ExplorerNodes.GlobalClipper()}
-        for Clss, info in ExplorerNodes.explorerNodeReg.items():
+        for Clss, info in list(ExplorerNodes.explorerNodeReg.items()):
             Clip = info['clipboard']
             if type(Clip) is ClassType:
                 self.clipboards[Clss.protocol] = Clip(self.clipboards['global'])
@@ -249,7 +249,7 @@ class ExplorerStore:
         self.preferences = \
               ExplorerNodes.nodeRegByProt['boa.prefs.group'](self.boaRoot)
 
-        assert self.clipboards.has_key('file'), _('File system transport must be loaded')
+        assert 'file' in self.clipboards, _('File system transport must be loaded')
 
         # root level of the tree
         self.boaRoot.entries = [self.openEditorFiles, self.recentFiles, self.bookmarks,
@@ -259,7 +259,7 @@ class ExplorerStore:
         # Protocol also has to be defined in the explorer section of the config
         transport_order = eval(conf.get('explorer', 'transportstree'), {})
         for name in transport_order:
-            for Clss in ExplorerNodes.explorerNodeReg.keys():
+            for Clss in list(ExplorerNodes.explorerNodeReg.keys()):
                 if Clss.protocol == name:
                     Cat = ExplorerNodes.explorerNodeReg[Clss]['category']
                     if not Cat: break
@@ -267,7 +267,7 @@ class ExplorerStore:
                     Clip = ExplorerNodes.explorerNodeReg[Clss]['clipboard']
                     if type(Clip) == type(''):
                         clip = self.clipboards[Clip]
-                    elif self.clipboards.has_key(Clss.protocol):
+                    elif Clss.protocol in self.clipboards:
                         clip = self.clipboards[Clss.protocol]
                     else:
                         clip = None
@@ -278,7 +278,7 @@ class ExplorerStore:
                             cat = Cat(clip, conf, None, self.bookmarks)
                             self.transports.entries.append(cat)
                             self.transports.entriesByProt[Cat.itemProtocol] = cat
-                        except Exception, error:
+                        except Exception as error:
                             wx.LogWarning(_('Transport category %s not added: %s')\
                                    %(Cat.defName, str(error)))
                     break
@@ -304,7 +304,7 @@ class ExplorerStore:
         links = []
         for instMod in ['Explorers.ExplorerNodes', 'PaletteMapping'] + \
               ExplorerNodes.installedModules:
-            for Clss, info in ExplorerNodes.explorerNodeReg.items():
+            for Clss, info in list(ExplorerNodes.explorerNodeReg.items()):
                 if Clss.__module__ == instMod and info['controller']:
                     Ctrlr = info['controller']
                     if type(Ctrlr) == type(''):
@@ -570,7 +570,7 @@ class BaseExplorerSplitter(wx.SplitterWindow):
         return list, list
 
     def addTools(self, toolbar):
-        if self.list.node and self.controllers.has_key(self.list.node.protocol):
+        if self.list.node and self.list.node.protocol in self.controllers:
             prot = self.list.node.protocol
             tbMenus = []
             for menuLst in self.controllers[prot].toolbarMenus:
@@ -587,7 +587,7 @@ class BaseExplorerSplitter(wx.SplitterWindow):
                           IS.load(bmp), name, meth)
 
     def getMenu(self):
-        if self.list.node and self.controllers.has_key(self.list.node.protocol):
+        if self.list.node and self.list.node.protocol in self.controllers:
             return self.controllers[self.list.node.protocol].menu
         else:
             return None
@@ -601,16 +601,16 @@ class BaseExplorerSplitter(wx.SplitterWindow):
         self.tree.Enable(False)
         self.tree.destroy()
         unqDct = {}
-        for contr in self.controllers.values():
+        for contr in list(self.controllers.values()):
             unqDct[contr] = None
-        for contr in unqDct.keys():
+        for contr in list(unqDct.keys()):
             contr.destroy()
         self.controllers = None
         self.list = None
         self.editor = None
 
     def editorUpdateNotify(self):
-        if self.list.node and self.controllers.has_key(self.list.node.protocol):
+        if self.list.node and self.list.node.protocol in self.controllers:
             self.controllers[self.list.node.protocol].editorUpdateNotify()
 
     def selectTreeItem(self, item):

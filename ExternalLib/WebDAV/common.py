@@ -87,9 +87,9 @@
 
 __version__='$Revision$'[11:-2]
 
-import string, time, urllib, re
-from App_Common import iso8601_date, rfc850_date, rfc1123_date
-from App_Common import aq_base
+import string, time, urllib.request, urllib.parse, urllib.error, re
+from .App_Common import iso8601_date, rfc850_date, rfc1123_date
+from .App_Common import aq_base
 
 def absattr(attr):
     if callable(attr):
@@ -115,7 +115,7 @@ def is_acquired(ob):
         return 0
     return 1
 
-def urlbase(url, ftype=urllib.splittype, fhost=urllib.splithost):
+def urlbase(url, ftype=urllib.parse.splittype, fhost=urllib.parse.splithost):
     # Return a '/' based url such as '/foo/bar', removing
     # type, host and port information if necessary.
     if url[0]=='/': return url

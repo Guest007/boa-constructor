@@ -80,7 +80,7 @@ BabelizerIOError
 Version: $Id$
 Author: Jonathan Feinberg <jdf@pobox.com>
 """
-import re, string, urllib
+import re, string, urllib.request, urllib.parse, urllib.error
 
 """
 Various patterns I have encountered in looking for the babelfish result.
@@ -105,7 +105,7 @@ __languages = { 'english'   : 'en',
   All of the available language names.
 """
 #available_languages = [ x.title() for x in __languages.keys() ]
-available_languages = map(string.capitalize, __languages.keys())
+available_languages = list(map(string.capitalize, list(__languages.keys())))
 
 """
   Calling translate() or babelize() can raise a BabelizerError
@@ -131,19 +131,19 @@ def translate(phrase, from_lang, to_lang):
 ##        to_code = __languages[to_lang.lower()]
         from_code = __languages[string.lower(from_lang)]
         to_code = __languages[string.lower(to_lang)]
-    except KeyError, lang:
+    except KeyError as lang:
         raise LanguageNotAvailableError(lang)
 
-    params = urllib.urlencode( { 'BabelFishFrontPage' : 'yes',
+    params = urllib.parse.urlencode( { 'BabelFishFrontPage' : 'yes',
                                  'doit' : 'done',
                                  'urltext' : phrase,
                                  'lp' : from_code + '_' + to_code } )
     try:
-        response = urllib.urlopen('http://babelfish.altavista.com/tr', params)
-    except IOError, what:
+        response = urllib.request.urlopen('http://babelfish.altavista.com/tr', params)
+    except IOError as what:
         raise BabelizerIOError("Couldn't talk to server: %s" % what)
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
 
     html = response.read()
     for regex in __where:
@@ -163,7 +163,7 @@ def babelize(phrase, from_language, through_language, limit = 12, callback = Non
     next = from_language
     for i in range(limit):
         phrase = translate(phrase, next, flip[next])
-        if seen.has_key(phrase): break
+        if phrase in seen: break
         seen[phrase] = 1
         if callback:
             callback(phrase)
@@ -175,11 +175,11 @@ def babelize(phrase, from_language, through_language, limit = 12, callback = Non
 if __name__ == '__main__':
     import sys
     def printer(x):
-        print x
+        print(x)
         sys.stdout.flush();
 
 
 ##    babelize("I won't take that sort of treatment from you, or from your doggie!",
 ##             'english', 'french', callback = printer)
-    babelize("Für die Validierung der Ausgabedatei catalog.xml sollte ebenfalls ein Perl-Modul zur Anwendung kommen", 'German', 'English', callback = printer)
+    # babelize("Fï¿½r die Validierung der Ausgabedatei catalog.xml sollte ebenfalls ein Perl-Modul zur Anwendung kommen", 'German', 'English', callback = printer)
 

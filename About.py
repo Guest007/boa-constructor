@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------
 
 import sys, time, re, string
-from thread import start_new_thread
+from _thread import start_new_thread
 
 import wx
 import wx.html
@@ -300,7 +300,7 @@ class AboutBox(AboutBoxMixin, wx.Dialog):
                  langlistctrl.GetLanguageFlag(wx.GetApp().locale.GetLanguage()),
                  wx.BITMAP_TYPE_PNG)
                 addImagesToFS.addedImages.append('Language.png')
-        except Exception, err:
+        except Exception as err:
             pass
 
     def setPage(self):
@@ -316,6 +316,7 @@ DefAboutBox = AboutBox
 class AboutBoxSplash(AboutBoxMixin, wx.Frame):
     progressBorder = 1
     fileOpeningFactor = 10
+
     def _init_ctrls(self, prnt):
         wx.Frame.__init__(self, size=wx.Size(418, 320), pos=(-1, -1),
               id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
@@ -390,8 +391,8 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
         if event.GetPosition().x < 10:
             self._gaugeClicks += 1
             if self._gaugeClicks >= 5:
-                print
-                print 'Received early abort...'
+                print()
+                print('Received early abort...')
                 sys.exit()
 
 class StaticTextPF(Utils.PseudoFile):
@@ -406,7 +407,7 @@ class StaticTextPF(Utils.PseudoFile):
                   ModCntUpdateEvent(cnt, 'opening'))
             s = s[:res.start()]
 
-        ss = string.strip(s)
+        ss = s.strip()
         if ss:
             self.output.SetLabel(ss)
 

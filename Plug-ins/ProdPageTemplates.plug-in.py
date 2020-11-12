@@ -3,7 +3,7 @@ import os, sys
 import Preferences, Utils, Plugins
 
 if not Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
-    raise Plugins.SkipPlugin, 'Zope support is not enabled'
+    raise Plugins.SkipPlugin('Zope support is not enabled')
 
 #---Model-----------------------------------------------------------------------
 
@@ -52,8 +52,8 @@ class ZopePTHTMLView(ZopeViews.ZopeHTMLView):
         url = 'http://%s:%s@%s:%d/%s/source.html'%(props['username'],
               props['passwd'], props['host'], props['httpport'],
               self.model.transport.whole_name())
-        import urllib
-        f = urllib.urlopen(url)
+        import urllib.request, urllib.parse, urllib.error
+        f = urllib.request.urlopen(url)
         return f.read()
 
 #---Controller------------------------------------------------------------------

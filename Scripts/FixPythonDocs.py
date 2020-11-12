@@ -15,7 +15,8 @@ anchor1 = "<tt id='"
 anchor2 = "<a id='"
 
 def fixNamedAnchors(docDir, subDirs):
-    def visit_dir((excludes,), dirname, names):
+    def visit_dir(xxx_todo_changeme, dirname, names):
+        (excludes,) = xxx_todo_changeme
         for name in names:
             if name not in excludes:
                 filename = os.path.join(dirname, name)
@@ -67,7 +68,7 @@ def fixNamedAnchors(docDir, subDirs):
                     data = ''.join(resLst)
                 
                     if data != origData:
-                        print 'fixed %s'%filename
+                        print('fixed %s'%filename)
                         open(filename, 'w').write(data)
 
     
@@ -76,7 +77,8 @@ def fixNamedAnchors(docDir, subDirs):
 def strip_utf8(docDir):
     utf8 = '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />'
     
-    def visit_dir((excludes,), dirname, names):
+    def visit_dir(xxx_todo_changeme1, dirname, names):
+        (excludes,) = xxx_todo_changeme1
         for name in names:
             if name not in excludes:
                 filename = os.path.join(dirname, name)
@@ -85,7 +87,7 @@ def strip_utf8(docDir):
                     if utf8 in data:
                         data = data.replace(utf8, '')
                         open(filename, 'w').write(data)
-                        print 'rewrote', filename
+                        print('rewrote', filename)
     
     os.path.walk(docDir, visit_dir, (['']))
 

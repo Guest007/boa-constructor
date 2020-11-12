@@ -75,7 +75,7 @@ class BoaDebugger (PropertyManager, SimpleItem):
         try :
             self._v_active = True
             start(self.username, self.password, self.host, self.port)
-        except Exception, e:
+        except Exception as e:
             if REQUEST:
                 typ, val, tb = sys.exc_info()
                 s = "The debug server could not be started.<br>%s<br>\n" % traceback.format_exception(typ, val, tb)
@@ -98,7 +98,7 @@ class BoaDebugger (PropertyManager, SimpleItem):
         try :
             self._v_active = False
             stop()
-        except Exception, e:
+        except Exception as e:
             if REQUEST:
                 typ, val, tb = sys.exc_info()
                 s = "The debug server could not be stopped.<br>%s<br>\n" % traceback.format_exception(typ, val, tb) + "<br>\n"
@@ -130,7 +130,7 @@ class BoaDebugger (PropertyManager, SimpleItem):
                     REQUEST.set('manage_tabs_message', 'Breakpoint Added')
                     return self.manage_main(self, REQUEST)
                 return
-            except Exception, e:
+            except Exception as e:
                 if REQUEST:
                     REQUEST.set('manage_tabs_message', str(e))
                     return self.manage_main(self, REQUEST)
@@ -140,6 +140,6 @@ class BoaDebugger (PropertyManager, SimpleItem):
             REQUEST.set('manage_tabs_message', '''The 'sys' module does not provide breakpoints.''')
             return self.manage_main(self, REQUEST)
         else:
-            raise NotImplementedError, '''The 'sys' module does not provide breakpoints.'''
+            raise NotImplementedError('''The 'sys' module does not provide breakpoints.''')
 
 Globals.InitializeClass(BoaDebugger)

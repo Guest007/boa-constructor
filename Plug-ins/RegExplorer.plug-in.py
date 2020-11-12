@@ -21,9 +21,9 @@ from Models import EditorModels, EditorHelper
 import RTTI
 
 try:
-    import _winreg
+    import winreg
 except ImportError:
-    raise Plugins.SkipPluginSilently, 'Requires windows'
+    raise Plugins.SkipPluginSilently('Requires windows')
 
 #---Explorer classes------------------------------------------------------------
 
@@ -104,14 +104,14 @@ class RegItemNode(ExplorerNodes.ExplorerNode):
             key, subkey = self.resourcepath, None
         else:    
             key, subkey = string.split(self.resourcepath, '\\', 1)
-        key =_winreg.__dict__[key]
+        key =winreg.__dict__[key]
         if self.properties['computername']:
             compName = self.properties['computername']
         else:
             compName = None
 
         #hdl = _winreg.ConnectRegistry(compName, )
-        self.hkey = _winreg.CreateKey(key, subkey)
+        self.hkey = winreg.CreateKey(key, subkey)
 
 
     def getURI(self):
@@ -145,7 +145,7 @@ class RegItemNode(ExplorerNodes.ExplorerNode):
 
         idx = 0
         res = []
-        for skey in self.enumReg(_winreg.EnumKey, self.hkey):
+        for skey in self.enumReg(winreg.EnumKey, self.hkey):
             res.append(self.createChildNode(skey, self.properties))
 
         return res
@@ -194,7 +194,7 @@ class RegPropReaderMixin:
         #print propList
         for name, value in propList:
             if not value: value = ''
-            elif types.StringType is type(value[0]):
+            elif bytes is type(value[0]):
                 value = value[0]
 
             items.append( (string.split(name, ':')[1], value) )
@@ -208,7 +208,7 @@ class RegCompanion(RegPropReaderMixin, ExplorerNodes.ExplorerCompanion):
     def getPropertyItems(self):
         res = []
         self.regNode.initHkey()
-        for name, val, tpe in self.regNode.enumReg(_winreg.EnumValue, self.regNode.hkey):
+        for name, val, tpe in self.regNode.enumReg(winreg.EnumValue, self.regNode.hkey):
             res.append( (name, val) )
         return res
 

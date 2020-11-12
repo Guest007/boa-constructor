@@ -7,9 +7,9 @@ from Utils import _
 try:
     from ExternalLib import xmlrpclib
 except ImportError:
-    import xmlrpclib
+    import xmlrpc.client
 
-from DebugClient import DebugClient, MultiThreadedDebugClient, \
+from .DebugClient import DebugClient, MultiThreadedDebugClient, \
      EmptyResponseError, DebuggerTask, EVT_DEBUGGER_START, \
      wxEVT_DEBUGGER_START, wxEVT_DEBUGGER_EXC, wxEVT_DEBUGGER_STOPPED
 
@@ -19,7 +19,7 @@ USE_TCPWATCH = 0
 LOG_TRACEBACKS = 0
 
 
-class TransportWithAuth (xmlrpclib.Transport):
+class TransportWithAuth (xmlrpc.client.Transport):
     """Adds a proprietary but simple authentication header to the
     RPC mechanism.  NOTE: this requires xmlrpclib version 1.0.0."""
 
@@ -27,7 +27,7 @@ class TransportWithAuth (xmlrpclib.Transport):
         self._auth = auth
 
     def send_user_agent(self, connection):
-        xmlrpclib.Transport.send_user_agent(self, connection)
+        xmlrpc.client.Transport.send_user_agent(self, connection)
         connection.putheader("X-Auth", self._auth)
 
     def parse_response(self, f, sock=None):
@@ -47,12 +47,12 @@ class TransportWithAuth (xmlrpclib.Transport):
             else:
                 got_data = 1
             if self.verbose:
-                print "body:", repr(response)
+                print(("body:", repr(response)))
             p.feed(response)
 
         f.close()
         if not got_data:
-            raise EmptyResponseError, _('Empty response from debugger process')
+            raise EmptyResponseError(_('Empty response from debugger process'))
 
         p.close()
         return u.close()
@@ -119,7 +119,7 @@ def spawnChild(monitor, process, args=''):
                         Error, val = __builtins__[exctype.strip()], (excvalue.strip()+errfile)
                     except KeyError:
                         Error, val = UnknownError, (exctype.strip()+':'+excvalue.strip()+errfile)
-                    raise Error, val
+                    raise Error(val)
 
         if not KEEP_STREAMS_OPEN:
             process.CloseOutput()
@@ -127,13 +127,13 @@ def spawnChild(monitor, process, args=''):
         if monitor.isAlive():
             line = line.strip()
             if not line:
-                raise RuntimeError, (
+                raise RuntimeError(
                     _('The debug server address could not be read'))
             port, auth = line.strip().split()
 
             if USE_TCPWATCH:
                 # Start TCPWatch as a connection forwarder.
-                from thread import start_new_thread
+                from _thread import start_new_thread
                 new_port = 20202  # Hopefully free
                 def run_tcpwatch(port1, port2):
                     os.system("tcpwatch -L %d:127.0.0.1:%d" % (
@@ -143,11 +143,11 @@ def spawnChild(monitor, process, args=''):
                 port = new_port
 
             trans = TransportWithAuth(auth)
-            server = xmlrpclib.Server(
+            server = xmlrpc.client.Server(
                 'http://127.0.0.1:%d' % int(port), trans)
             return server, istream, estream, pid, pyIntpPath
         else:
-            raise RuntimeError, _('The debug server failed to start')
+            raise RuntimeError(_('The debug server failed to start'))
     except:
         if monitor.isAlive():
             process.CloseOutput()

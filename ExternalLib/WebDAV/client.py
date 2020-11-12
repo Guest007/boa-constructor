@@ -3,19 +3,19 @@
 __version__ = '$Revision$'[11:-2]
 
 import sys, os, string, time, types, re
-import socket, httplib, mimetools
+import socket, http.client, mimetools
 from types import FileType
 from mimetypes import guess_type
 from base64 import encodestring
-from common import rfc1123_date
-from cStringIO import StringIO
+from .common import rfc1123_date
+from io import StringIO
 from random import random
-from urllib import quote
+from urllib.parse import quote
 
 
 
 
-class HTTP(httplib.HTTP):
+class HTTP(http.client.HTTP):
     # A revised version of the HTTP class that can do basic
     # HTTP 1.1 connections, and also compensates for a bug
     # that occurs on some platforms in 1.5 and 1.5.1 with
@@ -64,7 +64,7 @@ class Resource:
             self.host = host
             self.port = port and string.atoi(port[1:]) or 80
             self.uri = uri or '/'
-        else: raise ValueError, url
+        else: raise ValueError(url)
 
     def __getattr__(self, name):
         url = os.path.join(self.url, name)
@@ -78,8 +78,8 @@ class Resource:
         headers['Host'] = self.host
         headers['Connection'] = 'close'
         headers['Accept'] = '*/*'
-        if kw.has_key('headers'):
-            for name, val in kw['headers'].items():
+        if 'headers' in kw:
+            for name, val in list(kw['headers'].items()):
                 headers[name] = val
             del kw['headers']
         return headers
@@ -87,18 +87,18 @@ class Resource:
     def __set_authtoken(self, headers, atype='Basic'):
         if not (self.username and self.password):
             return headers
-        if headers.has_key('Authorization'):
+        if 'Authorization' in headers:
             return headers
         if atype == 'Basic':
             headers['Authorization'] = (
                 "Basic %s" % string.replace(encodestring('%s:%s' % (self.username, self.password)),
                                             '\012', ''))
             return headers
-        raise ValueError, 'Unknown authentication scheme: %s' % atype
+        raise ValueError('Unknown authentication scheme: %s' % atype)
 
     def __enc_formdata(self, args={}):
         formdata = []
-        for key, val in args.items():
+        for key, val in list(args.items()):
             n = string.rfind(key, '__')
             if n > 0:
                 tag = key[n + 2:]
@@ -116,7 +116,7 @@ class Resource:
             h = HTTP()
             h.connect(self.host, self.port)
             h.putrequest(method, uri)
-            for n, v in headers.items():
+            for n, v in list(headers.items()):
                 h.putheader(n, v)
             if eh: h.endheaders()
             if body: h.send(body)
@@ -145,7 +145,7 @@ class Resource:
     def post(self, **kw):
         headers = self.__get_headers(kw)
         content_type = None
-        for key, val in kw.items():
+        for key, val in list(kw.items()):
             if (key[-6:] == '__file') or hasattr(val, 'read'):
                 content_type = 'multipart/form-data'
                 break
@@ -176,7 +176,7 @@ class Resource:
             body = file
             c_type, c_enc = guess_type(self.url)
         else:
-            raise ValueError, 'File must be a filename, file or string.'
+            raise ValueError('File must be a filename, file or string.')
         content_type = content_type or c_type
         content_enc = content_enc or c_enc
         if content_type: headers['Content-Type'] = content_type
@@ -238,11 +238,11 @@ class Resource:
         without the lock from executing a PUT, POST, PROPPATCH, LOCK, UNLOCK,
         MOVE, DELETE, or MKCOL on the locked resource."""
         if not scope in ('shared', 'exclusive'):
-            raise ValueError, 'Invalid lock scope.'
+            raise ValueError('Invalid lock scope.')
         if not type in ('write',):
-            raise ValueError, 'Invalid lock type.'
+            raise ValueError('Invalid lock type.')
         if not depth in ('0', 'infinity'):
-            raise ValueError, 'Invalid depth.'
+            raise ValueError('Invalid depth.')
         headers = self.__get_headers(kw)
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
              '<d:lockinfo xmlns:d="DAV:">\n' \
@@ -292,9 +292,9 @@ class Resource:
 
     def setprops(self, **props):
         if not props:
-            raise ValueError, 'No properties specified.'
+            raise ValueError('No properties specified.')
         tags = []
-        for key, val in props.items():
+        for key, val in list(props.items()):
             tags.append('  <%s>%s</%s>' % (key, val, key))
         tags = string.join(tags, '\n')
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
@@ -309,7 +309,7 @@ class Resource:
 
     def delprops(self, *names):
         if not names:
-            raise ValueError, 'No property names specified.'
+            raise ValueError('No property names specified.')
         tags = string.join(names, '/>\n  <')
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
               '<d:propertyupdate xmlns:d="DAV:">\n' \
@@ -356,7 +356,7 @@ class http_response:
     def __str__(self):
         data = []
         data.append('%s %s %s\r\n' % (self.version, self.code, self.msg))
-        map(data.append, self.headers.headers)
+        list(map(data.append, self.headers.headers))
         data.append('\r\n')
         data.append(self.body)
         return string.join(data, '')
@@ -449,7 +449,7 @@ def marshal_list(name, seq, tname='list', lt=type([]), tt=type(())):
     for v in seq:
         tp = type(v)
         if tp in (lt, tt):
-            raise TypeError, 'Invalid recursion in data to be marshaled.'
+            raise TypeError('Invalid recursion in data to be marshaled.')
         result.append(marshal_var("%s:%s" % (name, tname), v))
     return string.join(result, '&')
 
@@ -459,7 +459,7 @@ def marshal_tuple(name, seq):
 varfuncs = {}
 vartypes = (('int', type(1), marshal_int),
           ('float', type(1.0), marshal_float),
-          ('long', type(1L), marshal_long),
+          ('long', type(1), marshal_long),
           ('list', type([]), marshal_list),
           ('tuple', type(()), marshal_tuple),
           ('string', type(''), marshal_string),
@@ -479,7 +479,7 @@ class MultiPart:
         c = len(args)
         if c == 1:    name, val = None, args[0]
         elif c == 2:  name, val = args[0], args[1]
-        else:       raise ValueError, 'Invalid arguments'
+        else:       raise ValueError('Invalid arguments')
 
         h = {'Content-Type':              {'_v':''},
            'Content-Transfer-Encoding': {'_v':''},
@@ -488,16 +488,16 @@ class MultiPart:
         dt = type(val)
         b = t = None
 
-        if dt == types.DictType:
+        if dt == dict:
             t = 1
             b = self.boundary()
             d = []
             h['Content-Type']['_v'] = 'multipart/form-data; boundary=%s' % b
-            for n, v in val.items():
+            for n, v in list(val.items()):
                 d.append(MultiPart(n, v))
 
-        elif (dt == types.ListType) or (dt == types.TupleType):
-            raise ValueError, 'Sorry, nested multipart is not done yet!'
+        elif (dt == list) or (dt == tuple):
+            raise ValueError('Sorry, nested multipart is not done yet!')
 
         elif dt == types.FileType or hasattr(val, 'read'):
             if hasattr(val, 'name'):
@@ -544,10 +544,10 @@ class MultiPart:
         s = []
 
         if self._top:
-            for n, v in h.items():
+            for n, v in list(h.items()):
                 if v['_v']:
                     s.append('%s: %s' % (n, v['_v']))
-                    for k in v.keys():
+                    for k in list(v.keys()):
                         if k != '_v': s.append('; %s=%s' % (k, v[k]))
                     s.append('\n')
             p = []
@@ -564,10 +564,10 @@ class MultiPart:
             return join(s, '')
 
         else:
-            for n, v in h.items():
+            for n, v in list(h.items()):
                 if v['_v']:
                     s.append('%s: %s' % (n, v['_v']))
-                    for k in v.keys():
+                    for k in list(v.keys()):
                         if k != '_v': s.append('; %s=%s' % (k, v[k]))
                     s.append('\n')
             s.append('\n')

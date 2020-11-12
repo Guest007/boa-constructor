@@ -25,13 +25,13 @@ class ZopeFTPItem:
         self.lines = []
 
     def __repr__(self):
-        return '<%s %s, %s>' % (`self.__class__`, self.whole_name(), self.date)
+        return '<%s %s, %s>' % (repr(self.__class__), self.whole_name(), self.date)
 
     def read(self, line):
         # dos:
         # 08-15-01  09:20AM                  255 __init__.pyc
         # [date  ]  [time ]                  [size] [name]
-        items = filter(None, line.split())
+        items = [_f for _f in line.split() if _f]
         # DOS format
         if len(items) == 4:
             try:
@@ -43,8 +43,8 @@ class ZopeFTPItem:
                     self.size = items[2]
                 self.name = items[3]
 
-            except Exception, message:
-                print 'Could not read:', line, message
+            except Exception as message:
+                print('Could not read:', line, message)
         # UNIX format
         else:
             try:
@@ -52,8 +52,8 @@ class ZopeFTPItem:
                 self.date = ' '.join(items[5:8])
                 self.name = ' '.join(items[8:])
 
-            except Exception, message:
-                print 'Could not read:', line, message
+            except Exception as message:
+                print('Could not read:', line, message)
 
     def prepareAsFile(self, data):
         self.lines = data.split('\n')
@@ -154,7 +154,7 @@ class ZopeFTP:
         item.prepareAsFile(data)
         try:
             self.ftp.storlines(item.cmd('STOR'), item)
-        except socket.error, err:
+        except socket.error as err:
             # reconnect and retry if connection has failed
             if err[0] == 10054:
                 self.connect(self.username, self.password, self.host, self.port, self.passive)

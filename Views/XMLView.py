@@ -17,7 +17,7 @@ import wx
 
 from Utils import _
 
-from EditorViews import EditorView
+from .EditorViews import EditorView
 
 
 class XMLTreeView(wx.TreeCtrl, EditorView):
@@ -41,9 +41,9 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
         self.active = True
 
     def buildTree(self, parent, dict):
-        for item in dict.keys():
+        for item in list(dict.keys()):
             child = self.AppendItem(parent, item, 0)
-            if len(dict[item].keys()):
+            if len(list(dict[item].keys())):
                 self.buildTree(child, dict[item])
             self.Expand(child)
 

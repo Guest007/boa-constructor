@@ -7,7 +7,7 @@ import wx.grid
 
 from Utils import _
 
-from PathsPanel import PathsPanel
+from .PathsPanel import PathsPanel
 
 def create(parent):
     return AttachDlg(parent)
@@ -178,8 +178,8 @@ class AttachDlg(wx.Dialog):
                 AttachDlg.rem_pass = None
             AttachDlg.rem_pths = paths
 
-        from Debugger import DebuggerFrame
-        from RemoteClient import RemoteClient
+        from .Debugger import DebuggerFrame
+        from .RemoteClient import RemoteClient
 
         debugger = DebuggerFrame(self.editor, slave_mode=0)
         client = RemoteClient(debugger, host, port, user, pw)
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     dlg = create(None)
     try:
         dlg.ShowModal()
-        print dlg.pathsPanel.read_paths()
+        print((dlg.pathsPanel.read_paths()))
     finally:
         dlg.Destroy()
 
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     dlg = create(None)
     try:
         dlg.ShowModal()
-        print dlg.pathsPanel.read_paths()
+        print((dlg.pathsPanel.read_paths()))
     finally:
         dlg.Destroy()
 

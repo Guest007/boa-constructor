@@ -11,10 +11,10 @@ ClientIds = ['wx.ART_TOOLBAR', 'wx.ART_MENU', 'wx.ART_FRAME_ICON', 'wx.ART_CMN_D
 
 def attachStandardArtIds():
     clids = [c[3:] for c in ClientIds]
-    for n in wx.__dict__.keys():
+    for n in list(wx.__dict__.keys()):
         if n.startswith('ART_') and n not in clids:
             val = wx.__dict__[n]
-            if isinstance(val, basestring):
+            if isinstance(val, str):
                 PaletteStore.artProviderArtIds.append(val)
 
 attachStandardArtIds()
