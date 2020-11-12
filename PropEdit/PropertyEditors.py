@@ -1365,7 +1365,7 @@ class NameConstrPropEdit(ConstrPropEdit):
                     return self.value
 
                 for c in strVal:
-                    if c not in string.letters + string.digits + '_':
+                    if c not in string.ascii_letters + string.digits + '_':
                         message = _('Invalid name for a Python object')
                         wx.LogError(message)
                         return self.value

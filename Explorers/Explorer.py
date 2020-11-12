@@ -16,7 +16,7 @@ import os
 import sys
 import time
 from os import path
-from types import ClassType
+# from types import ClassType
 
 import wx
 
@@ -243,7 +243,7 @@ class ExplorerStore:
         self.clipboards = {'global': ExplorerNodes.GlobalClipper()}
         for Clss, info in list(ExplorerNodes.explorerNodeReg.items()):
             Clip = info['clipboard']
-            if isinstance(Clip, ClassType):
+            if isinstance(Clip, type):
                 self.clipboards[Clss.protocol] = Clip(
                     self.clipboards['global'])
 

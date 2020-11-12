@@ -307,7 +307,7 @@ class PyResourceBitmapController(PythonControllers.ModuleController):
         [PyResourceImagesView]
 
 
-validFuncChars = string.letters + string.digits + '_'
+validFuncChars = string.ascii_letters + string.digits + '_'
 funcCharMap = {'-': '_', '.': '_'}
 
 

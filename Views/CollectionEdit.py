@@ -21,8 +21,9 @@ import sourceconst
 import Utils
 from Preferences import IS, keyDefs
 from Utils import _
+from Views.InspectableViews import InspectableObjectView
 
-from . import InspectableViews
+# from . import InspectableViews
 
 print('importing Views.CollectionEdit')
 
@@ -318,7 +319,7 @@ class ImageListCollectionEditor(CollectionEditor):
         self.itemList.InsertImageStringItem(idx, displayProp, idx)
 
 
-class CollectionEditorView(InspectableViews.InspectableObjectView):
+class CollectionEditorView(InspectableObjectView):
     viewName = 'CollectionEditor'
     viewTitle = _('CollectionEditor')
 
@@ -326,7 +327,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
     collectionParams = 'self, parent'
 
     def __init__(self, parent, inspector, model, companion):
-        InspectableViews.InspectableObjectView.__init__(self, inspector,
+        InspectableObjectView.__init__(self, inspector,
                                                         model, None, (), -1, False)
 
         self.parent = parent
@@ -496,7 +497,7 @@ class CollectionEditorView(InspectableViews.InspectableObjectView):
 
     def close(self):
         self.cleanup()
-        InspectableViews.InspectableObjectView.close(self)
+        InspectableObjectView.close(self)
 
     def show(self):
         if not self.frame:

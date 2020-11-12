@@ -10,7 +10,7 @@
 # Licence:     GPL
 # -----------------------------------------------------------------------------
 import wx
-import wx.lib.hyperlink
+import wx.lib.agw.hyperlink
 import wx.lib.intctrl
 import wx.lib.masked.combobox
 import wx.lib.masked.ipaddrctrl
@@ -451,7 +451,7 @@ class AnalogClockDTC(WindowDTC):
 # -------------------------------------------------------------------------------
 
 
-class ScrolledPanelDTC(Constructors.WindowConstr,
+class ScrolledPanelDTC(#Constructors.WindowConstr,
                        ContainerCompanions.ScrolledWindowDTC):
     """Currently you need to manually add the following call to the source
     after self._init_ctrls(parent).
@@ -479,9 +479,9 @@ class ScrolledPanelDTC(Constructors.WindowConstr,
 
 
 EventCollections.EventCategories['HyperLinkEvent'] = (
-    'wx.lib.hyperlink.EVT_HYPERLINK_LEFT',
-    'wx.lib.hyperlink.EVT_HYPERLINK_MIDDLE',
-    'wx.lib.hyperlink.EVT_HYPERLINK_RIGHT')
+    'wx.EVT_HYPERLINK_LEFT',
+    'wx.EVT_HYPERLINK_MIDDLE',
+    'wx.EVT_HYPERLINK_RIGHT')
 
 # Link Visited LinkRollover
 
@@ -510,7 +510,7 @@ class HyperLinkCtrlDTC(BasicCompanions.StaticTextDTC):
 
     def writeImports(self):
         return '\n'.join((BasicCompanions.StaticTextDTC.writeImports(self),
-                          'import wx.lib.hyperlink'))
+                          'import wx.lib.agw.hyperlink'))
 
     def events(self):
         return BasicCompanions.StaticTextDTC.events(self) + ['HyperLinkEvent']
@@ -714,8 +714,8 @@ Plugins.registerComponents('Library',
                            (wx.lib.scrolledpanel.ScrolledPanel,
                                'wx.lib.scrolledpanel.ScrolledPanel',
                                ScrolledPanelDTC),
-                           (wx.lib.hyperlink.HyperLinkCtrl,
-                               'wx.lib.hyperlink.HyperLinkCtrl',
+                           (wx.lib.agw.hyperlink.HyperLinkCtrl,
+                               'wx.lib.agw.hyperlink.HyperLinkCtrl',
                                HyperLinkCtrlDTC),
                            )
 

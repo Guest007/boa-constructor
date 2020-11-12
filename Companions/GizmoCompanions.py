@@ -38,7 +38,7 @@ EventCollections.commandCategories.append('DynamicSashEvent')
 
 
 class DynamicSashWindowDTC(
-        GizmoDTCMix, Constructors.WindowConstr, BaseCompanions.WindowDTC):
+        GizmoDTCMix, BaseCompanions.WindowDTC):  # Constructors.WindowConstr,
     def __init__(self, name, designer, parent, ctrlClass):
         BaseCompanions.WindowDTC.__init__(
             self, name, designer, parent, ctrlClass)
@@ -211,7 +211,7 @@ Plugins.registerComponent('ContainersLayout', wx.gizmos.DynamicSashWindow,
                           'wx.gizmos.DynamicSashWindow', DynamicSashWindowDTC)
 Plugins.registerComponent('BasicControls', wx.gizmos.LEDNumberCtrl,
                           'wx.gizmos.LEDNumberCtrl', LEDNumberCtrlDTC)
-Plugins.registerComponent('ListControls', wx.gizmos.EditableListBox,
-                          'wx.gizmos.EditableListBox', EditableListBoxDTC)
+Plugins.registerComponent('ListControls', wx.adv.EditableListBox,
+                          'wx.adv.EditableListBox', EditableListBoxDTC)
 Plugins.registerComponent('ListControls', wx.gizmos.TreeListCtrl,
                           'wx.gizmos.TreeListCtrl', TreeListCtrlDTC)

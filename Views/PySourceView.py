@@ -16,8 +16,8 @@ import string
 import sys
 import types
 
-import ProfileView
-import SourceViews
+from . import ProfileView
+from . import SourceViews
 import wx
 import wx.stc
 

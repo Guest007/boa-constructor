@@ -16,9 +16,10 @@ import glob
 import os
 import sys
 import zipfile
+from html.parser import HTMLParser
 from io import StringIO
 
-import htmllib
+# import htmllib
 import wx
 
 import PaletteStore
@@ -207,9 +208,9 @@ class HelpConfigParser:
                              'Index file': name + '.hhk'})
 
 
-class HelpBookParser(htmllib.HTMLParser):
+class HelpBookParser(HTMLParser):
     def __init__(self, formatter, verbose=0):
-        htmllib.HTMLParser.__init__(self, formatter, verbose)
+        HTMLParser.__init__(self, formatter, verbose)
 
         self.indexes = None
         self.index = None
@@ -278,9 +279,9 @@ class BreakOnTitle(Exception):
     pass
 
 
-class HtmlDocDetailParser(htmllib.HTMLParser):
+class HtmlDocDetailParser(HTMLParser):
     def __init__(self, formatter, verbose=0, breakOnTitle=False):
-        htmllib.HTMLParser.__init__(self, formatter, verbose)
+        HTMLParser.__init__(self, formatter, verbose)
         self.anchors = []
         self.title = ''
         self.breakOnTitle = breakOnTitle
@@ -1126,24 +1127,25 @@ class HelpBookController(Controllers.SourceController):
         wx.LogMessage(_('Written %s.') % zipfilename)
 
     def OnMakeCHM(self, event):
-        modelFile = model.localFilename()
-        dir, name = os.path.split(modelFile)
-        cmd = 'hhc %s' % name
-        cwd = os.getcwd()
-        try:
-            os.chdir(runDir)
-            dlg = ProcessProgressDlg.ProcessProgressDlg(
-                self.editor, cmd, _('Make CHM'))
-            try:
-                if dlg.ShowModal() == wx.OK:
-                    outls = dlg.output
-                    errls = dlg.errors
-                else:
-                    return
-            finally:
-                dlg.Destroy()
-        finally:
-            os.chdir(cwd)
+        pass
+        # modelFile = model.localFilename()
+        # dir, name = os.path.split(modelFile)
+        # cmd = 'hhc %s' % name
+        # cwd = os.getcwd()
+        # try:
+        #     os.chdir(runDir)
+        #     dlg = ProcessProgressDlg.ProcessProgressDlg(
+        #         self.editor, cmd, _('Make CHM'))
+        #     try:
+        #         if dlg.ShowModal() == wx.OK:
+        #             outls = dlg.output
+        #             errls = dlg.errors
+        #         else:
+        #             return
+        #     finally:
+        #         dlg.Destroy()
+        # finally:
+        #     os.chdir(cwd)
 
         #err = ''.join(errls).strip()
 

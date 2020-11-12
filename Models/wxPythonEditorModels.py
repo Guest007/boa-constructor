@@ -16,7 +16,7 @@ import re
 import string
 import sys
 
-import new
+# import new
 import wx
 
 import Preferences

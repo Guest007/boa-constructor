@@ -39,7 +39,7 @@ import pprint
 import re
 import string
 import sys
-from types import IntType, StringType  # id([][,]id)*
+# from types import IntType, StringType  # id([][,]id)*
 
 import methodparse
 import Preferences
@@ -687,7 +687,7 @@ class Module:
             return found, cls, value
         else:
             for base in cls.super:
-                if isinstance(base, StringType):
+                if isinstance(base, str):
                     return found, cls, value
                 if attr in base.attributes:
                     return 1, base, base.attributes[attr]
@@ -940,7 +940,7 @@ class Module:
         if name in classes:
             for cls in classes[name].super:
                 if isinstance(
-                        cls, StringType):  # strings are always termination
+                        cls, str):  # strings are always termination
                     rv[cls] = {}
                     exhausted = path + [cls]
                     exhausted.reverse()

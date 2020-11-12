@@ -25,8 +25,8 @@ import sourceconst
 import Utils
 from Utils import _
 
-from . import CollectionEdit
-from .ObjCollection import ObjectCollection, getCollName
+# from . import CollectionEdit
+# from .ObjCollection import ObjectCollection, getCollName
 
 print('importing Views.InspectableViews')
 
@@ -253,6 +253,8 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
                         self.objects[name][0].setEvents([evt])
 
     def addCollView(self, name, collInitMethod, create):
+        from Views.CollectionEdit import CollectionEditorView
+        from Views.ObjCollection import getCollName
         comp, ctrl = self.objects[name][:2]
         collName = getCollName(collInitMethod, name)
         try:
@@ -276,7 +278,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
 
         comp.collections[collName] = collComp
 
-        collEditView = CollectionEdit.CollectionEditorView(self, self.inspector,
+        collEditView = CollectionEditorView(self, self.inspector,
                                                            self.model, collComp)
         collEditView.initialise()
 
@@ -723,6 +725,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         return objName
 
     def addCtrlToObjectCollection(self, textConstr):
+        from Views.ObjCollection import ObjectCollection
         colMeth = self.collectionMethod
         if colMeth not in self.model.objectCollections:
             self.model.objectCollections[colMeth] = ObjectCollection()
@@ -730,6 +733,7 @@ class InspectableObjectView(EditorViews.EditorView, Utils.InspectorSessionMix):
         self.model.objectCollections[colMeth].creators.append(textConstr)
 
     def addCollToObjectCollection(self, collInitParse):
+        from Views.ObjCollection import ObjectCollection
         colMeth = self.collectionMethod
         self.model.objectCollections[colMeth].collections.append(collInitParse)
         # Add a new method to maintained methods
