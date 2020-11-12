@@ -85,11 +85,13 @@
 
 """Commonly used utility functions."""
 
-__version__='$Revision$'[11:-2]
-
-import sys, os, time
 from string import rfind
 
+__version__ = '$Revision$'[11:-2]
+
+import os
+import sys
+import time
 
 # These are needed because the various date formats below must
 # be in english per the RFCs. That means we can't use strftime,
@@ -97,38 +99,44 @@ from string import rfind
 weekday_abbr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 weekday_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
                 'Friday', 'Saturday', 'Sunday']
-monthname    = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+monthname = [None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 
 def iso8601_date(ts=None):
     # Return an ISO 8601 formatted date string, required
     # for certain DAV properties.
     # '2000-11-10T16:21:09-08:00
-    if ts is None: ts=time.time()
+    if ts is None:
+        ts = time.time()
     return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(ts))
+
 
 def rfc850_date(ts=None):
     # Return an HTTP-date formatted date string.
     # 'Friday, 10-Nov-00 16:21:09 GMT'
-    if ts is None: ts=time.time()
+    if ts is None:
+        ts = time.time()
     year, month, day, hh, mm, ss, wd, y, z = time.gmtime(ts)
     return "%s, %02d-%3s-%2s %02d:%02d:%02d GMT" % (
-            weekday_full[wd],
-            day, monthname[month],
-            str(year)[2:],
-            hh, mm, ss)
+        weekday_full[wd],
+        day, monthname[month],
+        str(year)[2:],
+        hh, mm, ss)
+
 
 def rfc1123_date(ts=None):
     # Return an RFC 1123 format date string, required for
     # use in HTTP Date headers per the HTTP 1.1 spec.
     # 'Fri, 10 Nov 2000 16:21:09 GMT'
-    if ts is None: ts=time.time()
+    if ts is None:
+        ts = time.time()
     year, month, day, hh, mm, ss, wd, y, z = time.gmtime(ts)
     return "%s, %02d %3s %4d %02d:%02d:%02d GMT" % (weekday_abbr[wd],
                                                     day, monthname[month],
                                                     year,
                                                     hh, mm, ss)
+
 
 def absattr(attr, c=callable):
     # Return the absolute value of an attribute,
@@ -137,11 +145,13 @@ def absattr(attr, c=callable):
         return attr()
     return attr
 
+
 def aq_base(ob, hasattr=hasattr):
     # Return the aq_base of an object.
     if hasattr(ob, 'aq_base'):
         return ob.aq_base
     return ob
+
 
 def is_acquired(ob, hasattr=hasattr, aq_base=aq_base, absattr=absattr):
     # Return true if this object is not a direct
@@ -157,19 +167,21 @@ def is_acquired(ob, hasattr=hasattr, aq_base=aq_base, absattr=absattr):
 
 
 def package_home(globals_dict):
-    __name__=globals_dict['__name__']
-    m=sys.modules[__name__]
-    if hasattr(m,'__path__'):
-        r=m.__path__[0]
+    __name__ = globals_dict['__name__']
+    m = sys.modules[__name__]
+    if hasattr(m, '__path__'):
+        r = m.__path__[0]
     elif "." in __name__:
-        r=sys.modules[__name__[:rfind(__name__,'.')]].__path__[0]
+        r = sys.modules[__name__[:rfind(__name__, '.')]].__path__[0]
     else:
-        r=__name__
+        r = __name__
     return os.path.join(os.getcwd(), r)
 
 
-def attrget(o,name,default):
-    if hasattr(o,name): return getattr(o,name)
+def attrget(o, name, default):
+    if hasattr(o, name):
+        return getattr(o, name)
     return default
 
-def Dictionary(**kw): return kw # Sorry Guido
+
+def Dictionary(**kw): return kw  # Sorry Guido

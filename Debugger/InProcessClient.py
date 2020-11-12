@@ -1,7 +1,8 @@
 import sys
-from .DebugClient import DebugClient, DebuggerCommEvent, \
-     wxEVT_DEBUGGER_OK, wxEVT_DEBUGGER_EXC
-from .IsolatedDebugger import NonBlockingDebuggerConnection, DebuggerController
+
+from .DebugClient import (DebugClient, DebuggerCommEvent, wxEVT_DEBUGGER_EXC,
+                          wxEVT_DEBUGGER_OK)
+from .IsolatedDebugger import DebuggerController, NonBlockingDebuggerConnection
 
 
 class InProcessCallback:
@@ -41,7 +42,7 @@ class InProcessClient (DebugClient):
         conn.setCallback(cb)
         try:
             getattr(conn, m_name)(*m_args)
-        except:
+        except BaseException:
             cb.notifyException()
 
     def __del__(self):

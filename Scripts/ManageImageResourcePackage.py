@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 
 # just import to confirm resourcepackage is installed
 import resourcepackage
@@ -38,6 +39,7 @@ if not hasattr(sys, 'frozen'):
             )
 '''
 
+
 def visitDir(xxx_todo_changeme, dirname, names):
     (onlyCleanup, packages) = xxx_todo_changeme
     for name in names:
@@ -48,34 +50,40 @@ def visitDir(xxx_todo_changeme, dirname, names):
             packages.append(path)
         else:
             if os.path.splitext(name)[-1] in ('.py', '.pyc', '.pyo'):
-                try: 
+                try:
                     os.remove(os.path.join(path))
-                except Exception: pass
+                except Exception:
+                    pass
 
 
 def createPackageInitFiles(paths, onlyCleanup=False):
     for path in paths:
         packages = []
         os.path.walk(path, visitDir, (onlyCleanup, packages))
-        
+
         if not onlyCleanup:
             importLst = []
             for pth in packages:
-                pck = pth[len(path)+1:].strip().replace('/', '.').replace('\\', '.')
+                pck = pth[len(path) + 1:].strip().replace('/',
+                                                          '.').replace('\\', '.')
                 importLst.append(pck)
                 open(os.path.join(pth, '__init__.py'), 'w').write(src__init__)
-            
+
             sep = '\n'
-            main_init = sep.join(['import %s'%pck for pck in importLst])
+            main_init = sep.join(['import %s' % pck for pck in importLst])
             init_file = os.path.join(path, '__init__.py')
-            open(init_file, 'w').write(src__init__+sep*2+main_init+sep)
+            open(init_file, 'w').write(src__init__ + sep * 2 + main_init + sep)
             cur_path = sys.path
             try:
-                sys.path = [os.path.dirname(init_file)]+cur_path
-                exec(compile(open(init_file, "rb").read(), init_file, 'exec'), {'__file__': init_file})
+                sys.path = [os.path.dirname(init_file)] + cur_path
+                exec(
+                    compile(
+                        open(
+                            init_file, "rb").read(), init_file, 'exec'), {
+                        '__file__': init_file})
             finally:
                 sys.path = cur_path
-        
+
 
 if __name__ == '__main__':
     createPackageInitFiles(('../Images',), onlyCleanup=False)

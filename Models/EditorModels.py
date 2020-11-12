@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        EditorModels.py
 # Purpose:     Model classes usually representing different types of
 #              source code
@@ -9,23 +9,29 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 """ The model classes represent different types of source code files,
     Different views can be connected to a model  """
 
-print('importing Models.EditorModels')
-
-import os, sys, tempfile
+import os
+import sys
+import tempfile
 from io import StringIO
 
+import EditorHelper
 import wx
 
-import Preferences, Utils, EditorHelper
+import Preferences
+import Utils
 from Preferences import keyDefs
 from Utils import _
 
+print('importing Models.EditorModels')
+
+
 _vc_hook = None
+
 
 class EditorModel:
     defaultName = 'abstract'
@@ -33,6 +39,7 @@ class EditorModel:
     imgIdx = -1
     objCnt = 0
     plugins = ()
+
     def __init__(self, data, name, editor, saved):
         self.active = False
         self.data = data
@@ -45,7 +52,7 @@ class EditorModel:
         self.views = {}
         self.modified = not saved
         self.viewsModified = []
-        
+
         plugins = {}
         for Plugin in self.plugins:
             plugins[Plugin.name] = Plugin(self)
@@ -112,8 +119,6 @@ class EditorModel:
         return None
 
 
-
-
 class FolderModel(EditorModel):
     modelIdentifier = 'Folder'
     defaultName = 'folder'
@@ -124,11 +129,13 @@ class FolderModel(EditorModel):
         EditorModel.__init__(self, data, name, editor, True)
         self.filepath = filepath
 
+
 class SysPathFolderModel(FolderModel):
     modelIdentifier = 'SysPathFolder'
     defaultName = 'syspathfolder'
     bitmap = 'Folder_green.png'
     imgIdx = EditorHelper.imgPathFolder
+
 
 class CVSFolderModel(FolderModel):
     modelIdentifier = 'CVS Folder'
@@ -142,12 +149,15 @@ class CVSFolderModel(FolderModel):
 
     def readFile(self, filename):
         f = open(filename, 'r')
-        try: return f.read().strip()
-        finally: f.close()
+        try:
+            return f.read().strip()
+        finally:
+            f.close()
 
     def readFiles(self):
         self.root = self.readFile(os.path.join(self.filepath, 'Root'))
-        self.repository = self.readFile(os.path.join(self.filepath, 'Repository'))
+        self.repository = self.readFile(
+            os.path.join(self.filepath, 'Repository'))
         self.entries = []
 
         f = open(os.path.join(self.filepath, 'Entries'), 'r')
@@ -165,10 +175,13 @@ class CVSFolderModel(FolderModel):
                         dirpos = dirpos + 1
                     else:
                         try:
-                            self.entries.append(CVSFile(txtEntry, self.filepath))
-                        except IOError: pass
+                            self.entries.append(
+                                CVSFile(txtEntry, self.filepath))
+                        except IOError:
+                            pass
         finally:
             f.close()
+
 
 class BasePersistentModel(EditorModel):
     fileModes = ('rb', 'wb')
@@ -186,7 +199,8 @@ class BasePersistentModel(EditorModel):
         self.modified = False
         self.saved = False
         self.update()
-        if notify: self.notify()
+        if notify:
+            self.notify()
 
     def save(self, overwriteNewer=False):
         """ Saves contents of data to file specified by self.filename. """
@@ -198,9 +212,10 @@ class BasePersistentModel(EditorModel):
             # this check is to minimise interface change.
             if overwriteNewer:
                 self.transport.save(filename, self.data, mode=self.fileModes[1],
-                      overwriteNewer=True)
+                                    overwriteNewer=True)
             else:
-                self.transport.save(filename, self.data, mode=self.fileModes[1])
+                self.transport.save(
+                    filename, self.data, mode=self.fileModes[1])
             self.modified = False
             self.saved = True
 
@@ -216,26 +231,27 @@ class BasePersistentModel(EditorModel):
         """ Saves contents of data to file specified by filename.
             Override this to catch name changes. """
         # Catch transport changes
-        from Explorers.Explorer import splitURI, getTransport
+        from Explorers.Explorer import getTransport, splitURI
         protO, catO, resO, uriO = splitURI(self.filename)
         protN, catN, resN, uriN = splitURI(filename)
 
         if protO != protN:
             self.transport = getTransport(protN, catN, resN,
-                  self.editor.explorerStore.transports)#explorer.tree.transports)
+                                          self.editor.explorerStore.transports)  # explorer.tree.transports)
 
         # Rename and save
         oldname = self.filename
         self.filename = filename
         try:
             self.save(overwriteNewer=True)
-        except:
+        except BaseException:
             self.filename = oldname
             raise
         self.savedAs = True
 
     def localFilename(self, filename=None):
-        if filename is None: filename = self.filename
+        if filename is None:
+            filename = self.filename
         from Explorers.Explorer import splitURI
         return splitURI(filename)[2]
 
@@ -246,7 +262,7 @@ class BasePersistentModel(EditorModel):
             filename = self.filename
         from Explorers.Explorer import splitURI
         prot, cat, filename, uri = splitURI(filename)
-        assert prot=='file', _('Operation only supported on the filesystem.')
+        assert prot == 'file', _('Operation only supported on the filesystem.')
         return filename
 
     def checkLocalFile(self, filename=None):
@@ -254,10 +270,11 @@ class BasePersistentModel(EditorModel):
 
         if filename is None:
             filename = self.filename
-        from Explorers.Explorer import splitURI, TransportError
+        from Explorers.Explorer import TransportError, splitURI
         prot, cat, filename, uri = splitURI(filename)
         if prot != 'file':
-            raise TransportError(_('Operation only supported on the filesystem.'))
+            raise TransportError(
+                _('Operation only supported on the filesystem.'))
         return filename
 
     def getDefaultData(self):
@@ -270,15 +287,19 @@ class BasePersistentModel(EditorModel):
         self.update()
         self.notify()
 
+
 class PersistentModel(BasePersistentModel):
     def __init__(self, data, name, editor, saved):
         BasePersistentModel.__init__(self, data, name, editor, saved)
-        if data: self.update()
+        if data:
+            self.update()
 
     def load(self, notify=True):
         BasePersistentModel.load(self, False)
         self.update()
-        if notify: self.notify()
+        if notify:
+            self.notify()
+
 
 class BitmapFileModel(PersistentModel):
     modelIdentifier = 'Bitmap'
@@ -289,7 +310,7 @@ class BitmapFileModel(PersistentModel):
 
     fileModes = ('rb', 'wb')
 
-    extTypeMap = {'.bmp': wx.BITMAP_TYPE_BMP, #'.gif': wx.BITMAP_TYPE_GIF,
+    extTypeMap = {'.bmp': wx.BITMAP_TYPE_BMP,  # '.gif': wx.BITMAP_TYPE_GIF,
                   '.jpg': wx.BITMAP_TYPE_JPEG, '.png': wx.BITMAP_TYPE_PNG}
 
     def save(self, overwriteNewer=False):
@@ -308,12 +329,14 @@ class BitmapFileModel(PersistentModel):
             updateViews = 1
             import io
             bmp = wx.BitmapFromImage(wx.ImageFromStream(
-                  io.StringIO(self.data)))
+                io.StringIO(self.data)))
             fn = tempfile.mktemp(newExt)
             try:
                 bmp.SaveFile(fn, self.extTypeMap[newExt])
             except KeyError:
-                raise Exception(_('%s image file types not supported')%newExt)
+                raise Exception(
+                    _('%s image file types not supported') %
+                    newExt)
             try:
                 # convert data to new image format
                 self.data = open(fn, 'rb').read()
@@ -326,8 +349,10 @@ class BitmapFileModel(PersistentModel):
         if updateViews:
             self.notify()
 
+
 class SourceModel(BasePersistentModel):
     modelIdentifier = 'Source'
+
     def __init__(self, data, name, editor, saved):
         BasePersistentModel.__init__(self, data, name, editor, saved)
 
@@ -339,14 +364,14 @@ class SourceModel(BasePersistentModel):
         conflictStart = -1
         confCnt = 0
         lineNo = 0
-        conflicts =[]
+        conflicts = []
         for line in self.getDataAsLines():
             if line[:8] == '<<<<<<< ' and \
-                  line[8:].strip() == os.path.basename(self.filename):
+                    line[8:].strip() == os.path.basename(self.filename):
                 conflictStart = lineNo
             if line[:8] == '>>>>>>> ':
                 rev = line[8:]
-                conflicts.append( (rev, conflictStart, lineNo - conflictStart) )
+                conflicts.append((rev, conflictStart, lineNo - conflictStart))
                 confCnt = confCnt + 1
             lineNo = lineNo + 1
         return conflicts
@@ -355,8 +380,8 @@ class SourceModel(BasePersistentModel):
         rev, start, size = conflict
         lines = self.getDataAsLines()
 
-        blocks = Utils.split_seq(lines[start+1 : start+size], '=======')
-        lines[start:start+size+1] = blocks[blockIdx]
+        blocks = Utils.split_seq(lines[start + 1: start + size], '=======')
+        lines[start:start + size + 1] = blocks[blockIdx]
         self.setDataFromLines(lines)
 
         self.update()
@@ -378,12 +403,14 @@ class TextModel(PersistentModel):
     imgIdx = EditorHelper.imgTextModel
     ext = '.txt'
 
+
 class UnknownFileModel(TextModel):
     modelIdentifier = 'Unknown'
     defaultName = '*'
     bitmap = 'Unknown.png'
     imgIdx = EditorHelper.imgUnknownFileModel
     ext = '.*'
+
 
 class InternalFileModel(TextModel):
     modelIdentifier = 'Internal'
@@ -392,22 +419,25 @@ class InternalFileModel(TextModel):
     imgIdx = EditorHelper.imgInternalFileModel
     ext = '.intfile'
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 modelReg = EditorHelper.modelReg
 extMap = EditorHelper.extMap
 
-# model registry: add to this dict to register a Model (needed for explorer images)
+# model registry: add to this dict to register a Model (needed for
+# explorer images)
 modelReg.update({
-            TextModel.modelIdentifier: TextModel,
-            UnknownFileModel.modelIdentifier: UnknownFileModel,
-            BitmapFileModel.modelIdentifier: BitmapFileModel,
-            InternalFileModel.modelIdentifier: InternalFileModel,
-            })
+    TextModel.modelIdentifier: TextModel,
+    UnknownFileModel.modelIdentifier: UnknownFileModel,
+    BitmapFileModel.modelIdentifier: BitmapFileModel,
+    InternalFileModel.modelIdentifier: InternalFileModel,
+})
 
 extMap[''] = TextModel
 extMap['.jpg'] = extMap['.gif'] = extMap['.png'] = extMap['.ico'] = BitmapFileModel
 
 EditorHelper.imageExtReg.extend(['.bmp', '.jpg', '.gif', '.png', '.ico'])
-EditorHelper.internalFilesReg.extend(['.umllay', '.implay', '.brk', '.trace', '.stack', '.cycles', '.prof', '.cached'])
+EditorHelper.internalFilesReg.extend(
+    ['.umllay', '.implay', '.brk', '.trace', '.stack', '.cycles', '.prof', '.cached'])
 EditorHelper.binaryFilesReg.extend(['.zexp', '.prof'])

@@ -2,6 +2,7 @@ import threading
 
 PRINT_TRACEBACKS = 0
 
+
 class ThreadedTaskHandler:
     '''Rather than creating a new thread for each task, reuses existing
     threads for speed.
@@ -21,7 +22,8 @@ class ThreadedTaskHandler:
         thread.
         '''
         if 0:  # Set to 1 to get equivalent but slower processing.
-            if kw is None: kw = {}
+            if kw is None:
+                kw = {}
             t = threading.Thread(target=task, args=args, kwargs=kw)
             t.setDaemon(1)
             t.start()
@@ -69,7 +71,7 @@ class ThreadedTaskHandler:
                 cond.release()
 
             if task is not None:
-                #print 'performing task: %s(%s, %s)'%(task, args, kw)
+                # print 'performing task: %s(%s, %s)'%(task, args, kw)
                 try:
                     if kw is not None:
                         task(*args, **kw)
@@ -78,7 +80,7 @@ class ThreadedTaskHandler:
                 except SystemExit:
                     exit_loop = 1
                     self.running_threads = self.running_threads - 1
-                except:
+                except BaseException:
                     if PRINT_TRACEBACKS:
                         # The task ought to do its own error handling,
                         # but sometimes it doesn't.
@@ -87,7 +89,7 @@ class ThreadedTaskHandler:
 
 
 if __name__ == '__main__':
-    from time import time, sleep
+    from time import sleep, time
     evt = threading.Event()
     tth = ThreadedTaskHandler()
     start = 0
@@ -96,6 +98,7 @@ if __name__ == '__main__':
     class SpeedTest:
         def __init__(self, count):
             self.count = count
+
         def __call__(self):
             global end
             self.count = self.count - 1
@@ -111,4 +114,4 @@ if __name__ == '__main__':
     tth.addTask(t)
     evt.wait()
     print(('Performed %d tasks in %d ms' % (count,
-                                           int((end - start) * 1000))))
+                                            int((end - start) * 1000))))

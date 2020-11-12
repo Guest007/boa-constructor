@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        SourceViews.py
 # Purpose:     Views for editing source code
 #
@@ -8,25 +8,33 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
-print('importing Views.SourceViews')
-
-import time, os
+# ----------------------------------------------------------------------
+import os
+import time
 from io import StringIO
 
+import EditorViews
 import wx
 import wx.stc
 
-from Preferences import keyDefs
+import Help
+import Preferences
+import Search
 import Utils
+from Explorers import ExplorerNodes
+from Preferences import keyDefs
 from Utils import _
 
-import EditorViews, Search, Help, Preferences, Utils
-from .StyledTextCtrls import TextSTCMix, idWord, object_delim, eols as endOfLines
+from .StyledTextCtrls import TextSTCMix
+from .StyledTextCtrls import eols as endOfLines
+from .StyledTextCtrls import idWord, object_delim
 
-##endOfLines = {  wx.stc.STC_EOL_CRLF : '\r\n',
-##                wx.stc.STC_EOL_CR : '\r',
-##                wx.stc.STC_EOL_LF : '\n'}
+print('importing Views.SourceViews')
+
+
+# endOfLines = {  wx.stc.STC_EOL_CRLF : '\r\n',
+# wx.stc.STC_EOL_CR : '\r',
+# wx.stc.STC_EOL_LF : '\n'}
 
 markPlaceMrk, linePtrMrk = (1, 2)
 markerCnt = 2
@@ -35,9 +43,10 @@ wxID_TEXTVIEW = wx.NewId()
 
 [wxID_STC_WS, wxID_STC_EOL, wxID_STC_BUF, wxID_STC_IDNT,
  wxID_STC_EOL_MODE, wxID_STC_EOL_CRLF, wxID_STC_EOL_LF, wxID_STC_EOL_CR,
-] = Utils.wxNewIds(8)
+ ] = Utils.wxNewIds(8)
 
 [wxID_CVT_EOL_LF, wxID_CVT_EOL_CRLF, wxID_CVT_EOL_CR] = Utils.wxNewIds(3)
+
 
 class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
                            EditorViews.FindResultsAdderMixin):
@@ -54,46 +63,49 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 
     defaultEOL = os.linesep
 
-    def __init__(self, parent, wId, model, actions, defaultAction = -1):
-        wx.stc.StyledTextCtrl.__init__(self, parent, wId, style=wx.CLIP_CHILDREN | wx.SUNKEN_BORDER)
-        a =  ((_('Refresh'), self.OnRefresh, self.refreshBmp, 'Refresh'),
-              ('-', None, '', ''),
-              (_('Undo'), self.OnEditUndo, self.undoBmp, ''),
-              (_('Redo'), self.OnEditRedo, self.redoBmp, ''),
-              ('-', None, '', ''),
-              (_('Cut'), self.OnEditCut, self.cutBmp, ''),
-              (_('Copy'), self.OnEditCopy, self.copyBmp, ''),
-              (_('Paste'), self.OnEditPaste, self.pasteBmp, ''),
-              ('-', None, '', ''),
-              (_('Find \ Replace'), self.OnFind, self.findBmp, 'Find'),
-              (_('Find previous'), self.OnFindAgainPrev, self.findAgainPrevBmp, 'FindAgainPrev'),
-              (_('Find next'), self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
-              (_('Print...'), self.OnPrint, self.printBmp, ''),
-              (_('Mark place'), self.OnMarkPlace, '-', 'MarkPlace'),
-              (_('Goto line'), self.OnGotoLine, '-', 'GotoLine'),
-              (_('STC settings...'), self.OnSTCSettings, '-', ''),
-              (_('Convert...'), self.OnConvert, '-', ''),
-              ##('Toggle Record macro', self.OnRecordMacro, '-', ''),
-              ##('Playback macro', self.OnPlaybackMacro, '-', ''),
-              ##('-', None, '-', ''),
-              ##('Translate selection (via HTTP)', self.OnTranslate, '-', ''),
-              ##('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
-              )
+    def __init__(self, parent, wId, model, actions, defaultAction=-1):
+        wx.stc.StyledTextCtrl.__init__(
+            self, parent, wId, style=wx.CLIP_CHILDREN | wx.SUNKEN_BORDER)
+        a = ((_('Refresh'), self.OnRefresh, self.refreshBmp, 'Refresh'),
+             ('-', None, '', ''),
+             (_('Undo'), self.OnEditUndo, self.undoBmp, ''),
+             (_('Redo'), self.OnEditRedo, self.redoBmp, ''),
+             ('-', None, '', ''),
+             (_('Cut'), self.OnEditCut, self.cutBmp, ''),
+             (_('Copy'), self.OnEditCopy, self.copyBmp, ''),
+             (_('Paste'), self.OnEditPaste, self.pasteBmp, ''),
+             ('-', None, '', ''),
+             (_(r'Find \ Replace'), self.OnFind, self.findBmp, 'Find'),
+             (_('Find previous'), self.OnFindAgainPrev,
+              self.findAgainPrevBmp, 'FindAgainPrev'),
+             (_('Find next'), self.OnFindAgain, self.findAgainBmp, 'FindAgain'),
+             (_('Print...'), self.OnPrint, self.printBmp, ''),
+             (_('Mark place'), self.OnMarkPlace, '-', 'MarkPlace'),
+             (_('Goto line'), self.OnGotoLine, '-', 'GotoLine'),
+             (_('STC settings...'), self.OnSTCSettings, '-', ''),
+             (_('Convert...'), self.OnConvert, '-', ''),
+             ##('Toggle Record macro', self.OnRecordMacro, '-', ''),
+             ##('Playback macro', self.OnPlaybackMacro, '-', ''),
+             ##('-', None, '-', ''),
+             ##('Translate selection (via HTTP)', self.OnTranslate, '-', ''),
+             ##('Spellcheck selection (via HTTP)', self.OnSpellCheck, '-', ''),
+             )
 
-        EditorViews.EditorView.__init__(self, model, a + actions, defaultAction)
+        EditorViews.EditorView.__init__(
+            self, model, a + actions, defaultAction)
 
         self.eol = None
         self.eolsChecked = False
 
         self.pos = 0
         self.stepPos = 0
-        self.nonUserModification  = False
+        self.nonUserModification = False
 
         self.lastSearchResults = []
         self.lastSearchPattern = ''
         self.lastMatchPosition = None
 
-        ## Install the handler for refreshs.
+        # Install the handler for refreshs.
         if wx.Platform == '__WXGTK__' and Preferences.edUseCustomSTCPaintEvtHandler:
             self.paint_handler = Utils.PaintEventHandler(self)
 
@@ -104,7 +116,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         markIdnt, markBorder, markCenter = Preferences.STCMarkPlaceMarker
         self.MarkerDefine(markPlaceMrk, markIdnt, markBorder, markCenter)
         markIdnt, markBorder, markCenter = Preferences.STCLinePointer
-        self.MarkerDefine(linePtrMrk , markIdnt, markBorder, markCenter)
+        self.MarkerDefine(linePtrMrk, markIdnt, markBorder, markCenter)
         self._linePtrHdl = None
 
         self.Bind(wx.stc.EVT_STC_MARGINCLICK, self.OnMarginClick, id=wId)
@@ -164,16 +176,15 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
             self.eol = Utils.getEOLMode(newData, self.defaultEOL)
 
             self.SetEOLMode({'\r\n': wx.stc.STC_EOL_CRLF,
-                             '\r':   wx.stc.STC_EOL_CR,
-                             '\n':   wx.stc.STC_EOL_LF}[self.eol])
+                             '\r': wx.stc.STC_EOL_CR,
+                             '\n': wx.stc.STC_EOL_LF}[self.eol])
 
         if not self.eolsChecked:
             if Utils.checkMixedEOLs(newData):
                 wx.LogWarning(_('Mixed EOLs detected in %s, please use '
-                             'Edit->Convert... to fix this problem.')\
-                             %os.path.basename(self.model.filename))
+                                'Edit->Convert... to fix this problem.')
+                              % os.path.basename(self.model.filename))
             self.eolsChecked = True
-
 
         self.SetSavePoint()
         self.nonUserModification = False
@@ -215,11 +226,12 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 
         self.updateEditor()
 
-    def gotoLine(self, lineno, offset = -1):
+    def gotoLine(self, lineno, offset=-1):
         self.GotoLine(lineno)
         vl = self.GetFirstVisibleLine()
-        self.LineScroll(0, lineno -  vl)
-        if offset != -1: self.SetCurrentPos(self.GetCurrentPos()+offset+1)
+        self.LineScroll(0, lineno - vl)
+        if offset != -1:
+            self.SetCurrentPos(self.GetCurrentPos() + offset + 1)
         self.EnsureVisible(lineno)
 
     def selectSection(self, lineno, start, word):
@@ -235,7 +247,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         self.GotoLine(lineno)
         sp = self.PositionFromLine(lineno)
         # Dont do whole screen selection
-        ep = max(0, self.PositionFromLine(lineno+1)-1)
+        ep = max(0, self.PositionFromLine(lineno + 1) - 1)
         self.SetSelection(sp, ep)
         self.EnsureVisible(lineno)
 
@@ -244,7 +256,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         ln = self.LineFromPosition(cp)
         indent = cp - self.PositionFromLine(ln)
         lns = text.split('\n')
-        text = (self.eol+Utils.getIndentedStrForLen(indent)).join(lns)
+        text = (self.eol + Utils.getIndentedStrForLen(indent)).join(lns)
 
         selTxtPos = text.find('# Your code')
         self.InsertText(cp, text)
@@ -257,13 +269,14 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
     def isModified(self):
         return self.GetModify() or self.nonUserModification
 
-#---Block commands--------------------------------------------------------------
+# ---Block commands-------------------------------------------------------
 
     def reselectSelectionAsBlock(self):
         selStartPos, selEndPos = self.GetSelection()
         selStartLine = self.LineFromPosition(selStartPos)
         startPos = self.PositionFromLine(selStartLine)
-        selEndLine = self.LineFromPosition(selEndPos-1)#to handle cursor under sel
+        selEndLine = self.LineFromPosition(
+            selEndPos - 1)  # to handle cursor under sel
         endPos = self.GetLineEndPosition(selEndLine)
         startPos = self.PositionFromLine(selStartLine)
         self.SetSelection(startPos, endPos)
@@ -273,7 +286,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         if self.GetUseTabs():
             indtBlock = '\t'
         else:
-            indtBlock = self.GetTabWidth()*' '
+            indtBlock = self.GetTabWidth() * ' '
 
         self.BeginUndoAction()
         try:
@@ -292,9 +305,9 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         selEndLine = self.LineFromPosition(selEndPos)
 
         return list(range(self.LineFromPosition(selStartPos),
-              self.LineFromPosition(selEndPos)))
+                          self.LineFromPosition(selEndPos)))
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
     def setLinePtr(self, lineNo):
         if self._linePtrHdl:
             self.MarkerDeleteHandle(self._linePtrHdl)
@@ -310,7 +323,7 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         self.setLinePtr(marker)
         EditorViews.EditorView.gotoBrowseMarker(self, marker)
 
-#-------Canned events-----------------------------------------------------------
+# -------Canned events----------------------------------------------------
 
     def OnRefresh(self, event):
         self.refreshModel()
@@ -341,23 +354,24 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 
     # XXX
     def doFind(self, pattern):
-        self.lastSearchResults = Search.findInText(\
-          self.GetText().split(self.eol), pattern, False)
+        self.lastSearchResults = Search.findInText(
+            self.GetText().split(self.eol), pattern, False)
         self.lastSearchPattern = pattern
         if len(self.lastSearchResults):
             self.lastMatchPosition = 0
 
     def doNextMatch(self):
         if self.lastMatchPosition is not None and \
-          len(self.lastSearchResults) > self.lastMatchPosition:
+                len(self.lastSearchResults) > self.lastMatchPosition:
             pos = self.lastSearchResults[self.lastMatchPosition]
             self.model.editor.addBrowseMarker(self.GetCurrentLine())
             self.selectSection(pos[0], pos[1], self.lastSearchPattern)
             self.lastMatchPosition = self.lastMatchPosition + 1
         else:
             dlg = wx.MessageDialog(self.model.editor,
-                  'No%smatches'% (self.lastMatchPosition is not None and ' further ' or ' '),
-                  'Find in module', wx.OK | wx.ICON_INFORMATION)
+                                   'No%smatches' % (
+                                       self.lastMatchPosition is not None and ' further ' or ' '),
+                                   'Find in module', wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.lastMatchPosition = None
@@ -369,19 +383,21 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
     def OnFindAgain(self, event):
         import FindReplaceDlg
         FindReplaceDlg.findAgain(self, self.model.editor.finder, self, False)
-        
+
     def OnFindAgainPrev(self, event):
         import FindReplaceDlg
         FindReplaceDlg.findAgain(self, self.model.editor.finder, self, True)
 
     def OnMarkPlace(self, event):
-        if self._marking : return
+        if self._marking:
+            return
         self._marking = True
         try:
             lineno = self.LineFromPosition(self.GetCurrentPos())
             self.MarkerAdd(lineno, markPlaceMrk)
             self.model.editor.addBrowseMarker(lineno)
-            self.model.editor.setStatus(_('Code marker added to Browse History'), ringBell=True)
+            self.model.editor.setStatus(
+                _('Code marker added to Browse History'), ringBell=True)
             # Encourage a redraw
             wx.Yield()
             time.sleep(0.125)
@@ -389,9 +405,9 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
         finally:
             self._marking = False
 
-
     def OnGotoLine(self, event):
-        dlg = wx.TextEntryDialog(self, _('Enter line number:'), _('Goto line'), '')
+        dlg = wx.TextEntryDialog(
+            self, _('Enter line number:'), _('Goto line'), '')
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 if dlg.GetValue():
@@ -410,58 +426,68 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
             l, col = self.GetCurLine()
             self.model.editor.statusBar.setColumnPos(col)
 
-##    def OnTranslate(self, event):
-##        # XXX web service no longer works
+# def OnTranslate(self, event):
+# XXX web service no longer works
 ##        import TranslateDlg
 ##        dlg = TranslateDlg.create(None, self.GetSelectedText())
-##        try:
-##            if dlg.ShowModal() == wx.OK and len(dlg.translated) > 1:
-##                self.ReplaceSelection(dlg.translated[1])
-##        finally:
-##            dlg.Destroy()
+# try:
+# if dlg.ShowModal() == wx.OK and len(dlg.translated) > 1:
+# self.ReplaceSelection(dlg.translated[1])
+# finally:
+# dlg.Destroy()
 ##
-##    def OnSpellCheck(self, event):
-##        # XXX web service no longer works
+# def OnSpellCheck(self, event):
+# XXX web service no longer works
 ##        import TranslateDlg
 ##        self.model.editor.setStatus('Spell checking...', 'Warning')
-##        wx.BeginBusyCursor()
-##        try:
-##            self.ReplaceSelection(TranslateDlg.spellCheck(self.GetSelectedText()))
-##        finally:
-##            wx.EndBusyCursor()
+# wx.BeginBusyCursor()
+# try:
+# self.ReplaceSelection(TranslateDlg.spellCheck(self.GetSelectedText()))
+# finally:
+# wx.EndBusyCursor()
 ##        self.model.editor.setStatus('Spelling checked', 'Info')
 
     def OnMarginClick(self, event):
         pass
 
 
-#---STC Settings----------------------------------------------------------------
+# ---STC Settings---------------------------------------------------------
 
     def OnSTCSettings(self, event):
         menu = wx.Menu()
-        menu.Append(wxID_STC_WS, _('View Whitespace'), '', 1) #checkable
+        menu.Append(wxID_STC_WS, _('View Whitespace'), '', 1)  # checkable
         menu.Check(wxID_STC_WS, self.GetViewWhiteSpace())
-        menu.Append(wxID_STC_BUF, _('Buffered draw'), '', 1) #checkable
+        menu.Append(wxID_STC_BUF, _('Buffered draw'), '', 1)  # checkable
         menu.Check(wxID_STC_BUF, self.GetBufferedDraw())
-        menu.Append(wxID_STC_IDNT, _('Use indentation guides'), '', 1) #checkable
+        menu.Append(
+            wxID_STC_IDNT,
+            _('Use indentation guides'),
+            '',
+            1)  # checkable
         menu.Check(wxID_STC_IDNT, self.GetIndentationGuides())
-        menu.Append(wxID_STC_EOL, _('View EOL symbols'), '', 1) #checkable
+        menu.Append(wxID_STC_EOL, _('View EOL symbols'), '', 1)  # checkable
         menu.Check(wxID_STC_EOL, self.GetViewEOL())
         menu.AppendSeparator()
 
         eolModeMenu = wx.Menu()
         eolModeMenu.Append(wxID_STC_EOL_CRLF, 'CRLF', '', kind=wx.ITEM_RADIO)
-        eolModeMenu.Check(wxID_STC_EOL_CRLF, self.GetEOLMode() == wx.stc.STC_EOL_CRLF)
+        eolModeMenu.Check(
+            wxID_STC_EOL_CRLF,
+            self.GetEOLMode() == wx.stc.STC_EOL_CRLF)
         eolModeMenu.Append(wxID_STC_EOL_LF, 'LF', '', kind=wx.ITEM_RADIO)
-        eolModeMenu.Check(wxID_STC_EOL_LF, self.GetEOLMode() == wx.stc.STC_EOL_LF)
+        eolModeMenu.Check(
+            wxID_STC_EOL_LF,
+            self.GetEOLMode() == wx.stc.STC_EOL_LF)
         eolModeMenu.Append(wxID_STC_EOL_CR, 'CR', '', kind=wx.ITEM_RADIO)
-        eolModeMenu.Check(wxID_STC_EOL_CR, self.GetEOLMode() == wx.stc.STC_EOL_CR)
+        eolModeMenu.Check(
+            wxID_STC_EOL_CR,
+            self.GetEOLMode() == wx.stc.STC_EOL_CR)
 
         menu.AppendMenu(wxID_STC_EOL_MODE, _('EOL mode'), eolModeMenu)
 
         s = self.GetClientSize()
 
-        self.PopupMenuXY(menu, s.x/2, s.y/2)
+        self.PopupMenuXY(menu, s.x / 2, s.y / 2)
         menu.Destroy()
 
     def OnSTCSettingsWhiteSpace(self, event):
@@ -478,37 +504,38 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 
     def OnChangeEOLMode(self, event):
         eol = {wxID_STC_EOL_CRLF: wx.stc.STC_EOL_CRLF,
-               wxID_STC_EOL_LF:   wx.stc.STC_EOL_LF,
-               wxID_STC_EOL_CR:   wx.stc.STC_EOL_CR}[event.GetId()]
+               wxID_STC_EOL_LF: wx.stc.STC_EOL_LF,
+               wxID_STC_EOL_CR: wx.stc.STC_EOL_CR}[event.GetId()]
 
         self.SetEOLMode(eol)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
     def OnConvert(self, event):
         menu = wx.Menu()
         menu.Append(wxID_CVT_EOL_CRLF, _('EOLs to CRLF'))
-        menu.Append(wxID_CVT_EOL_LF,   _('EOLs to LF'))
-        menu.Append(wxID_CVT_EOL_CR,   _('EOLs to CR'))
+        menu.Append(wxID_CVT_EOL_LF, _('EOLs to LF'))
+        menu.Append(wxID_CVT_EOL_CR, _('EOLs to CR'))
 
         s = self.GetClientSize()
 
-        self.PopupMenuXY(menu, s.x/2, s.y/2)
+        self.PopupMenuXY(menu, s.x / 2, s.y / 2)
         menu.Destroy()
 
     def OnConvertEols(self, event):
         eol, viewEOL = {wxID_CVT_EOL_CRLF: (wx.stc.STC_EOL_CRLF, '\r\n'),
-                        wxID_CVT_EOL_LF:   (wx.stc.STC_EOL_LF, '\n'),
-                        wxID_CVT_EOL_CR:   (wx.stc.STC_EOL_CR, '\r')}[event.GetId()]
+                        wxID_CVT_EOL_LF: (wx.stc.STC_EOL_LF, '\n'),
+                        wxID_CVT_EOL_CR: (wx.stc.STC_EOL_CR, '\r')}[event.GetId()]
 
         self.ConvertEOLs(eol)
         self.SetEOLMode(eol)
         self.eol = viewEOL
-        
 
-#---Macro recording/playback----------------------------------------------------
+
+# ---Macro recording/playback---------------------------------------------
     _recordingMacro = False
     _recordedMacro = False
     stcMacroCmds = ()
+
     def OnRecordMacro(self, event):
         if self._recordingMacro:
             self.model.editor.setStatus('Macro recorded', ringBell=True)
@@ -529,13 +556,16 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 
     def OnRecordingMacro(self, event):
         data = (event.GetMessage(), event.GetLParam())
-        self.model.editor.setStatus('Recording macro: %s'%str(data), 'Warning')
+        self.model.editor.setStatus(
+            'Recording macro: %s' %
+            str(data), 'Warning')
         self.stcMacroCmds.append(data)
 
     def OnPrint(self, event):
         from . import STCPrinting
 
-        dlg = STCPrinting.STCPrintDlg(self.model.editor, self, self.model.filename)
+        dlg = STCPrinting.STCPrintDlg(
+            self.model.editor, self, self.model.filename)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -543,14 +573,15 @@ class EditorStyledTextCtrl(wx.stc.StyledTextCtrl, EditorViews.EditorView,
 class TextView(EditorStyledTextCtrl, TextSTCMix):
     viewName = 'Text'
     viewTitle = _('Text')
-    
+
     def __init__(self, parent, model, actions=()):
         EditorStyledTextCtrl.__init__(self, parent, wxID_TEXTVIEW, model,
-              actions, -1)
+                                      actions, -1)
         TextSTCMix.__init__(self, wxID_TEXTVIEW)
         self.active = True
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-from Explorers import ExplorerNodes
-ExplorerNodes.langStyleInfoReg.append(('Text', 'text', TextSTCMix, 'stc-styles.rc.cfg'))
+
+ExplorerNodes.langStyleInfoReg.append(
+    ('Text', 'text', TextSTCMix, 'stc-styles.rc.cfg'))

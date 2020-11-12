@@ -1,10 +1,10 @@
-# Important: This file should be placed in the Plug-ins directory if you want 
+# Important: This file should be placed in the Plug-ins directory if you want
 #            it to execute
 
-import wx
-import PaletteStore
-
 import ArtProviderExample
+import wx
+
+import PaletteStore
 
 # register art ids for use at design-time
 PaletteStore.artProviderArtIds.extend(ArtProviderExample.ART_IDS)

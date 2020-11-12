@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        PyrexSupport.py
 # Purpose:     Support for editing pyrex files and compiling to C
 #
@@ -8,14 +8,17 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-import os, imp
+import imp
+import os
 
 import wx
 import wx.stc
 
-import Preferences, Utils, Plugins
+import Plugins
+import Preferences
+import Utils
 from Utils import _
 
 try:
@@ -23,10 +26,12 @@ try:
 except ImportError:
     raise Plugins.SkipPlugin(_('Pyrex is not installed'))
 
-from Models import Controllers, EditorHelper, EditorModels, PythonEditorModels, PythonControllers
+from Models import (Controllers, EditorHelper, EditorModels, PythonControllers,
+                    PythonEditorModels)
 from Views import SourceViews, StyledTextCtrls
 
 EditorHelper.imgPyrexModel = EditorHelper.imgIdxRange()
+
 
 class PyrexModel(EditorModels.SourceModel):
     modelIdentifier = 'Pyrex'
@@ -35,23 +40,30 @@ class PyrexModel(EditorModels.SourceModel):
     ext = '.pyx'
     imgIdx = EditorHelper.imgPyrexModel
 
+
 pyrex_cfgfile = os.path.join(Preferences.rcPath, 'stc-pyrex.rc.cfg')
-#if not os.path.exists(pyrex_cfgfile):
+# if not os.path.exists(pyrex_cfgfile):
 #    pyrex_cfgfile = Preferences.pyPath +'/Plug-ins/stc-pyrex.rc.cfg'
+
 
 class PyrexStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
     def __init__(self, wId):
         StyledTextCtrls.LanguageSTCMix.__init__(self, wId,
-              (0, Preferences.STCLineNumMarginWidth), 'pyrex', pyrex_cfgfile)
+                                                (0, Preferences.STCLineNumMarginWidth), 'pyrex', pyrex_cfgfile)
         self.setStyles()
 
+
 wxID_PYREXSOURCEVIEW = wx.NewId()
-class PyrexSourceView(SourceViews.EditorStyledTextCtrl, PyrexStyledTextCtrlMix):
+
+
+class PyrexSourceView(SourceViews.EditorStyledTextCtrl,
+                      PyrexStyledTextCtrlMix):
     viewName = 'Source'
     viewTitle = _('Source')
+
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent,
-              wxID_PYREXSOURCEVIEW, model, (), -1)
+                                                  wxID_PYREXSOURCEVIEW, model, (), -1)
         PyrexStyledTextCtrlMix.__init__(self, wxID_PYREXSOURCEVIEW)
         self.active = True
 
@@ -65,10 +77,10 @@ class PyrexController(Controllers.SourceController):
 
     def actions(self, model):
         return Controllers.SourceController.actions(self, model) + [
-              ('Compile', self.OnCompile, '-', 'CheckSource')]
+            ('Compile', self.OnCompile, '-', 'CheckSource')]
 
     def OnCompile(self, event):
-        from Pyrex.Compiler import Main, Errors
+        from Pyrex.Compiler import Errors, Main
 
         model = self.getModel()
         try:
@@ -85,12 +97,16 @@ class PyrexController(Controllers.SourceController):
             model.editor.setStatus('Pyrex compilation succeeded')
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 Plugins.registerFileType(PyrexController)
-Plugins.registerLanguageSTCStyle('Pyrex', 'pyrex', PyrexStyledTextCtrlMix, pyrex_cfgfile)
+Plugins.registerLanguageSTCStyle(
+    'Pyrex',
+    'pyrex',
+    PyrexStyledTextCtrlMix,
+    pyrex_cfgfile)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 pyrexSource = '''## Comment Blocks!
 cdef extern from "Numeric/arrayobject.h":
@@ -140,7 +156,7 @@ style.pyrex.037=
 [style.pyrex.default]
 
 [pyrex]
-displaysrc='''+repr(pyrexSource)[1:-1]+'''
+displaysrc = ''' + repr(pyrexSource)[1:-1] + '''
 braces={}
 styleidnames={wx.stc.STC_P_DEFAULT: 'Default', wx.stc.STC_P_COMMENTLINE: 'Comment', wx.stc.STC_P_NUMBER : 'Number', wx.stc.STC_P_STRING : 'String', wx.stc.STC_P_CHARACTER: 'Single quoted string', wx.stc.STC_P_WORD: 'Keyword', wx.stc.STC_P_TRIPLE:'Triple quotes', wx.stc.STC_P_TRIPLEDOUBLE: 'Triple double quotes', wx.stc.STC_P_CLASSNAME: 'Class definition', wx.stc.STC_P_DEFNAME: 'Function or method', wx.stc.STC_P_OPERATOR: 'Operators', wx.stc.STC_P_IDENTIFIER: 'Identifiers', wx.stc.STC_P_COMMENTBLOCK: 'Comment blocks', wx.stc.STC_P_STRINGEOL: 'EOL unclosed string'}
 lexer=wx.stc.STC_LEX_PYTHON
@@ -149,11 +165,12 @@ keywords=and assert break class continue def del elif else except exec finally f
 
 Plugins.assureConfigFile(pyrex_cfgfile, pyrexStyleEditorConfig)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 def getPyrexModuleData():
     return \
-'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
+        '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
 \x00\x00\x00\x1f\xf3\xffa\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\
 \x00\x00\xfaIDATx\x9c\x85SQ\xae\xc4 \x08\x1c6=\x00\x07v\x9b\r\x8fw_n0\xefCT\
 \xda\xb5y4\x06*\x82\x0c#\xa2\xaa\x18\x12\x11t\xebv;\x01U\x95\xeaC\x91\xe9SUd\
@@ -167,9 +184,10 @@ def getPyrexModuleData():
 \xcb\x8b\xe60\xb99a\xdf\x10\xc6\x9e\xdb\x9df_\xc3T\'\x12\x19Tq\xde\x83\xea\
 \xfa\x03.(\xfa\xcc\xbb\xaeS\xb9\x00\x00\x00\x00IEND\xaeB`\x82'
 
+
 def getPyrexPaletteData():
     return \
-'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
+        '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
 \x00\x00\x00\xe0w=\xf8\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\
 \x01QIDATx\x9c\xdd\x95AN\xc40\x0cE\x9f\x11\x070WE\xb3#D(\x98\xdd\x88\xab\x92\
 \x1b\x98E\x125\xd3\xb8\x15\x0bf\x01\x96\xaaVu\xf2\x7f\xfc\xbf\xdd\x8a\xaar\
@@ -185,6 +203,7 @@ def getPyrexPaletteData():
 \x16=\x9a\x8d\xf9\xfd\xa8r\xef\xc5!\x81\x15#\x91\xb0\xf7m\xb3\x95N\xb8\x03m\
 \x871\xaez]\x8c>\x94\x08&\x99 \x9c`+\xc6\xf5s\x05\xfd1\xc1o\xc4\xdf\xffe\xde\
 \x9d\xe0\x1b_\xc7\xa9{G\x16\x95\x05\x00\x00\x00\x00IEND\xaeB`\x82'
+
 
 Preferences.IS.registerImage('Images/Modules/Pyrex.png', getPyrexModuleData())
 Preferences.IS.registerImage('Images/Palette/Pyrex.png', getPyrexPaletteData())

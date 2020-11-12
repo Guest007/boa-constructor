@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        RTTI.py
 # Purpose:
 #
@@ -8,17 +8,20 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
-import sys, warnings
-
+import sys
+import warnings
 from types import *
+
 import wx
 
 warnings.filterwarnings('ignore', '', DeprecationWarning, 'RTTI')
 
+
 def sort_proxy(self, other):
     return self < other and -1 or self > other and 1 or 0
+
 
 class PropertyWrapper:
     # XXX This would be better implemented with subclassing
@@ -47,8 +50,8 @@ class PropertyWrapper:
         return 0
 
     def __repr__(self):
-        return '<instance PropertyWrapper: %s, %s (%s, %s)'%(self.name,
-          self.routeType, self.getter, self.setter)
+        return '<instance PropertyWrapper: %s, %s (%s, %s)' % (self.name,
+                                                               self.routeType, self.getter, self.setter)
 
     def connect(self, ctrl, compn):
         self.ctrl = ctrl
@@ -91,16 +94,19 @@ class PropertyWrapper:
         if self.setter:
             if self.setterName:
                 return self.setterName
-            if type(self.setter) == FunctionType:
+            if isinstance(self.setter, FunctionType):
                 return self.setter.__name__
-            if type(self.setter) == MethodType:
+            if isinstance(self.setter, MethodType):
                 return self.setter.__func__.__name__
             else:
                 return ''
         else:
             return ''
 
+
 _methodTypeCache = {}
+
+
 def getPropList(obj, cmp):
     """
        Function to extract sorted list of properties and getter/setter methods
@@ -114,13 +120,19 @@ def getPropList(obj, cmp):
         'properties': [ PropertyWrapper, ... ] }
 
     """
-    def catalogProperty(name, methType, meths, constructors, propLst, constrLst):
+    def catalogProperty(name, methType, meths,
+                        constructors, propLst, constrLst):
         if name in constructors:
-            constrLst.append(PropertyWrapper(name, methType, meths[0], meths[1]))
+            constrLst.append(
+                PropertyWrapper(
+                    name,
+                    methType,
+                    meths[0],
+                    meths[1]))
         else:
             propLst.append(PropertyWrapper(name, methType, meths[0], meths[1]))
 
-    #getPropList(obj, cmp):-
+    # getPropList(obj, cmp):-
     props = {}
     props['Properties'] = {}
     props['Methods'] = {}
@@ -131,7 +143,7 @@ def getPropList(obj, cmp):
     propLst = []
     constrLst = []
     #           2.4                          2.5
-    if obj and (type(obj) is InstanceType or isinstance(obj, wx.Object)):
+    if obj and (isinstance(obj, InstanceType) or isinstance(obj, wx.Object)):
         traverseAndBuildProps(props, cmp.vetoedMethods(), obj, obj.__class__)
 
         # populate property list
@@ -139,30 +151,29 @@ def getPropList(obj, cmp):
             constrNames = cmp.constructor()
         else:
             constrNames = {}
-        propNames = list(props['Properties'].keys())
-        propNames.sort()
+        propNames = sorted(props['Properties'].keys())
         for propName in propNames:
             if cmp and propName in cmp.hideDesignTime():
                 continue
             propMeths = props['Properties'][propName]
             try:
                 catalogProperty(propName, 'CtrlRoute', propMeths,
-                  constrNames, propLst, constrLst)
-            except:
+                                constrNames, propLst, constrLst)
+            except BaseException:
                 catalogProperty(propName, 'NoneRoute', (None, None),
-                  constrNames, propLst, constrLst)
+                                constrNames, propLst, constrLst)
         if cmp:
             xtraProps = cmp.properties()
-            propNames = list(xtraProps.keys())
-            propNames.sort()
+            propNames = sorted(xtraProps.keys())
             for propName in propNames:
-                #if propName in cmp.hideDesignTime():
+                # if propName in cmp.hideDesignTime():
                 #    continue
                 propMeths = xtraProps[propName]
                 try:
                     catalogProperty(propName, propMeths[0], propMeths[1:],
-                      constrNames, propLst, constrLst)
-                except: pass
+                                    constrNames, propLst, constrLst)
+                except BaseException:
+                    pass
 
         propLst.sort()
         constrLst.sort()
@@ -170,19 +181,19 @@ def getPropList(obj, cmp):
         if cmp:
             constrNames = cmp.constructor()
             xtraProps = cmp.properties()
-            propNames = list(xtraProps.keys())
-            propNames.sort()
+            propNames = sorted(xtraProps.keys())
             for propName in propNames:
                 propMeths = xtraProps[propName]
-                #try:
+                # try:
                 catalogProperty(propName, propMeths[0], propMeths[1:],
-                  constrNames, propLst, constrLst)
-                #except:
+                                constrNames, propLst, constrLst)
+                # except:
                 #    print 'prop error', sys.exc_info()
         else:
-            pass #print 'Empty object', obj, cmp
+            pass  # print 'Empty object', obj, cmp
 
     return {'constructor': constrLst, 'properties': propLst}
+
 
 def getMethodType(method, obj, Class):
     """ classify methods according to prefix
@@ -194,26 +205,28 @@ def getMethodType(method, obj, Class):
     except TypeError:
         return result
     except Exception:
-        #print obj, method
+        # print obj, method
         return result
 
-    if (type(meth) == MethodType):
+    if (isinstance(meth, MethodType)):
         func = meth.__func__
         result = ('Methods', method, func, func)
         prefix = method[:3]
         property = method[3:]
-        getname = 'Get'+property
-        setname = 'Set'+property
+        getname = 'Get' + property
+        setname = 'Set' + property
 
         try:
             if (method[:2] == '__'):
                 result = ('Built-ins', method, func, func)
             elif (prefix == 'Get') and hasattr(obj, setname) and property:
-                #see if getter breaks
+                # see if getter breaks
                 v = func(obj)
-                result = ('Properties', property, func, getattr(obj, setname).__func__)
+                result = (
+                    'Properties', property, func, getattr(
+                        obj, setname).__func__)
             elif (prefix == 'Set') and hasattr(obj, getname) and property:
-                #see if getter breaks
+                # see if getter breaks
                 getter = getattr(obj, getname).__func__
                 v = getter(obj)
                 result = ('Properties', property, getter, func)
@@ -221,17 +234,19 @@ def getMethodType(method, obj, Class):
             pass
     return result
 
+
 def traverseAndBuildProps(props, vetoes, obj, Class):
     for m in list(Class.__dict__.keys()):
         if m not in vetoes:
             cat, name, methGetter, methSetter = \
-              getMethodType(m, obj, Class.__dict__)
+                getMethodType(m, obj, Class.__dict__)
 
             if name not in props[cat]:
                 props[cat][name] = (methGetter, methSetter)
 
     for Cls in Class.__bases__:
         traverseAndBuildProps(props, vetoes, obj, Cls)
+
 
 if __name__ == '__main__':
     wx.PySimpleApp()

@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        XMLView.py
 # Purpose:
 #
@@ -9,7 +9,7 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2001 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import sys
 
@@ -23,14 +23,15 @@ from .EditorViews import EditorView
 class XMLTreeView(wx.TreeCtrl, EditorView):
     viewName = 'XMLTree'
     viewTitle = _('XMLTree')
-    
+
     gotoLineBmp = 'Images/Editor/GotoLine.png'
 
     def __init__(self, parent, model):
         id = wx.NewId()
-        wx.TreeCtrl.__init__(self, parent, id)#, style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER)
+        # , style=wx.TR_HAS_BUTTONS | wx.SUNKEN_BORDER)
+        wx.TreeCtrl.__init__(self, parent, id)
         EditorView.__init__(self, model,
-          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),), 0)
+                            ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.nodeStack = []
         self.locations = {}
@@ -54,34 +55,35 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
         return
 
     # Define a handler for start element events
-    def startElement(self, name, attrs ):
+    def startElement(self, name, attrs):
         name = name.encode()
         if attrs:
             for k in attrs:
                 name += ', %s=%s' % (k, attrs[k])
-            
-##            if attrs.has_key('class'):
-##                if attrs.has_key('name'):
+
+# if attrs.has_key('class'):
+# if attrs.has_key('name'):
 ##                    name = '%s (%s:%s)' % (name, attrs['name'], attrs['class'])
-##                else:
+# else:
 ##                    name = '%s (%s)' % (name, attrs['class'])
-##            else:
-##                if attrs.has_key('name'):
+# else:
+# if attrs.has_key('name'):
 ##                    name = '%s :%s' % (name, attrs['name'])
 
         id = self.AppendItem(self.nodeStack[-1], name)
         self.nodeStack.append(id)
         if self._parser:
-            self.locations[id] = (self._parser.CurrentColumnNumber, self._parser.CurrentLineNumber)
+            self.locations[id] = (
+                self._parser.CurrentColumnNumber,
+                self._parser.CurrentLineNumber)
 
-    def endElement(self,  name ):
+    def endElement(self, name):
         self.nodeStack = self.nodeStack[:-1]
 
-    def characterData(self, data ):
+    def characterData(self, data):
         if data.strip():
             data = data.encode()
             self.AppendItem(self.nodeStack[-1], data)
-
 
     def loadTree(self, filename):
         # Create a parser
@@ -98,7 +100,7 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
         parserStatus = parser.Parse(self.model.data, 1)
 
     def OnGoto(self, event):
-        idx  = self.GetSelection()
+        idx = self.GetSelection()
         if idx.IsOk():
             if idx in self.locations:
                 col, line = self.locations[idx]
@@ -112,36 +114,36 @@ class XMLTreeView(wx.TreeCtrl, EditorView):
             if self.defaultActionIdx != -1:
                 self.actions[self.defaultActionIdx][1](event)
 
-##class XMLTree(wx.TreeCtrl):
-##    def __init__(self, parent, ID):
+# class XMLTree(wx.TreeCtrl):
+# def __init__(self, parent, ID):
 ##        wx.TreeCtrl.__init__(self, parent, ID)
 ##        self.nodeStack = [self.AddRoot(Root)]
 ##
-##    # Define a handler for start element events
-##    def StartElement(self, name, attrs ):
-##        if py2:
+# Define a handler for start element events
+# def StartElement(self, name, attrs ):
+# if py2:
 ##            name = name.encode()
 ##        id = self.AppendItem(self.nodeStack[-1], name)
-##        self.nodeStack.append(id)
+# self.nodeStack.append(id)
 ##
-##    def EndElement(self,  name ):
+# def EndElement(self,  name ):
 ##        self.nodeStack = self.nodeStack[:-1]
 ##
-##    def CharacterData(self, data ):
-##        if data.strip():
-##            if py2:
+# def CharacterData(self, data ):
+# if data.strip():
+# if py2:
 ##                data = data.encode()
 ##            self.AppendItem(self.nodeStack[-1], data)
 ##
 ##
-##    def LoadTree(self, filename):
-##        # Create a parser
+# def LoadTree(self, filename):
+# Create a parser
 ##        Parser = parsermodule.ParserCreate()
 ##
-##        # Tell the parser what the start element handler is
+# Tell the parser what the start element handler is
 ##        Parser.StartElementHandler = self.StartElement
 ##        Parser.EndElementHandler = self.EndElement
 ##        Parser.CharacterDataHandler = self.CharacterData
 ##
-##        # Parse the XML File
+# Parse the XML File
 ##        ParserStatus = Parser.Parse(open(filename,'r').read(), 1)

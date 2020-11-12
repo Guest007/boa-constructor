@@ -1,6 +1,6 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        I18NWrap.plug-in.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -8,37 +8,44 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2007
 # Licence:     Python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # msgfmt_* written by Martin v. Lowis from Python/Tools/i18n/msgfmt.py
 
-import os, sys, struct, array
+import array
+import os
+import struct
+import sys
 
 import wx
 
-from Models import EditorModels, Controllers
-from ModRunner import ProcessModuleRunner
-
 import Preferences
+from Models import Controllers, EditorModels
+from ModRunner import ProcessModuleRunner
 from Utils import _
+from Views import PySourceView
 
 Preferences.keyDefs['I18NWrap'] = (wx.ACCEL_ALT, ord('I'), 'Alt-I')
+
 
 class I18NWrapViewPlugin:
     def __init__(self, model, view, actions):
         self.model = model
         self.view = view
-        actions.extend( (
-         (_('Wrap selection with _()'), self.OnI18NWrapSelection, '-', 'I18NWrap'), 
-        ) )
+        actions.extend((
+            (_('Wrap selection with _()'), self.OnI18NWrapSelection, '-', 'I18NWrap'),
+        ))
 
     def OnI18NWrapSelection(self, event):
         first, last = self.view.GetSelection()
         if first and last:
             sel = self.view.GetText()[first:last]
-            self.view.ReplaceSelection('_(%s)'%sel)
+            self.view.ReplaceSelection('_(%s)' % sel)
+
 
 wxID_POCOMPILE = wx.NewId()
+
+
 class POFileController(Controllers.TextController):
     Model = EditorModels.TextModel
 
@@ -46,19 +53,19 @@ class POFileController(Controllers.TextController):
 
     def actions(self, model):
         return Controllers.TextController.actions(self, model) + [
-              (_('Compile to MO'), self.OnCompile, '-', '')]
+            (_('Compile to MO'), self.OnCompile, '-', '')]
 
     def OnCompile(self, event):
         model = self.getModel()
         if not model.savedAs:
             wx.LogError(_('Cannot compile an unsaved module'))
             return
-        
+
         filename = model.assertLocalFile()
         outfile = os.path.splitext(filename)[0] + '.mo'
         MESSAGES = {}
         if msgfmt_make(filename, outfile, MESSAGES):
-            wx.LogMessage(_('%s created')%outfile)
+            wx.LogMessage(_('%s created') % outfile)
         else:
             wx.LogError(_('MO file not created'))
 
@@ -67,6 +74,7 @@ def msgfmt_add(id, str, fuzzy, MESSAGES):
     """Add a non-fuzzy translation to the dictionary."""
     if not fuzzy and str:
         MESSAGES[id] = str
+
 
 def msgfmt_generate(MESSAGES):
     "Return the generated output."
@@ -85,7 +93,7 @@ def msgfmt_generate(MESSAGES):
     # The header is 7 32-bit unsigned integers.  We don't use hash tables, so
     # the keys start right after the index tables.
     # translated string.
-    keystart = 7*4+16*len(keys)
+    keystart = 7 * 4 + 16 * len(keys)
     # and the values start after the keys
     valuestart = keystart + len(ids)
     koffsets = []
@@ -93,15 +101,15 @@ def msgfmt_generate(MESSAGES):
     # The string table first has the list of keys, then the list of values.
     # Each entry has first the size of the string, then the file offset.
     for o1, l1, o2, l2 in offsets:
-        koffsets += [l1, o1+keystart]
-        voffsets += [l2, o2+valuestart]
+        koffsets += [l1, o1 + keystart]
+        voffsets += [l2, o2 + valuestart]
     offsets = koffsets + voffsets
     output = struct.pack("Iiiiiii",
                          0x950412de,       # Magic
                          0,                 # Version
                          len(keys),         # # of entries
-                         7*4,               # start of key index
-                         7*4+len(keys)*8,   # start of value index
+                         7 * 4,               # start of key index
+                         7 * 4 + len(keys) * 8,   # start of value index
                          0, 0)              # size and offset of hash table
     output += array.array("i", offsets).tostring()
     output += ids
@@ -164,7 +172,7 @@ def msgfmt_make(filename, outfile, MESSAGES):
         elif section == STR:
             msgstr += l
         else:
-            print('Syntax error on %s:%d' % (infile, lno), \
+            print('Syntax error on %s:%d' % (infile, lno),
                   'before:', file=sys.stderr)
             print(l, file=sys.stderr)
             return
@@ -176,7 +184,7 @@ def msgfmt_make(filename, outfile, MESSAGES):
     output = msgfmt_generate(MESSAGES)
 
     try:
-        open(outfile,"wb").write(output)
+        open(outfile, "wb").write(output)
     except IOError as msg:
         print(msg, file=sys.stderr)
         return False
@@ -185,21 +193,19 @@ def msgfmt_make(filename, outfile, MESSAGES):
 
 
 Plugins.registerFileType(POFileController, aliasExts=('.po'))
-    
-from Views import PySourceView
+
 PySourceView.PythonSourceView.plugins += (I18NWrapViewPlugin,)
 
-###-------------------------------------------------------------------------------
-##def showGeneratePOTFromSourceDlg(editor):
-##    dlg = wx.DirDialog(editor, 
+# -------------------------------------------------------------------------------
+# def showGeneratePOTFromSourceDlg(editor):
+# dlg = wx.DirDialog(editor,
 ##          _('Select directory to recursively scan source for strings'),
-##          _('Generate POT from source'))
-##    try:
-##        if dlg.ShowModal() == wx.ID_OK:
+# _('Generate POT from source'))
+# try:
+# if dlg.ShowModal() == wx.ID_OK:
 ##            dir = dlg.GetPath()
-##            # Your code
-##    finally:
-##        dlg.Destroy()
+# Your code
+# finally:
+# dlg.Destroy()
 ##
 ##Plugins.registerTool(_('Generate POT from source'), showGeneratePOTFromSourceDlg)
-

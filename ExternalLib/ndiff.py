@@ -43,6 +43,8 @@ recovered by piping the output through
 See module comments for details and programmatic interface.
 """
 
+import re
+
 __version__ = 1, 4, 0
 
 # SequenceMatcher tries to compute a "human-friendly diff" between
@@ -99,18 +101,22 @@ __version__ = 1, 4, 0
 
 import string
 from functools import reduce
+
 TRACE = 0
 
 # define what "junk" means
-import re
+
 
 def IS_LINE_JUNK(line, pat=re.compile(r"\s*#?\s*$").match):
     return pat(line) is not None
 
+
 def IS_CHARACTER_JUNK(ch, ws=" \t"):
     return ch in ws
 
+
 del re
+
 
 class SequenceMatcher:
     def __init__(self, isjunk=None, a='', b=''):
@@ -281,9 +287,9 @@ class SequenceMatcher:
                     continue
                 if j >= bhi:
                     break
-                k = newj2len[j] = j2lenget(j-1, 0) + 1
+                k = newj2len[j] = j2lenget(j - 1, 0) + 1
                 if k > bestsize:
-                    besti, bestj, bestsize = i-k+1, j-k+1, k
+                    besti, bestj, bestsize = i - k + 1, j - k + 1, k
             j2len = newj2len
 
         # Now that we have a wholly interesting match (albeit possibly
@@ -294,12 +300,12 @@ class SequenceMatcher:
         # interesting match, this is clearly the right thing to do,
         # because no other kind of match is possible in the regions.
         while besti > alo and bestj > blo and \
-              isbjunk(b[bestj-1]) and \
-              a[besti-1] == b[bestj-1]:
-            besti, bestj, bestsize = besti-1, bestj-1, bestsize+1
-        while besti+bestsize < ahi and bestj+bestsize < bhi and \
-              isbjunk(b[bestj+bestsize]) and \
-              a[besti+bestsize] == b[bestj+bestsize]:
+                isbjunk(b[bestj - 1]) and \
+                a[besti - 1] == b[bestj - 1]:
+            besti, bestj, bestsize = besti - 1, bestj - 1, bestsize + 1
+        while besti + bestsize < ahi and bestj + bestsize < bhi and \
+                isbjunk(b[bestj + bestsize]) and \
+                a[besti + bestsize] == b[bestj + bestsize]:
             bestsize = bestsize + 1
 
         if TRACE:
@@ -313,7 +319,7 @@ class SequenceMatcher:
         self.matching_blocks = []
         la, lb = len(self.a), len(self.b)
         self.__helper(0, la, 0, lb, self.matching_blocks)
-        self.matching_blocks.append( (la, lb, 0) )
+        self.matching_blocks.append((la, lb, 0))
         if TRACE:
             print('*** matching blocks', self.matching_blocks)
         return self.matching_blocks
@@ -330,8 +336,8 @@ class SequenceMatcher:
             if alo < i and blo < j:
                 self.__helper(alo, i, blo, j, answer)
             answer.append(x)
-            if i+k < ahi and j+k < bhi:
-                self.__helper(i+k, ahi, j+k, bhi, answer)
+            if i + k < ahi and j + k < bhi:
+                self.__helper(i + k, ahi, j + k, bhi, answer)
 
     def ratio(self):
         """Return a measure of the sequences' similarity (float in [0,1]).
@@ -396,25 +402,29 @@ class SequenceMatcher:
             elif j < bj:
                 tag = 'insert'
             if tag:
-                answer.append( (tag, i, ai, j, bj) )
-            i, j = ai+size, bj+size
+                answer.append((tag, i, ai, j, bj))
+            i, j = ai + size, bj + size
             # the list of matching blocks is terminated by a
             # sentinel with size 0
             if size:
-                answer.append( ('equal', ai, i, bj, j) )
+                answer.append(('equal', ai, i, bj, j))
         return answer
 
 # meant for dumping lines
+
+
 def dump(tag, x, lo, hi):
     for i in range(lo, hi):
         print(tag, x[i], end=' ')
 
+
 # figure out which mark to stick under characters in lines that
 # have changed (blank = same, - = deleted, + = inserted, ^ = replaced)
-_combine = { '  ': ' ',
-             '. ': '-',
-             ' .': '+',
-             '..': '^' }
+_combine = {'  ': ' ',
+            '. ': '-',
+            ' .': '+',
+            '..': '^'}
+
 
 def plain_replace(a, alo, ahi, b, blo, bhi):
     assert alo < ahi and blo < bhi
@@ -431,6 +441,7 @@ def plain_replace(a, alo, ahi, b, blo, bhi):
 # the blocks for *similar* lines; the best-matching pair (if any) is
 # used as a synch point, and intraline difference marking is done on
 # the similar pair.  Lots of work, but often worth it.
+
 
 def fancy_replace(a, alo, ahi, b, blo, bhi):
     if TRACE:
@@ -464,8 +475,8 @@ def fancy_replace(a, alo, ahi, b, blo, bhi):
             # time it's called on a sequence pair; the expensive part
             # of the computation is cached by cruncher
             if cruncher.real_quick_ratio() > best_ratio and \
-                  cruncher.quick_ratio() > best_ratio and \
-                  cruncher.ratio() > best_ratio:
+                    cruncher.quick_ratio() > best_ratio and \
+                    cruncher.ratio() > best_ratio:
                 best_ratio, best_i, best_j = cruncher.ratio(), i, j
     if best_ratio < cutoff:
         # no non-identical "pretty close" pair
@@ -483,8 +494,8 @@ def fancy_replace(a, alo, ahi, b, blo, bhi):
     # identical
     if TRACE:
         print('*** best_ratio', best_ratio, best_i, best_j)
-        dump('>', a, best_i, best_i+1)
-        dump('<', b, best_j, best_j+1)
+        dump('>', a, best_i, best_i + 1)
+        dump('<', b, best_j, best_j + 1)
 
     # pump out diffs from before the synch point
     fancy_helper(a, alo, best_i, b, blo, best_j)
@@ -514,15 +525,16 @@ def fancy_replace(a, alo, ahi, b, blo, bhi):
             atags = atags + ' ' * (lb - la)
         elif lb < la:
             btags = btags + ' ' * (la - lb)
-        combined = list(map(lambda x,y: _combine[x+y], atags, btags))
-        print('-', aelt, '+', belt, '?', \
+        combined = list(map(lambda x, y: _combine[x + y], atags, btags))
+        print('-', aelt, '+', belt, '?',
               string.rstrip(string.join(combined, '')))
     else:
         # the synch pair is identical
         print(' ', aelt, end=' ')
 
     # pump out diffs from after the synch point
-    fancy_helper(a, best_i+1, ahi, b, best_j+1, bhi)
+    fancy_helper(a, best_i + 1, ahi, b, best_j + 1, bhi)
+
 
 def fancy_helper(a, alo, ahi, b, blo, bhi):
     if alo < ahi:
@@ -533,6 +545,7 @@ def fancy_helper(a, alo, ahi, b, blo, bhi):
     elif blo < bhi:
         dump('+', b, blo, bhi)
 
+
 def fail(msg):
     import sys
     out = sys.stderr.write
@@ -542,6 +555,8 @@ def fail(msg):
 
 # open a file & return the file object; gripe and return 0 if it
 # couldn't be opened
+
+
 def fopen(fname):
     try:
         return open(fname, 'r')
@@ -549,14 +564,18 @@ def fopen(fname):
         return fail("couldn't open " + fname + ": " + str(detail))
 
 # open two files & spray the diff to stdout; return false iff a problem
+
+
 def fcompare(f1name, f2name):
     f1 = fopen(f1name)
     f2 = fopen(f2name)
     if not f1 or not f2:
         return 0
 
-    a = f1.readlines(); f1.close()
-    b = f2.readlines(); f2.close()
+    a = f1.readlines()
+    f1.close()
+    b = f2.readlines()
+    f2.close()
 
     cruncher = SequenceMatcher(IS_LINE_JUNK, a, b)
     for tag, alo, ahi, blo, bhi in cruncher.get_opcodes():
@@ -575,6 +594,7 @@ def fcompare(f1name, f2name):
 
 # crack args (sys.argv[1:] is normal) & compare;
 # return false iff a problem
+
 
 def main(args):
     import getopt
@@ -608,6 +628,7 @@ def main(args):
         print('+:', f2name)
     return fcompare(f1name, f2name)
 
+
 def restore(which):
     import sys
     tag = {"1": "- ", "2": "+ "}[which]
@@ -616,11 +637,13 @@ def restore(which):
         if line[:2] in prefixes:
             print(line[2:], end=' ')
 
+
 if __name__ == '__main__':
     import sys
     args = sys.argv[1:]
     if "-profile" in args:
-        import profile, pstats
+        import profile
+        import pstats
         args.remove("-profile")
         statf = "ndiff.pro"
         profile.run("main(args)", statf)

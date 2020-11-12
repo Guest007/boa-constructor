@@ -87,28 +87,34 @@ ConfigParser -- responsible for for parsing a list of
 
 # Removed unicode check for 1.5.2 compatibility
 
-import sys
-import string
 import re
+import string
+import sys
 
 DEFAULTSECT = "DEFAULT"
 
 # exception classes
+
+
 class Error:
     def __init__(self, msg=''):
         self._msg = msg
+
     def __repr__(self):
         return self._msg
+
 
 class NoSectionError(Error):
     def __init__(self, section):
         Error.__init__(self, 'No section: %s' % section)
         self.section = section
 
+
 class DuplicateSectionError(Error):
     def __init__(self, section):
         Error.__init__(self, "Section %s already exists" % section)
         self.section = section
+
 
 class NoOptionError(Error):
     def __init__(self, option, section):
@@ -116,6 +122,7 @@ class NoOptionError(Error):
                        (option, section))
         self.option = option
         self.section = section
+
 
 class InterpolationError(Error):
     def __init__(self, reference, option, section, rawval):
@@ -130,6 +137,7 @@ class InterpolationError(Error):
         self.option = option
         self.section = section
 
+
 class MissingSectionHeaderError(Error):
     def __init__(self, filename, lineno, line):
         Error.__init__(
@@ -140,6 +148,7 @@ class MissingSectionHeaderError(Error):
         self.lineno = lineno
         self.line = line
 
+
 class ParsingError(Error):
     def __init__(self, filename):
         Error.__init__(self, 'File contains parsing errors: %s' % filename)
@@ -149,6 +158,7 @@ class ParsingError(Error):
     def append(self, lineno, line):
         self.errors.append((lineno, line))
         self._msg = self._msg + '\n\t[line %2d]: %s' % (lineno, line)
+
 
 class ConfigParser:
     def __init__(self, defaults=None):
@@ -211,7 +221,7 @@ class ConfigParser:
         configuration files in the list will be read.  A single
         filename may also be given.
         """
-        if type(filenames) == type(''):
+        if isinstance(filenames, type('')):
             filenames = [filenames]
         for filename in filenames:
             try:
@@ -300,8 +310,6 @@ class ConfigParser:
     def optionxform(self, optionstr):
         return string.lower(optionstr)
 
-
-
     def set(self, section, option, value):
         """Set an option."""
         if not section or section == "DEFAULT":
@@ -359,7 +367,7 @@ class ConfigParser:
         r'\['                                 # [
         r'(?P<header>[-\w_.*,(){}]+)'         # a lot of stuff found by IvL
         r'\]'                                 # ]
-        )
+    )
     OPTCRE = re.compile(
         r'(?P<option>[-\w_.*,(){}]+)'         # a lot of stuff found by IvL
         r'[ \t]*(?P<vi>[:=])[ \t]*'           # any number of space/tab,
@@ -367,7 +375,7 @@ class ConfigParser:
                                               # (either : or =), followed
                                               # by any # space/tab
         r'(?P<value>.*)$'                     # everything up to eol
-        )
+    )
 
     def __read(self, fp, fpname):
         """Parse a sectioned setup file.
@@ -383,7 +391,7 @@ class ConfigParser:
         optname = None
         lineno = 0
         e = None                                  # None, or an exception
-        while 1:
+        while True:
             line = fp.readline()
             if not line:
                 break
@@ -426,7 +434,7 @@ class ConfigParser:
                             # ';' is a comment delimiter only if it follows
                             # a spacing character
                             pos = string.find(optval, ';')
-                            if pos and optval[pos-1] in string.whitespace:
+                            if pos and optval[pos - 1] in string.whitespace:
                                 optval = optval[:pos]
                         optval = string.strip(optval)
                         # allow empty values

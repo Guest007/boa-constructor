@@ -1,11 +1,11 @@
-## Script (Python) "objectids"
-##bind container=container
-##bind context=context
-##bind namespace=_
-##bind script=script
-##bind subpath=traverse_subpath
-##parameters=
-##title=objectids
+# Script (Python) "objectids"
+# bind container=container
+# bind context=context
+# bind namespace=_
+# bind script=script
+# bind subpath=traverse_subpath
+# parameters=
+# title=objectids
 ##
 obj = context.aq_parent
 if obj.meta_type == 'Local File System' or obj.meta_type == 'Local Directory':
@@ -17,8 +17,10 @@ elif obj.meta_type == 'User Folder':
     usernames = obj.getUserNames()
     if usernames:
         # dict or string ? (for exUserFolder)
-        try: name = usernames[0]['username']
-        except: pass
+        try:
+            name = usernames[0]['username']
+        except BaseException:
+            pass
         else:
             userdicts = usernames
             usernames = []

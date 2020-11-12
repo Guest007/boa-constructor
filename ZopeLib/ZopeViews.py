@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ZopeViews.py
 # Purpose:     Custom views for Zope models
 #
@@ -8,21 +8,22 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2001 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing ZopeLib.ZopeViews')
-
-import os, time
+# -----------------------------------------------------------------------------
+import os
+import time
 
 import wx
 
+import ErrorStack
+import Utils
+from ExternalLib import xmlrpclib
+from Models.HTMLSupport import BaseHTMLStyledTextCtrlMix
 from Views.EditorViews import HTMLView, ListCtrlView
 from Views.SourceViews import EditorStyledTextCtrl
 from Views.StyledTextCtrls import DebuggingViewSTCMix
-from Models.HTMLSupport import BaseHTMLStyledTextCtrlMix
 
-import Utils, ErrorStack
+print('importing ZopeLib.ZopeViews')
 
-from ExternalLib import xmlrpclib
 
 # Can be extended by plug-ins, used by syntax highlighted styles
 zope_additional_attributes = ''
@@ -31,23 +32,25 @@ zope_additional_attributes = ''
 # XXX is focused (like ExploreView)
 # XXX The HTML control does not interact well with Zope.
 
+
 class ZopeHTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
     def __init__(self, wId):
         BaseHTMLStyledTextCtrlMix.__init__(self, wId)
 
         zope_dtml_elements = 'dtml-var dtml-in dtml-if dtml-elif dtml-else dtml-unless '\
-        'dtml-with dtml-let dtml-call dtml-comment dtml-tree dtml-try dtml-except '\
-        'dtml-raise dtml-finally dtml-sqlvar '
+            'dtml-with dtml-let dtml-call dtml-comment dtml-tree dtml-try dtml-except '\
+            'dtml-raise dtml-finally dtml-sqlvar '
 
         zope_zsql_tags = 'params '
 
-        zope_attributes=\
-        'sequence-key sequence-item sequence-start sequence-end sequence-odd '
+        zope_attributes =\
+            'sequence-key sequence-item sequence-start sequence-end sequence-odd '
 
-        self.keywords = self.keywords + ' public !doctype '+ zope_dtml_elements +\
-              zope_zsql_tags + zope_attributes + zope_additional_attributes
+        self.keywords = self.keywords + ' public !doctype ' + zope_dtml_elements +\
+            zope_zsql_tags + zope_attributes + zope_additional_attributes
 
         self.setStyles()
+
 
 class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
     viewName = 'ZopeHTML'
@@ -55,25 +58,29 @@ class ZopeHTMLSourceView(EditorStyledTextCtrl, ZopeHTMLStyledTextCtrlMix):
 
     breakBmp = 'Images/Debug/Breakpoints.png'
     defaultEOL = '\n'
+
     def __init__(self, parent, model, actions=()):
         wxID_ZOPEHTMLSOURCEVIEW = wx.NewId()
         EditorStyledTextCtrl.__init__(self, parent, wxID_ZOPEHTMLSOURCEVIEW,
-          model, (('Refresh', self.OnRefresh, '-', 'Refresh'),) + actions, -1)
+                                      model, (('Refresh', self.OnRefresh, '-', 'Refresh'),) + actions, -1)
         ZopeHTMLStyledTextCtrlMix.__init__(self, wxID_ZOPEHTMLSOURCEVIEW)
         self.active = True
+
 
 class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
     breakBmp = 'Images/Debug/Breakpoints.png'
     defaultEOL = '\n'
+
     def __init__(self, parent, model, actions=()):
         ZopeHTMLSourceView.__init__(self, parent, model,
-      (('Toggle breakpoint', self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),)
-        )
+                                    (('Toggle breakpoint', self.OnSetBreakPoint,
+                                      self.breakBmp, 'ToggleBrk'),)
+                                    )
 
-        from Views.PySourceView import brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk, \
-                                       stepPosMrk, symbolMrg
+        from Views.PySourceView import (brkPtMrk, disabledBrkPtMrk, stepPosMrk,
+                                        symbolMrg, tmpBrkPtMrk)
         DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk,
-              disabledBrkPtMrk, stepPosMrk))
+                                            disabledBrkPtMrk, stepPosMrk))
         self.setupDebuggingMargin(symbolMrg)
 
         self.active = True
@@ -85,17 +92,22 @@ class ZopeDebugHTMLSourceView(ZopeHTMLSourceView, DebuggingViewSTCMix):
         ZopeHTMLSourceView.refreshCtrl(self)
         self.setInitialBreakpoints()
 
+
 class ZopeHTMLView(HTMLView):
     viewName = 'View'
     viewTitle = 'View'
+
     def generatePage(self):
-        import urllib.request, urllib.parse, urllib.error
-        url = 'http://%s:%d/%s'%(self.model.transport.properties['host'],
-              self.model.transport.properties['httpport'],
-              self.model.transport.whole_name())
+        import urllib.error
+        import urllib.parse
+        import urllib.request
+        url = 'http://%s:%d/%s' % (self.model.transport.properties['host'],
+                                   self.model.transport.properties['httpport'],
+                                   self.model.transport.whole_name())
         f = urllib.request.urlopen(url)
         s = f.read()
         return s
+
 
 class ZopeUndoView(ListCtrlView):
     viewName = 'Undo'
@@ -104,8 +116,8 @@ class ZopeUndoView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          (('Undo', self.OnUndo, self.undoBmp, ''),), -1)
-        self.addReportColumns( (('Action', 300), ('User', 75), ('Date', 130)) )
+                              (('Undo', self.OnUndo, self.undoBmp, ''),), -1)
+        self.addReportColumns((('Action', 300), ('User', 75), ('Date', 130)))
 
         self.active = True
 
@@ -122,7 +134,9 @@ class ZopeUndoView(ListCtrlView):
             i = 0
             self.undoIds = []
             for undo in undos:
-                self.addReportItems(i, (undo['description'], undo['user_name'], str(undo['time'])) )
+                self.addReportItems(
+                    i, (undo['description'], undo['user_name'], str(
+                        undo['time'])))
                 self.undoIds.append(undo['id'])
                 i = i + 1
 
@@ -131,7 +145,8 @@ class ZopeUndoView(ListCtrlView):
     def OnUndo(self, event):
         if self.selected != -1:
             try:
-                self.model.transport.undoTransaction([self.undoIds[self.selected]])
+                self.model.transport.undoTransaction(
+                    [self.undoIds[self.selected]])
             except xmlrpclib.Fault as error:
                 wx.LogError(Utils.html2txt(error.faultString))
             except xmlrpclib.ProtocolError as error:
@@ -143,6 +158,7 @@ class ZopeUndoView(ListCtrlView):
             else:
                 self.refreshCtrl()
 
+
 class ZopeSecurityView(ListCtrlView):
     viewName = 'Security'
     viewTitle = 'Security'
@@ -150,7 +166,7 @@ class ZopeSecurityView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          (('Edit', self.OnEdit, self.undoBmp, ''),), -1)
+                              (('Edit', self.OnEdit, self.undoBmp, ''),), -1)
         self.active = True
 
     def refreshCtrl(self):
@@ -161,14 +177,14 @@ class ZopeSecurityView(ListCtrlView):
 
         colls = [('Acquired', 40), ('Permission', 275)]
         for role in roles:
-            colls.append( (role, 75) )
+            colls.append((role, 75))
 
-        self.addReportColumns( colls )
+        self.addReportColumns(colls)
 
         i = 0
         for perm in perms:
             self.addReportItems(*(i, ((perm['acquire'] == 'CHECKED' and '*' or '',
-                  perm['name']) + tuple([x['checked'] == 'CHECKED' and '*' or '' for x in perm['roles']]) )))
+                                       perm['name']) + tuple([x['checked'] == 'CHECKED' and '*' or '' for x in perm['roles']]))))
             i = i + 1
 
         self.pastelise()
@@ -176,6 +192,7 @@ class ZopeSecurityView(ListCtrlView):
     def OnEdit(self, event):
         if self.selected != -1:
             pass
+
 
 class ZopeSiteErrorLogParser(ErrorStack.StackErrorParser):
     def __init__(self, lines, libPath, baseUrl):
@@ -197,31 +214,34 @@ class ZopeSiteErrorLogParser(ErrorStack.StackErrorParser):
                     lines.pop()
                     if path.startswith('   - <PythonScript at '):
                         path = path[22:].strip()[:-1]
-                        debugUrl = self.baseUrl+path+'/Script (Python)'
+                        debugUrl = self.baseUrl + path + '/Script (Python)'
                         self.stack.append(
-                              ErrorStack.StackEntry(debugUrl, lineNo+1, funcName))
+                            ErrorStack.StackEntry(debugUrl, lineNo + 1, funcName))
                 elif modPath.startswith('Python expression'):
                     continue
                 else:
-                    modPath = self.libPath+'/'+modPath.replace('.', '/')+'.py'
-                    self.stack.append(ErrorStack.StackEntry(modPath, lineNo, funcName))
+                    modPath = self.libPath + '/' + \
+                        modPath.replace('.', '/') + '.py'
+                    self.stack.append(
+                        ErrorStack.StackEntry(
+                            modPath, lineNo, funcName))
             elif line.startswith('   - <PythonScript at '):
                 path = line[22:].strip()[:-1]
-                debugUrl = self.baseUrl+path+'/Script (Python)'
+                debugUrl = self.baseUrl + path + '/Script (Python)'
                 self.stack.append(
-                      ErrorStack.StackEntry(debugUrl, 0, os.path.basename(path)))
+                    ErrorStack.StackEntry(debugUrl, 0, os.path.basename(path)))
             elif line.startswith('   - <ZopePageTemplate at '):
                 path = line[26:].strip()[:-1]
-                debugUrl = self.baseUrl+path+'/Page Template'
+                debugUrl = self.baseUrl + path + '/Page Template'
                 self.stack.append(ErrorStack.StackEntry(debugUrl, 0,
-                      os.path.basename(path)))
+                                                        os.path.basename(path)))
             elif line.startswith('   - URL: '):
                 path = line[10:].strip()
                 lineNo, colNo = lines.pop().split(', ')
                 lineNo = int(lineNo.split()[-1])
-                debugUrl = self.baseUrl+path+'/Page Template'
+                debugUrl = self.baseUrl + path + '/Page Template'
                 self.stack.append(ErrorStack.StackEntry(debugUrl, lineNo,
-                      os.path.basename(path)))
+                                                        os.path.basename(path)))
             elif line and line[0] != ' ':
                 errType, errValue = line.split(': ', 1)
                 lines.reverse()
@@ -246,11 +266,12 @@ class ZopeSiteErrorLogView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          (('Open traceback', self.OnOpen, self.gotoTracebackBmp, ''),
-           ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
+                              (('Open traceback', self.OnOpen, self.gotoTracebackBmp, ''),
+                               ('Refresh', self.OnRefresh, self.refreshBmp, 'Refresh')), 0)
         self.active = True
 
     logEntryIds = []
+
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
 
@@ -274,7 +295,7 @@ class ZopeSiteErrorLogView(ListCtrlView):
                 if value and value[0] == '<':
                     value = Utils.html2txt(value).replace('\n', ' ').strip()
                 self.addReportItems(i, (time.ctime(entry['time']),
-                      entry['username'], entry['type'], value, entry['url']) )
+                                        entry['username'], entry['type'], value, entry['url']))
                 self.logEntryIds.append(entry['id'])
                 i = i + 1
 
@@ -295,14 +316,16 @@ class ZopeSiteErrorLogView(ListCtrlView):
                 assert top == 'Traceback (innermost last):'
 
                 props = errLogNode.properties
-                libPath = props['localpath'] +'/lib/python'
+                libPath = props['localpath'] + '/lib/python'
                 # zopedebug urls are transparently looked up in the zope
                 # connections list when the transport is opened.
-                baseUrl = 'zopedebug://%s:%s/'%(props['host'], props['httpport'])
+                baseUrl = 'zopedebug://%s:%s/' % (
+                    props['host'], props['httpport'])
                 errStack = ZopeSiteErrorLogParser(lines, libPath, baseUrl)
 
                 erroutFrm = self.model.editor.erroutFrm
-                erroutFrm.updateCtrls([errStack], '', 'Error', libPath, textEntry)
+                erroutFrm.updateCtrls(
+                    [errStack], '', 'Error', libPath, textEntry)
                 erroutFrm.display()
 
     def OnRefresh(self, event):

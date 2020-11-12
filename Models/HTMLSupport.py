@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        HTMLSupport.py
 # Purpose:
 #
@@ -8,18 +8,25 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Models.HTMLSupport')
-
+# -----------------------------------------------------------------------------
 import wx
 
-import Preferences, Utils, Plugins
+import Plugins
+import Preferences
+import Utils
+from Models.EditorModels import PersistentModel
 from Utils import _
+from Views.EditorViews import HTMLFileView
+from Views.SourceViews import EditorStyledTextCtrl
+from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 
-from . import EditorHelper
+from . import Controllers, EditorHelper
+
+print('importing Models.HTMLSupport')
+
+
 EditorHelper.imgHTMLFileModel = EditorHelper.imgIdxRange()
 
-from Models.EditorModels import PersistentModel
 
 class HTMLFileModel(PersistentModel):
     modelIdentifier = 'HTML'
@@ -29,11 +36,10 @@ class HTMLFileModel(PersistentModel):
     ext = '.html'
 
 
-from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 class BaseHTMLStyledTextCtrlMix(LanguageSTCMix):
     def __init__(self, wId):
         LanguageSTCMix.__init__(self, wId,
-              (0, Preferences.STCLineNumMarginWidth), 'html', stcConfigPath)
+                                (0, Preferences.STCLineNumMarginWidth), 'html', stcConfigPath)
 
 
 class HTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
@@ -43,26 +49,30 @@ class HTMLStyledTextCtrlMix(BaseHTMLStyledTextCtrlMix):
 
 
 wxID_HTMLSOURCEVIEW = wx.NewId()
-from Views.SourceViews import EditorStyledTextCtrl
+
+
 class HTMLSourceView(EditorStyledTextCtrl, HTMLStyledTextCtrlMix):
     viewName = 'HTML'
     viewTitle = _('HTML')
-    
+
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_HTMLSOURCEVIEW,
-          model, (), -1)
+                                      model, (), -1)
         HTMLStyledTextCtrlMix.__init__(self, wxID_HTMLSOURCEVIEW)
         self.active = True
 
 
-from . import Controllers
-from Views.EditorViews import HTMLFileView
 class HTMLFileController(Controllers.PersistentController):
-    Model           = HTMLFileModel
-    DefaultViews    = [HTMLSourceView]
+    Model = HTMLFileModel
+    DefaultViews = [HTMLSourceView]
     AdditionalViews = [HTMLFileView]
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 Plugins.registerFileType(HTMLFileController, aliasExts=('.htm',))
-Plugins.registerLanguageSTCStyle('HTML', 'html', BaseHTMLStyledTextCtrlMix, 'stc-styles.rc.cfg')
+Plugins.registerLanguageSTCStyle(
+    'HTML',
+    'html',
+    BaseHTMLStyledTextCtrlMix,
+    'stc-styles.rc.cfg')

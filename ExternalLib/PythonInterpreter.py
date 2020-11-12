@@ -11,10 +11,14 @@
 #
 
 
-import string, sys, traceback, linecache
+import linecache
+import string
+import sys
+import traceback
 
 sys.ps1 = ">>> "
 sys.ps2 = "... "
+
 
 class PythonInterpreter:
 
@@ -61,14 +65,14 @@ class PythonInterpreter:
             else:
                 self.showtraceback()
 
-        except:
+        except BaseException:
             self.showtraceback()
 
         else:
             # execute
             try:
                 exec(code, self.locals)
-            except:
+            except BaseException:
                 self.showtraceback()
 
         return 0
@@ -91,12 +95,12 @@ class PythonInterpreter:
                         sys.stderr.write('  File "%s", line %d\n%s%s' % (
                                          fn, ln, pad, src))
                 sys.stderr.write(pad + "^\n")
-            sys.stderr.write("''' %s '''\n" % (str(exc_type) + \
-                str(exc_value.args and (" : " + exc_value[0]) or '')))
+            sys.stderr.write("''' %s '''\n" % (str(exc_type) +
+                                               str(exc_value.args and (" : " + exc_value[0]) or '')))
         else:
             traceback.print_tb(exc_traceback.tb_next, None)
-            sys.stderr.write("''' %s '''\n" % (str(exc_type) + " : " + \
-                                            str(exc_value)))
+            sys.stderr.write("''' %s '''\n" % (str(exc_type) + " : " +
+                                               str(exc_value)))
 
 
 # --------------------------------------------------------------------
@@ -116,7 +120,7 @@ if __name__ == "__main__":
 
         sys.stdout.write(sys.ps1)
 
-        while 1:
+        while True:
             if interp.push(eval(input())):
                 sys.stdout.write(sys.ps2)
             else:

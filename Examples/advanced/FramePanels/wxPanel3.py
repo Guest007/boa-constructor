@@ -1,29 +1,32 @@
-#Boa:FramePanel:wxPanel3
+# Boa:FramePanel:wxPanel3
 
 import wx
+
 
 def create(parent):
     return wxPanel3(parent)
 
-[wxID_WXPANEL3, wxID_WXPANEL3BUTTON1, wxID_WXPANEL3STATICTEXT1, 
-] = [wx.NewId() for _init_ctrls in range(3)]
+
+[wxID_WXPANEL3, wxID_WXPANEL3BUTTON1, wxID_WXPANEL3STATICTEXT1,
+ ] = [wx.NewId() for _init_ctrls in range(3)]
+
 
 class wxPanel3(wx.Panel):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Panel.__init__(self, id=wxID_WXPANEL3, name='', parent=prnt,
-              pos=wx.Point(198, 198), size=wx.Size(200, 100), style=self.style)
+                          pos=wx.Point(198, 198), size=wx.Size(200, 100), style=self.style)
         self.SetClientSize(wx.Size(192, 73))
 
         self.staticText1 = wx.StaticText(id=wxID_WXPANEL3STATICTEXT1,
-              label='wxPanel3', name='staticText1', parent=self, pos=wx.Point(8,
-              8), size=wx.Size(46, 13), style=0)
+                                         label='wxPanel3', name='staticText1', parent=self, pos=wx.Point(8,
+                                                                                                         8), size=wx.Size(46, 13), style=0)
 
         self.button1 = wx.Button(id=wxID_WXPANEL3BUTTON1, label='button1',
-              name='button1', parent=self, pos=wx.Point(8, 32), size=wx.Size(75,
-              23), style=0)
+                                 name='button1', parent=self, pos=wx.Point(8, 32), size=wx.Size(75,
+                                                                                                23), style=0)
         self.button1.Bind(wx.EVT_BUTTON, self.OnButton1Button,
-              id=wxID_WXPANEL3BUTTON1)
+                          id=wxID_WXPANEL3BUTTON1)
 
     def __init__(self, parent, id, pos, size, style, name):
         # style is added as a 'frame attribute' because many styles cannot be

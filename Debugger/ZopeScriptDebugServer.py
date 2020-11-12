@@ -9,7 +9,7 @@ TALES_MODULE_NAME = 'Products.PageTemplates.TALES'
 
 isAPythonScriptMetaType = {
     'Script (Python)': 1,
-    }.has_key
+}.has_key
 
 
 def isATALInterpeterFrame(frame):
@@ -20,7 +20,7 @@ def isATALInterpeterFrame(frame):
     on specific code in TAL. :-(
     """
     if (frame.f_code.co_name == 'interpret' and
-        frame.f_globals.get('__name__') == TAL_INTERP_MODULE_NAME):
+            frame.f_globals.get('__name__') == TAL_INTERP_MODULE_NAME):
         caller = frame.f_back
         if caller.f_globals.get('__name__') == TAL_INTERP_MODULE_NAME:
             caller_name = caller.f_code.co_name
@@ -88,7 +88,7 @@ class ZopeScriptDebugServer(DebugServer):
                 template = global_vars.get('template', None)
                 if template:
                     url = template.absolute_url().split('://', 1)[-1]
-                    return 'zopedebug://%s/Page Template'%url
+                    return 'zopedebug://%s/Page Template' % url
         return source_file  # TODO: something better
 
     def getTALPosition(self, frame):
@@ -188,8 +188,9 @@ class ZopeScriptDebugServer(DebugServer):
                     # Using a macro or slot.
                     # Expect to find saved_source and saved_position in
                     # locals.
-                    saved_source = caller.f_locals.get('prev_source') #saved_source
-                    position = 0#caller.f_locals.get('saved_position')
+                    saved_source = caller.f_locals.get(
+                        'prev_source')  # saved_source
+                    position = 0  # caller.f_locals.get('saved_position')
                     if position:
                         saved_lineno = position[0] or 0
                     else:

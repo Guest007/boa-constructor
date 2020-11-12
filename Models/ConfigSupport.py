@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ConfigSupport.py
 # Purpose:
 #
@@ -8,18 +8,24 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Models.ConfigSupport')
-
+# -----------------------------------------------------------------------------
 import wx
 
-import Preferences, Utils, Plugins
+import Plugins
+import Preferences
+import Utils
+from Models.EditorModels import SourceModel
 from Utils import _
+from Views.SourceViews import EditorStyledTextCtrl
+from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 
-from . import EditorHelper
+from . import Controllers, EditorHelper
+
+print('importing Models.ConfigSupport')
+
+
 EditorHelper.imgConfigFileModel = EditorHelper.imgIdxRange()
 
-from Models.EditorModels import SourceModel
 
 class ConfigFileModel(SourceModel):
     modelIdentifier = 'Config'
@@ -29,7 +35,6 @@ class ConfigFileModel(SourceModel):
     ext = '.cfg'
 
 
-from Views.StyledTextCtrls import LanguageSTCMix, stcConfigPath
 class ConfigSTCMix(LanguageSTCMix):
     def __init__(self, wId):
         LanguageSTCMix.__init__(self, wId, (), 'prop', stcConfigPath)
@@ -37,22 +42,29 @@ class ConfigSTCMix(LanguageSTCMix):
 
 
 wxID_CONFIGVIEW = wx.NewId()
-from Views.SourceViews import EditorStyledTextCtrl
+
+
 class ConfigView(EditorStyledTextCtrl, ConfigSTCMix):
     viewName = 'Config'
     viewTitle = _('Config')
+
     def __init__(self, parent, model):
-        EditorStyledTextCtrl.__init__(self, parent, wxID_CONFIGVIEW, model, (), -1)
+        EditorStyledTextCtrl.__init__(
+            self, parent, wxID_CONFIGVIEW, model, (), -1)
         ConfigSTCMix.__init__(self, wxID_CONFIGVIEW)
         self.active = True
 
 
-from . import Controllers
 class ConfigFileController(Controllers.SourceController):
-    Model           = ConfigFileModel
-    DefaultViews    = [ConfigView]
+    Model = ConfigFileModel
+    DefaultViews = [ConfigView]
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 Plugins.registerFileType(ConfigFileController, aliasExts=('.ini',))
-Plugins.registerLanguageSTCStyle('Config', 'prop', ConfigSTCMix, 'stc-styles.rc.cfg')
+Plugins.registerLanguageSTCStyle(
+    'Config',
+    'prop',
+    ConfigSTCMix,
+    'stc-styles.rc.cfg')

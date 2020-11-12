@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        PythonEditorModels.py
 # Purpose:
 #
@@ -8,24 +8,35 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+import codecs
+import imp
+import os
+import pprint
+import stat
+import sys
+import tempfile
+import types
+from _thread import start_new_thread
+from io import StringIO
+from time import localtime, strftime, time
+
+import EditorHelper
+import wx
+
+import ErrorStack
+import Preferences
+import relpath
+import sourceconst
+import Utils
+from Utils import _
+
+from .EditorModels import (BitmapFileModel, EditorModel, PersistentModel,
+                           SourceModel)
 
 print('importing Models.PythonEditorModels')
 
-import os, sys, pprint, imp, stat, types, tempfile, codecs
-from _thread import start_new_thread
-from time import time, localtime, strftime
-from io import StringIO
-
-import wx
-
-import Preferences, Utils
-from Utils import _
-
-import EditorHelper, ErrorStack
-from .EditorModels import PersistentModel, SourceModel, EditorModel, BitmapFileModel
-
-import relpath, sourceconst
 
 # try to use new cProfile module
 try:
@@ -36,11 +47,13 @@ except ImportError:
 
 (imgPyAppModel, imgModuleModel, imgPackageModel, imgSetupModel,
  imgPythonBinaryFileModel,
-) = EditorHelper.imgIdxRange(5)
+ ) = EditorHelper.imgIdxRange(5)
+
 
 class SourcePseudoFile(Utils.PseudoFileOutStore):
     def readlines(self):
         return self.output
+
 
 class ModuleModel(SourceModel):
     modelIdentifier = 'Module'
@@ -68,14 +81,15 @@ class ModuleModel(SourceModel):
         SourceModel.destroy(self)
         del self.app
 
-    def load(self, notify = True):
+    def load(self, notify=True):
         SourceModel.load(self, False)
         if Preferences.autoReindent:
             if not self.reindent():
                 self.update()
         else:
             self.update()
-        if notify: self.notify()
+        if notify:
+            self.notify()
 
     def save(self, overwriteNewer=False):
         if Preferences.autoReindent:
@@ -98,6 +112,7 @@ class ModuleModel(SourceModel):
         self.notify()
 
     _module = None
+
     def getModule(self):
         if self._module is None:
             wx.BeginBusyCursor()
@@ -132,10 +147,10 @@ class ModuleModel(SourceModel):
         newCwd = os.path.dirname(os.path.abspath(filename))
         os.chdir(newCwd)
         try:
-            cmd = '"%s" %s %s'%(interpreterPath,
-                  os.path.basename(filename), args)
+            cmd = '"%s" %s %s' % (interpreterPath,
+                                  os.path.basename(filename), args)
 
-            from ModRunner import PopenModuleRunner#, ExecFinishEvent
+            from ModRunner import PopenModuleRunner  # , ExecFinishEvent
 
             runner = PopenModuleRunner(None, newCwd)
             runner.run(cmd, inpLines, execStart)
@@ -143,61 +158,63 @@ class ModuleModel(SourceModel):
             if execFinish:
                 wx.CallAfter(execFinish, runner)
         finally:
-            if os: os.chdir(cwd)
+            if os:
+                os.chdir(cwd)
 
-    def run1(self, args = '', execStart=None, execFinish=None):
+    def run1(self, args='', execStart=None, execFinish=None):
         """ Excecute the current saved image of the application. """
         if self.savedAs:
             filename = self.assertLocalFile()
 
-            self.editor.statusBar.setHint(_('Running %s...')%filename)
+            self.editor.statusBar.setHint(_('Running %s...') % filename)
             if Preferences.minimizeOnRun:
                 self.editor.minimizeBoa()
             inpLines = []
             if self.useInputStream and self.editor.erroutFrm.inputPage:
                 inpLines = StringIO(
-                      self.editor.erroutFrm.inputPage.GetValue()).readlines()
-                
-            start_new_thread(self.runInThread, (filename, args,
-                  Preferences.getPythonInterpreterPath(), inpLines,
-                  execStart, execFinish))
+                    self.editor.erroutFrm.inputPage.GetValue()).readlines()
 
-            #self.runInThread(filename, args,
+            start_new_thread(self.runInThread, (filename, args,
+                                                Preferences.getPythonInterpreterPath(), inpLines,
+                                                execStart, execFinish))
+
+            # self.runInThread(filename, args,
             #      Preferences.getPythonInterpreterPath(), inpLines,
             #      execStart, execFinish)
 
-    def run(self, args = '', execStart=None, execFinish=None):
+    def run(self, args='', execStart=None, execFinish=None):
         """ Excecute the current saved image of the application. """
         if self.savedAs:
             filename = self.assertLocalFile()
 
-            self.editor.statusBar.setHint(_('Running %s...')%filename)
+            self.editor.statusBar.setHint(_('Running %s...') % filename)
             if Preferences.minimizeOnRun:
                 self.editor.minimizeBoa()
 
             inpLines = []
             if self.useInputStream and self.editor.erroutFrm.inputPage:
                 inpLines = StringIO(
-                      self.editor.erroutFrm.inputPage.GetValue()).readlines()
-                
+                    self.editor.erroutFrm.inputPage.GetValue()).readlines()
+
             cwd = os.path.abspath(os.getcwd())
             newCwd = os.path.dirname(os.path.abspath(filename))
             interp = Preferences.getPythonInterpreterPath()
             basename = os.path.basename(filename)
-            
+
             os.chdir(newCwd)
             try:
-                cmd = '"%s" %s %s'%(interp, basename, args)
-    
+                cmd = '"%s" %s %s' % (interp, basename, args)
+
                 from ModRunner import wxPopenModuleRunner
-    
+
                 runner = wxPopenModuleRunner(self.editor.erroutFrm, newCwd)
                 runner.run(cmd, inpLines, execFinish)
-                
+
                 execStart(runner.pid, os.path.basename(interp), basename)
 
             finally:
-                if os: os.chdir(cwd)
+                if os:
+                    os.chdir(cwd)
 
     # XXX Not used!
     def runAsScript(self):
@@ -210,7 +227,7 @@ class ModuleModel(SourceModel):
         sys.stderr = ErrorStack.RecFile()
         try:
             cmr = ModRunner.CompileModuleRunner(self.editor.erroutFrm)
-            cmr.run(self.filename, self.data+'\n\n', self.modified)
+            cmr.run(self.filename, self.data + '\n\n', self.modified)
 
             serr = ErrorStack.errorList(sys.stderr)
 
@@ -232,9 +249,9 @@ class ModuleModel(SourceModel):
                 report = tempfile.mktemp()
 
                 # execute Cyclops in Python with module as parameter
-                command = '"%s" "%s" "%s" "%s"'%(
-                      Preferences.getPythonInterpreterPath(),
-                      Utils.toPyPath('RunCyclops.py'), name, report)
+                command = '"%s" "%s" "%s" "%s"' % (
+                    Preferences.getPythonInterpreterPath(),
+                    Utils.toPyPath('RunCyclops.py'), name, report)
                 wx.Execute(command, True)
 
                 # read report that Cyclops generated
@@ -257,7 +274,7 @@ class ModuleModel(SourceModel):
                 filename = self.assertLocalFile(self.filename)
                 debugger = Debugger.DebuggerFrame(self.editor, filename)
                 debugger.setDebugClient()
-                if params is not None: # pass [] to clear parameters
+                if params is not None:  # pass [] to clear parameters
                     debugger.setParams(params)
                 self.editor.debugger = debugger
             debugger.Show()
@@ -280,15 +297,17 @@ class ModuleModel(SourceModel):
         try:
             profCmd = """"%s" -c "import %s;%s.run('execfile('+chr(34)+%s+chr(34)+')', '%s')" """.strip()
 
-            cmd = profCmd % (repr(Preferences.getPythonInterpreterPath())[1:-1], 
-                  prof, prof, repr(os.path.basename(filename)), repr(statFile)[1:-1])
+            cmd = profCmd % (repr(Preferences.getPythonInterpreterPath())[1:-1],
+                             prof, prof, repr(os.path.basename(filename)), repr(statFile)[1:-1])
 
-            if hasattr(self, 'app'): app = self.app
-            else: app = None
+            if hasattr(self, 'app'):
+                app = self.app
+            else:
+                app = None
 
             from ModRunner import ExecuteModuleRunner
             runner = ExecuteModuleRunner(None, profDir)
-            self.editor.statusBar.setHint('Profiling %s...'%filename)
+            self.editor.statusBar.setHint('Profiling %s...' % filename)
             runner.run(cmd)
             self.editor.statusBar.setHint('Finished profiling.')
 
@@ -297,14 +316,13 @@ class ModuleModel(SourceModel):
 
         return statFile, modtime, profDir
 
-
     def addModuleInfo(self, prefs):
         # XXX Check that module doesn't already have an info block
 
-        dollar = '$' # has to be obscured from CVS :)
+        dollar = '$'  # has to be obscured from CVS :)
         prefs['Name'] = self.moduleName
         prefs['Created'] = strftime('%Y/%m/%d', localtime(time()))
-        prefs['RCS-ID'] = '%sId: %s %s' % (dollar, self.moduleName , dollar)
+        prefs['RCS-ID'] = '%sId: %s %s' % (dollar, self.moduleName, dollar)
 
         self.data = (sourceconst.defInfoBlock % prefs) + self.data
         self.modified = True
@@ -334,11 +352,11 @@ class ModuleModel(SourceModel):
                     self.notify()
 
                     self.editor.statusBar.setHint(
-                     _('Code reformatted (indents and or EOL characters fixed)'))
+                        _('Code reformatted (indents and or EOL characters fixed)'))
                     return True
         except Exception as error:
             self.editor.statusBar.setHint(
-             _('Reindent failed - %s : %s') % (error.__class__, str(error)) , 'Error')
+                _('Reindent failed - %s : %s') % (error.__class__, str(error)), 'Error')
 
         return False
 
@@ -349,14 +367,15 @@ class ModuleModel(SourceModel):
         import dis
         try:
             code = compile(self.data, self.filename, 'exec')
-        except:
+        except BaseException:
             oldOut = sys.stdout
             sys.stdout = Utils.PseudoFileOutStore()
             try:
-                print(_("''' Code does not compile\n\n    Disassembly of Traceback:\n'''"))
+                print(
+                    _("''' Code does not compile\n\n    Disassembly of Traceback:\n'''"))
                 try:
                     dis.distb(sys.exc_info()[2])
-                except:
+                except BaseException:
                     print(_("''' Could not disassemble traceback '''\n"))
                 return sys.stdout.read()
             finally:
@@ -367,7 +386,7 @@ class ModuleModel(SourceModel):
         try:
             try:
                 dis.disco(code)
-            except:
+            except BaseException:
                 raise
             return sys.stdout.read()
         finally:
@@ -377,20 +396,27 @@ class ModuleModel(SourceModel):
 
     def runLint(self):
         filename = self.assertLocalFile()
-        from ExternalLib import pylint
         import io
+
+        from ExternalLib import pylint
         pylint.pylint(io.StringIO(self.data), filename)
         if pylint.warnings:
             return ErrorStack.buildLintWarningList(pylint.warnings[:])
 
     def buildImportSearchPath(self):
-        try: filename = self.assertLocalFile()
-        except AssertionError: srchpath = []
-        else: srchpath = [os.path.dirname(filename)]
+        try:
+            filename = self.assertLocalFile()
+        except AssertionError:
+            srchpath = []
+        else:
+            srchpath = [os.path.dirname(filename)]
         if self.app:
-            try: appfilename = self.app.assertLocalFile()
-            except AssertionError: pass
-            else: srchpath.insert(0, os.path.dirname(appfilename))
+            try:
+                appfilename = self.app.assertLocalFile()
+            except AssertionError:
+                pass
+            else:
+                srchpath.insert(0, os.path.dirname(appfilename))
 
         return srchpath
 
@@ -406,7 +432,8 @@ class ModuleModel(SourceModel):
                 if srchpath == stdPyPath:
                     # else search module and app dirs
                     srchpath = self.buildImportSearchPath()
-                    file, path, (ext, mode, tpe) = imp.find_module(name, srchpath)
+                    file, path, (ext, mode, tpe) = imp.find_module(
+                        name, srchpath)
                 else:
                     raise
 
@@ -421,20 +448,20 @@ class ModuleModel(SourceModel):
                 return path, 'name'
             if tpe == imp.PY_COMPILED:
                 self.editor.setStatus(_('Compiled file found, check sys.path!'),
-                      'Warning', True)
+                                      'Warning', True)
                 raise ImportError(_('Compiled file found'))
             else:
                 raise ImportError(_('Unhandled import type'))
         # handle from package import module
         if srchpath and srchpath != stdPyPath:
             if impName:
-                path = os.path.join(srchpath[-1], impName+'.py')
+                path = os.path.join(srchpath[-1], impName + '.py')
                 if os.path.isfile(path):
                     return path, 'module'
             else:
                 return srchpath[-1], 'package'
 
-        #print '%s not found in %s'%(modName, `srchpath`)
+        # print '%s not found in %s'%(modName, `srchpath`)
         raise ImportError(_('Module not found'))
 
     def importInShell(self):
@@ -443,17 +470,19 @@ class ModuleModel(SourceModel):
         if self.app:
             execDir = os.path.dirname(self.app.assertLocalFile())
             if execDir != modDir:
-                p, m = os.path.split(relpath.relpath(execDir, self.assertLocalFile()))
+                p, m = os.path.split(
+                    relpath.relpath(
+                        execDir, self.assertLocalFile()))
                 p = p.replace('/', '.')
                 p = p.replace('\\', '.')
                 pckName = p
-                impExecStr = 'from %s import %s'%(pckName, modName)
+                impExecStr = 'from %s import %s' % (pckName, modName)
             else:
-                impExecStr = 'import %s'%modName
+                impExecStr = 'import %s' % modName
 
         else:
             execDir = modDir
-            impExecStr = 'import %s'%modName
+            impExecStr = 'import %s' % modName
 
         shell = self.editor.shell
         if execDir not in sys.path:
@@ -464,34 +493,36 @@ class ModuleModel(SourceModel):
 
         shell.pushLine(impExecStr, impExecStr)
         if shell.lastResult != 'stderr':
-            return _('Import of %s successfull')%modName, 'Info'
+            return _('Import of %s successfull') % modName, 'Info'
         else:
-            return _('Import of %s failed')%modName, 'Error'
+            return _('Import of %s failed') % modName, 'Error'
 
     def reloadInShell(self):
         modDir, modFile = os.path.split(self.assertLocalFile())
         modName = os.path.splitext(modFile)[0]
-        impExecStr = 'reload(%s)'%modName
+        impExecStr = 'reload(%s)' % modName
 
         shell = self.editor.shell
         shell.pushLine(impExecStr, impExecStr)
 
         if shell.lastResult != 'stderr':
-            return _('Reload of %s successfull')%modName, 'Info'
+            return _('Reload of %s successfull') % modName, 'Info'
         else:
-            return _('Reload of %s failed')%modName, 'Error'
+            return _('Reload of %s failed') % modName, 'Error'
 
     def findGlobalDict(self, name):
-        s = name+' ='
+        s = name + ' ='
         pos = self.data.find(s)
         if pos == -1:
-            raise Exception(_('Global dict %s not found in the module, please add '\
-                  '"%s = {}" as a global variable.')%(name, name))
-        end = self.data.find('}\n', pos + len(s) +1) + 1
+            raise Exception(_('Global dict %s not found in the module, please add '
+                              '"%s = {}" as a global variable.') % (name, name))
+        end = self.data.find('}\n', pos + len(s) + 1) + 1
         if not end:
-            end = self.data.find('}\r\n', pos + len(s) +1) + 1
+            end = self.data.find('}\r\n', pos + len(s) + 1) + 1
             if not end:
-                raise Exception(_('Global dict %s not terminated properly, please fix it.')%name)
+                raise Exception(
+                    _('Global dict %s not terminated properly, please fix it.') %
+                    name)
         return pos + len(s), end
 
     def readGlobalDict(self, name):
@@ -499,36 +530,41 @@ class ModuleModel(SourceModel):
         try:
             return eval(Utils.toUnixEOLMode(self.data[start:end]), {'wx': wx})
         except Exception as err:
-            raise Exception(_('"%s" must be a valid dictionary global dict.\nError: %s')%(name, str(err)))
+            raise Exception(
+                _('"%s" must be a valid dictionary global dict.\nError: %s') %
+                (name, str(err)))
 
     def writeGlobalDict(self, name, dct):
         start, end = self.findGlobalDict(name)
         eol = Utils.getEOLMode(self.data)
-        self.data = self.data[:start]+pprint.pformat(dct).replace('\n', eol)+\
-              self.data[end:]
+        self.data = self.data[:start] + pprint.pformat(dct).replace('\n', eol) +\
+            self.data[end:]
 
     def buildResourceSearchList(self):
         searchPath = [os.path.abspath(os.path.dirname(self.localFilename()))]
         if self.app:
-            searchPath.append(os.path.abspath(os.path.dirname(self.app.localFilename())))
+            searchPath.append(
+                os.path.abspath(
+                    os.path.dirname(
+                        self.app.localFilename())))
         return searchPath
 
     def loadResource(self, importName, searchPath):
-        d={}
+        d = {}
         syspath = sys.path[:]
         sys.path[:] = searchPath
         try:
             try:
-                exec('import %s'%importName, d)
-                exec('reload(%s)'%importName, d)
+                exec('import %s' % importName, d)
+                exec('reload(%s)' % importName, d)
             finally:
                 sys.path[:] = syspath
             imageMod = eval(importName, d)
             del d['__builtins__']
             rootModName, rootMod = list(d.items())[0]
         finally:
-            #try: del sys.modules[importName]
-            #except KeyError: pass
+            # try: del sys.modules[importName]
+            # except KeyError: pass
             del d
 
         return imageMod, rootModName, rootMod
@@ -542,47 +578,55 @@ class ModuleModel(SourceModel):
             f, fn, desc = Utils.find_dotted_module(importName, searchPath)
         except ImportError:
             if report:
-                self.editor.setStatus(_('Could not find %s')%importName, 'Error')
+                self.editor.setStatus(
+                    _('Could not find %s') %
+                    importName, 'Error')
             return False
-        
+
         if f is None:
             return False
-        
+
         f.close()
-        
+
         from . import Controllers
         Model, main = Controllers.identifyFile(fn)
         for ResourceClass in Controllers.resourceClasses:
             if issubclass(Model, ResourceClass):
                 try:
-                    imageMod, rootName, rootMod = self.loadResource(importName, 
+                    imageMod, rootName, rootMod = self.loadResource(importName,
                                                                     searchPath)
                     resources[importName] = imageMod
                     specialAttrs[rootName] = rootMod
                     if report:
-                        self.editor.setStatus(_('Loaded resource: %s')%importName)
+                        self.editor.setStatus(
+                            _('Loaded resource: %s') % importName)
                 except ImportError:
-                    self.editor.setStatus(_('Could not load %s')%importName, 'Error')
+                    self.editor.setStatus(
+                        _('Could not load %s') %
+                        importName, 'Error')
                     return False
                 return True
 
         if report:
-            self.editor.setStatus(_('%s is not a valid Resource Module')%importName, 'Error')
+            self.editor.setStatus(
+                _('%s is not a valid Resource Module') %
+                importName, 'Error')
         return False
-    
+
     def readResources(self, mod, cls, specialAttrs):
         resources = {}
         searchPath = self.buildResourceSearchList()
         for impName in list(mod.imports.keys()):
-            self.assureResourceLoaded(impName, resources, searchPath, specialAttrs)
+            self.assureResourceLoaded(
+                impName, resources, searchPath, specialAttrs)
         return resources
-
 
 
 class ClassModel(ModuleModel):
     """ Represents access to 1 maintained main class in the module.
         This class is identified by the 3rd header entry  #Boa:Model:Class """
-    def __init__(self, data, name, main, editor, saved, app = None):
+
+    def __init__(self, data, name, main, editor, saved, app=None):
         self.main = main
         self.mainConstr = None
         ModuleModel.__init__(self, data, name, editor, saved, app)
@@ -594,15 +638,18 @@ class ClassModel(ModuleModel):
         idx = 0
         for line in self.getModule().source:
             if line:
-                if line[0] != '#': break
+                if line[0] != '#':
+                    break
 
                 header = line.strip().split(':')
                 if (len(header) == 3) and (header[0] == sourceconst.boaIdent):
                     self.getModule().source[idx] = \
-                    ':'.join((header[0], header[1], newName))
+                        ':'.join((header[0], header[1], newName))
                     break
-            else: break
+            else:
+                break
             idx = idx + 1
+
 
 class ImportRelationshipMix:
     def buildImportRelationshipDict(self, modules):
@@ -618,14 +665,15 @@ class ImportRelationshipMix:
             for module in modules:
                 self.editor.statusBar.progress.SetValue(prog)
                 prog = prog + 1
-                self.editor.setStatus('Parsing '+module+'...')
+                self.editor.setStatus('Parsing ' + module + '...')
                 #module = self.modules[moduleName]
                 #filename = self.normaliseModuleRelativeToApp(module[2])
                 if module[:7] != 'file://':
                     print('%s skipped, only local files supported for Imports View')
                 else:
                     module = module[7:]
-                try: f = open(module)
+                try:
+                    f = open(module)
                 except IOError:
                     print("couldn't load %s" % module)
                     continue
@@ -634,16 +682,18 @@ class ImportRelationshipMix:
                     f.close()
                     name = os.path.splitext(os.path.basename(module))[0]
                     model = ModuleModel(data, name, self.editor, 1)
-                    relationships[name] = model.getModule() #.imports
+                    relationships[name] = model.getModule()  # .imports
 
                 totLOC = totLOC + model.getModule().loc
                 classCnt = classCnt + len(model.getModule().classes)
 
-            #print 'Project LOC: %d,\n%d classes in %d modules.'%(totLOC, classCnt, len(modules))
+            # print 'Project LOC: %d,\n%d classes in %d modules.'%(totLOC,
+            # classCnt, len(modules))
         finally:
             self.editor.statusBar.progress.SetValue(0)
             self.editor.statusBar.setHint('')
         return relationships
+
 
 class PackageModel(ModuleModel, ImportRelationshipMix):
     """ Must be constructed in a valid path, name being filename, actual
@@ -669,7 +719,7 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
         else:
             notebook = None
         self.editor.openOrGotoModule(os.path.join(self.packagePath, name,
-              self.pckgIdnt), notebook=notebook)
+                                                  self.pckgIdnt), notebook=notebook)
 
     def openFile(self, name):
         if 'Folder' in self.views:
@@ -677,7 +727,7 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
         else:
             notebook = None
         self.editor.openOrGotoModule(os.path.join(self.packagePath,
-              name + self.ext), notebook=notebook)
+                                                  name + self.ext), notebook=notebook)
 
     def generateFileList(self):
         """ Generate a list of modules and packages in the package path """
@@ -688,8 +738,8 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
         filtered = []
         for item in transp.openList():
             if item.treename != '__init__.py' and \
-                  (os.path.splitext(item.treename)[1] == self.ext or \
-                   item.imgIdx == imgPackageModel):
+                (os.path.splitext(item.treename)[1] == self.ext or
+                 item.imgIdx == imgPackageModel):
                 filtered.append(item)
         return filtered
 
@@ -699,9 +749,10 @@ class PackageModel(ModuleModel, ImportRelationshipMix):
     def buildImportRelationshipDict(self):
         mods = []
         for module in self.generateFileList():
-            mods.append('file://'+module.resourcepath)
+            mods.append('file://' + module.resourcepath)
 
         return ImportRelationshipMix.buildImportRelationshipDict(self, mods)
+
 
 class PythonBinaryFileModel(PersistentModel):
     modelIdentifier = 'PythonBinary'
@@ -710,15 +761,19 @@ class PythonBinaryFileModel(PersistentModel):
     imgIdx = imgPythonBinaryFileModel
     ext = '.pybin'
 
+
 SimpleTypes = [bytes, int, float, type(None),
                dict, list, tuple]
-try: SimpleTypes.append(str)
-except AttributeError: pass
+try:
+    SimpleTypes.append(str)
+except AttributeError:
+    pass
 
 FunctionTypes = [types.FunctionType, types.BuiltinFunctionType]
 
 MethodTypes = [types.MethodType, types.BuiltinMethodType]
 PrivMethodTypeNames = ['method_descriptor', 'method-wrapper']
+
 
 class PyExtTypeData:
     def __init__(self, Type):
@@ -728,10 +783,11 @@ class PyExtTypeData:
             attr = getattr(Type, name)
             AttrType = type(attr)
             if AttrType in MethodTypes or \
-                  AttrType.__name__ in PrivMethodTypeNames:
+                    AttrType.__name__ in PrivMethodTypeNames:
                 self.methods.append(name)
             else:
                 self.attrs[name] = attr
+
 
 class PyExtModuleData:
     def __init__(self, module):
@@ -779,6 +835,7 @@ class PythonExtensionFileModel(PythonBinaryFileModel):
 
         self.moduleData = PyExtModuleData(self.module)
 
+
 class PythonCompiledFileModel(PythonBinaryFileModel):
     modelIdentifier = 'PythonCompiled'
     defaultName = ''
@@ -805,15 +862,17 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         abspaths = self.absModulesPaths()
         for modPage in list(openModules.values()):
             if modPage.model.modelIdentifier not in Controllers.appModelIdReg \
-                  and hasattr(modPage.model, 'app') and \
-                  modPage.model.filename in abspaths:
+                    and hasattr(modPage.model, 'app') and \
+                    modPage.model.filename in abspaths:
                 modPage.model.app = self
 
     def absModulesPaths(self):
         modules = list(self.modules.keys())
         abspaths = []
         for moduleName in modules:
-            abspaths.append(self.normaliseModuleRelativeToApp(self.modules[moduleName][2]))
+            abspaths.append(
+                self.normaliseModuleRelativeToApp(
+                    self.modules[moduleName][2]))
         return abspaths
 
     def convertToUnixPath(self, filename):
@@ -829,7 +888,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             fn = os.path.join(os.path.dirname(self.filename), tin)
             data = self.textInfos[tin]
             if data:
-                from Explorers.Explorer import openEx, TransportError
+                from Explorers.Explorer import TransportError, openEx
                 try:
                     f = openEx(fn)
                     f.save(f.currentFilename(), data)
@@ -839,9 +898,9 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
 
     def saveAs(self, filename):
         for mod in list(self.modules.keys()):
-            self.modules[mod][2] = self.convertToUnixPath(\
-              relpath.relpath(os.path.dirname(filename),
-              self.normaliseModuleRelativeToApp(self.modules[mod][2])))
+            self.modules[mod][2] = self.convertToUnixPath(
+                relpath.relpath(os.path.dirname(filename),
+                                self.normaliseModuleRelativeToApp(self.modules[mod][2])))
 
         self.writeModules()
 
@@ -854,17 +913,19 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         impPos = self.data.find('import', impPos + 1)
 
         # XXX Add if not found
-        if impPos == -1: raise Exception(_('Module import list not found in application'))
-        impEnd = self.data.find('\012', impPos + len('import') +1) + 1
-        if impEnd == -1: raise Exception(_('Module import list not terminated'))
+        if impPos == -1:
+            raise Exception(_('Module import list not found in application'))
+        impEnd = self.data.find('\012', impPos + len('import') + 1) + 1
+        if impEnd == -1:
+            raise Exception(_('Module import list not terminated'))
         return impPos + len('import'), impEnd
 
     def idModel(self, name, src=None):
         # XXX This should be cached until rename or delete
         absPath = self.normaliseModuleRelativeToApp(self.modules[name][2])
-        from . import Controllers
-
         from Explorers.Explorer import splitURI
+
+        from . import Controllers
         prot, cat, res, fn = splitURI(absPath)
 
         if src is None:
@@ -875,9 +936,11 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 self.moduleModels[name], main = identifySource(
                     self.editor.modules[absPath].model.getDataAsLines())
             else:
-                try: self.moduleModels[name], main = \
-                           Controllers.identifyFile(res, localfs=prot=='file')
-                except: pass
+                try:
+                    self.moduleModels[name], main = \
+                        Controllers.identifyFile(res, localfs=prot == 'file')
+                except BaseException:
+                    pass
         else:
             self.moduleModels[name], main = identifySource(src)
 
@@ -894,7 +957,8 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.editor.updateTitle()
         self.editor.updateModulePage(self)
 
-        if notify: self.notify()
+        if notify:
+            self.notify()
 
     def viewAddModule(self):
         fn = self.editor.openFileDlg()
@@ -906,7 +970,9 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         if name in self.modules:
             raise Exception(_('Module name exists in application'))
         if self.savedAs:
-            relative = relpath.relpath(os.path.dirname(self.filename), filename)
+            relative = relpath.relpath(
+                os.path.dirname(
+                    self.filename), filename)
         else:
             relative = filename
         self.modules[name] = [0, descr, self.convertToUnixPath(relative)]
@@ -916,7 +982,8 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         self.writeModules()
 
     def removeModule(self, name):
-        if name not in self.modules: raise Exception(_('No such module in application'))
+        if name not in self.modules:
+            raise Exception(_('No such module in application'))
 
         del self.modules[name]
         self.writeModules()
@@ -935,12 +1002,12 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
         elif len(protsplit) == 2:
             return protsplit
         else:
-            raise Exception('Unhandled protocol %s'%uri)
+            raise Exception('Unhandled protocol %s' % uri)
 
     def moduleFilename(self, name):
         """ Return absolute filename of the given module """
         if name not in self.modules:
-            raise Exception(_('No such module in application: ')+name)
+            raise Exception(_('No such module in application: ') + name)
 
         prot, modFilename = self.splitProtFile(self.modules[name][2])
         if self.savedAs:
@@ -948,8 +1015,8 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 absPath = self.modules[name][2]
             else:
                 appProt, appFilename = self.splitProtFile(self.filename)
-                absPath = appProt+'://'+self.convertToUnixPath(os.path.normpath(
-                      os.path.join(os.path.dirname(appFilename), modFilename)))
+                absPath = appProt + '://' + self.convertToUnixPath(os.path.normpath(
+                    os.path.join(os.path.dirname(appFilename), modFilename)))
         else:
             #absPath = name + ModuleModel.ext
             absPath = self.modules[name][2]
@@ -962,16 +1029,16 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             The module is modified and the model is not updated"""
         module = self.getModule()
         if oldName in module.imports:
-            impLine = module.imports[oldName][0]-1
+            impLine = module.imports[oldName][0] - 1
             # read in the import line
             line = module.source[impLine]
             impIndent = line.find('import')
-            imports = line[7+impIndent:].strip().split(', ')
+            imports = line[7 + impIndent:].strip().split(', ')
             impIdx = imports.index(oldName)
             imports[impIdx] = newName
             module.imports[newName] = module.imports[oldName]
             del module.imports[oldName]
-            module.source[impLine] = 'import '+', '.join(imports)
+            module.source[impLine] = 'import ' + ', '.join(imports)
             return impIdx
         return None
 
@@ -996,12 +1063,12 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
 
         # determine which module is the main module
         module = self.getModule()
-        #for mod, props in filter(lambda v: v[1][0], self.modules.items()):
+        # for mod, props in filter(lambda v: v[1][0], self.modules.items()):
         for mod, props in [i for i in list(self.modules.items()) if i[1][0]]:
-            impLine = module.imports[mod][0]-1
+            impLine = module.imports[mod][0] - 1
             line = module.source[impLine]
             impIndent = line.find('import')
-            imports = line[7+impIndent:].split(', ')
+            imports = line[7 + impIndent:].split(', ')
             if len(imports) and imports[0] == mod:
                 try:
                     impIdx = imports.index(newMainFrameModule)
@@ -1010,7 +1077,8 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 del imports[impIdx]
 
                 imports.insert(0, newMainFrameModule)
-                module.source[impLine] = impIndent*' '+'import '+', '.join(imports)
+                module.source[impLine] = impIndent * \
+                    ' ' + 'import ' + ', '.join(imports)
 
                 self.updateMainFrameModuleRefs(mod, newMainFrameModule)
                 self.refreshFromModule()
@@ -1035,7 +1103,9 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 raise Exception(_('Module does not exists in application'))
 
             if self.savedAs:
-                relative = relpath.relpath(os.path.dirname(self.filename), newFilename)
+                relative = relpath.relpath(
+                    os.path.dirname(
+                        self.filename), newFilename)
             else:
                 relative = newFilename
 
@@ -1066,7 +1136,10 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             self.update()
 
     def crashLog(self):
-        err = ErrorStack.crashError(os.path.splitext(self.assertLocalFile())[0]+'.trace')
+        err = ErrorStack.crashError(
+            os.path.splitext(
+                self.assertLocalFile())[0] +
+            '.trace')
         if err:
             frm = self.editor.erroutFrm
             if frm:
@@ -1074,18 +1147,20 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
                 frm.display(err)
                 return frm
         else:
-            wx.LogError(_('Trace file not found. Run with command line param -T'))
+            wx.LogError(
+                _('Trace file not found. Run with command line param -T'))
             return None
 
     def openModule(self, name):
         from Explorers.Explorer import TransportError
         try:
-            return self.editor.openOrGotoModule(self.moduleFilename(name), self)
+            return self.editor.openOrGotoModule(
+                self.moduleFilename(name), self)
         except TransportError as err:
             if str(err) == 'Unhandled transport' and err[1][0] == 'none':
                 if wx.MessageBox(_('Unsaved file no longer open in the Editor.\n'
-                      'Remove it from application modules ?'), _('Missing file'),
-                      wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
+                                   'Remove it from application modules ?'), _('Missing file'),
+                                 wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
                     self.removeModule(name)
                 return None, None
             else:
@@ -1104,28 +1179,30 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             elif len(protsplit) == 3:
                 prot, archive, appFilename = protsplit
             else:
-                raise Exception(_('Unhandled protocol during normalisation:%s')%protsplit)
+                raise Exception(
+                    _('Unhandled protocol during normalisation:%s') %
+                    protsplit)
 
             if prot == 'zip':
                 return relFilename
-            
+
             normedpath = os.path.normpath(os.path.join(os.path.dirname(appFilename),
-                  relFilename))
+                                                       relFilename))
             if prot == 'file':
-                return '%s://%s' %(prot, normedpath)
+                return '%s://%s' % (prot, normedpath)
             else:
-                return '%s://%s' %(prot, normedpath.replace('\\', '/'))
+                return '%s://%s' % (prot, normedpath.replace('\\', '/'))
 
     def buildImportRelationshipDict(self):
         return ImportRelationshipMix.buildImportRelationshipDict(self,
-               self.absModulesPaths())
+                                                                 self.absModulesPaths())
 
     def update(self):
         self.readModules()
         ClassModel.update(self)
 
     def loadTextInfo(self, viewName):
-        from Explorers.Explorer import openEx, TransportError
+        from Explorers.Explorer import TransportError, openEx
         fn = os.path.join(os.path.dirname(self.filename), viewName)
         ti = openEx(fn)
         try:
@@ -1134,6 +1211,7 @@ class BaseAppModel(ClassModel, ImportRelationshipMix):
             data = ''
         self.textInfos[viewName] = data
 
+
 class PyAppModel(BaseAppModel):
     modelIdentifier = 'PyApp'
     defaultName = 'PyApp'
@@ -1141,15 +1219,17 @@ class PyAppModel(BaseAppModel):
     imgIdx = imgPyAppModel
 
     def getDefaultData(self):
-        return (sourceconst.defEnvPython + sourceconst.defSig + \
-                sourceconst.defPyApp) %{'modelIdent': self.modelIdentifier,
-                                        'main': 'main'}
+        return (sourceconst.defEnvPython + sourceconst.defSig +
+                sourceconst.defPyApp) % {'modelIdent': self.modelIdentifier,
+                                         'main': 'main'}
+
 
 class SetupModuleModel(ModuleModel):
     modelIdentifier = 'setup'
     defaultName = 'Setup'
     bitmap = 'Setup.png'
     imgIdx = imgSetupModel
+
     def __init__(self, data, name, editor, saved, app=None):
         ModuleModel.__init__(self, data, name, editor, saved, app)
         if data:
@@ -1163,38 +1243,39 @@ class SetupModuleModel(ModuleModel):
     def getPageName(self):
         return 'setup (%s)' % os.path.basename(os.path.dirname(self.filename))
 
-   
-##    def saveAs(self, filename):
-##        # catch image type changes
+
+# def saveAs(self, filename):
+# catch image type changes
 ##        newExt = os.path.splitext(filename)[1].lower()
 ##        oldExt = os.path.splitext(self.filename)[1].lower()
 ##        updateViews = 0
-##        if newExt != oldExt:
+# if newExt != oldExt:
 ##            updateViews = 1
 ##            bmp = wx.BitmapFromImage(wx.ImageFromStream(StringIO(self.data)))
 ##            fn = tempfile.mktemp(newExt)
-##            try:
+# try:
 ##                bmp.SaveFile(fn, self.extTypeMap[newExt])
-##            except KeyError:
-##                raise Exception, '%s image file types not supported'%newExt
-##            try:
-##                # convert data to new image format
+# except KeyError:
+# raise Exception, '%s image file types not supported'%newExt
+# try:
+# convert data to new image format
 ##                self.data = open(fn, 'rb').read()
-##            finally:
-##                os.remove(fn)
+# finally:
+# os.remove(fn)
 ##
-##        # Actually save the file
+# Actually save the file
 ##        PersistentModel.saveAs(self, filename)
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 def identifyHeader(headerStr):
     header = headerStr.split(':')
     if len(header) and (header[0] == sourceconst.boaIdent) and \
-          header[1] in EditorHelper.modelReg:
+            header[1] in EditorHelper.modelReg:
         return EditorHelper.modelReg[header[1]], header[2]
     return ModuleModel, ''
+
 
 def identifySource(source):
     """ Return appropriate model for given Python source.
@@ -1203,7 +1284,7 @@ def identifySource(source):
         if line:
             if line.startswith(codecs.BOM_UTF8):
                 line = line[len(codecs.BOM_UTF8):]
-            
+
             if line[0] != '#':
                 return ModuleModel, ''
 
@@ -1213,10 +1294,10 @@ def identifySource(source):
                 return headerInfo
         else:
             return ModuleModel, ''
-    return ModuleModel, ''    
+    return ModuleModel, ''
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 EditorHelper.modelReg[PythonBinaryFileModel.modelIdentifier] = PythonBinaryFileModel
 EditorHelper.inspectableFilesReg['.py'] = ModuleModel

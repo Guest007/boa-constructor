@@ -1,12 +1,14 @@
 import wx
 
-import Preferences, Plugins
+import Plugins
+import Preferences
 from Utils import _
+
 """
 A DragScroller scrolls a wx.ScrollWindow in the direction and speed of a mouse drag
 
 To use this plug-in in the Designer you'd need to define the mouse click events
-you want to use for the drag scroller (from it's scrollwindow) and add code like 
+you want to use for the drag scroller (from it's scrollwindow) and add code like
 this to start and stop the dragging.
 
 # designer code
@@ -18,7 +20,7 @@ this to start and stop the dragging.
         self.scrollWindow.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
 
 # your code:
-    
+
         ...
         self._init_ctrls(parent)
 
@@ -35,17 +37,21 @@ this to start and stop the dragging.
 try:
     import wx.lib.dragscroller
 except ImportError:
-    raise Plugins.SkipPluginSilently(_('Module %s not found')%'wx.lib.dragscroller')
+    raise Plugins.SkipPluginSilently(
+        _('Module %s not found') %
+        'wx.lib.dragscroller')
 
 from Companions import UtilCompanions
 from PropEdit import PropertyEditors
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # DragScroller
 # wx.lib.dragscroller.DragScroller
 
+
 class DragScrollerDTC(UtilCompanions.UtilityDTC):
     handledConstrParams = ('id',)
+
     def __init__(self, name, designer, objClass):
         UtilCompanions.UtilityDTC.__init__(self, name, designer, objClass)
         self.editors['Sensitivity'] = PropertyEditors.BITPropEditor
@@ -59,11 +65,12 @@ class DragScrollerDTC(UtilCompanions.UtilityDTC):
     def writeImports(self):
         return 'import wx.lib.dragscroller'
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 def getDragScrollerData():
     return \
-'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
+        '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
 \x00\x00\x00\xe0w=\xf8\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\
 \x01QIDATH\x89\xb5V\xdb\x8d\xc3 \x10\x9c\x05\x17\xe0\x94c+i\xc0R\xaa\x8d\xe4\
 \xcf\xdc\x87-(\xc7\x15$s\x1f\xb9\xe50\x81\xe0\\\xce+!\xc0Z\xcd\xb0\xb3\x0fY\
@@ -78,10 +85,11 @@ def getDragScrollerData():
 \x93m\x8a \x8e\xa4V\xba$C\xb3\xa9\xbd5\xecj}\x01|0\xec\xb6Xn\xd8\x85\x1c\xfc\
 \'Q\x00\x8fs\x90\xea\xa7C+\xb7\x97\xfc\xe3\xa5\xb6\x92(\xd6/\x9e+\xe9\x9e\
 \xf3/Y H\xf5+\x81k\x8d\xe7\xf4\xce\xca\xb4w\x0ed\xef\xdf\x96o\x88zW)\xc2N\
-\xbe\xfb\x00\x00\x00\x00IEND\xaeB`\x82' 
+\xbe\xfb\x00\x00\x00\x00IEND\xaeB`\x82'
 
-Plugins.registerComponent('Library', wx.lib.dragscroller.DragScroller, 
+
+Plugins.registerComponent('Library', wx.lib.dragscroller.DragScroller,
                           'wx.lib.dragscroller.DragScroller', DragScrollerDTC)
 
-Preferences.IS.registerImage('Images/Palette/wx.lib.dragscroller.DragScroller.png', 
+Preferences.IS.registerImage('Images/Palette/wx.lib.dragscroller.DragScroller.png',
                              getDragScrollerData())

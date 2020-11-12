@@ -1,6 +1,8 @@
-import HTMLCyclops
+import os
+import sys
+import types
 
-import types, sys, os
+import HTMLCyclops
 
 """ This module runs Tim Peter's Cyclops cycle finder on a module given as
     a command line parameter. It was subclassed to provide browsable HTML.
@@ -10,23 +12,29 @@ import types, sys, os
 
 """
 
+
 def mod_refs(x):
     return list(x.__dict__.values())
+
 
 def mod_tag(x, i):
     return "." + list(x.__dict__.keys())[i]
 
+
 def func_refs(x):
     return x.__globals__, x.__defaults__
+
 
 def func_tag(x, i):
     return (".func_globals", ".func_defaults")[i]
 
+
 def instance_filter(cycle):
     for obj, index in cycle:
-        if type(obj) is types.InstanceType:
+        if isinstance(obj, types.InstanceType):
             return 1
     return 0
+
 
 def run():
     # flag for code which needs to be aware of Cyclops' presence
@@ -43,9 +51,8 @@ def run():
         z = HTMLCyclops.CycleFinderHTML()
         try:
             mod = __import__(mod_name)
-        except:
+        except BaseException:
             handle_error(f)
-        
 
         # Comment out any of the following lines to not add a chaser or filter
         z.chase_type(types.ModuleType, mod_refs, mod_tag)
@@ -61,7 +68,7 @@ serves as the entrypoint for Cyclops.<br>'''
             # Execute the module and trace the first round of cycles
             try:
                 z.run(mod.main)
-            except:
+            except BaseException:
                 handle_error(f)
             else:
                 z.find_cycles()
@@ -73,20 +80,23 @@ serves as the entrypoint for Cyclops.<br>'''
                 z.show_cycleobjs()            # Objects involved in cycles
                 z.show_sccs()                 # Cycle objects partitioned into maximal SCCs
                 z.show_arcs()                 # Arc types involved in cycles
-                z.iterate_til_steady_state(show_objs=0) # Repeatedly purge until there are no more dead roots
+                # Repeatedly purge until there are no more dead roots
+                z.iterate_til_steady_state(show_objs=0)
 
                 # Write out the report
                 f.write(z.get_page())
     finally:
         f.close()
 
+
 def handle_error(f):
     import traceback
 
     tp, vl, tb = sys.exc_info()
-    err = '<font color="#FF4444"><h3>Error:</h3></font>'+\
-      '<br>'.join(traceback.format_exception(tp, vl, tb))
+    err = '<font color="#FF4444"><h3>Error:</h3></font>' +\
+        '<br>'.join(traceback.format_exception(tp, vl, tb))
     f.write(err)
+
 
 print('RunCyclops')
 run()

@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        wxPythonControllers.py
 # Purpose:
 #
@@ -8,22 +8,24 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Models.wxPythonControllers')
-
+# -----------------------------------------------------------------------------
 import os
 
-import Preferences, Utils, Plugins
+import ClassBrowser
+import PaletteStore
+import Plugins
+import Preferences
+import Utils
 from Preferences import keyDefs
 from Utils import _
+from Views import AppViews, DataView, Designer, EditorViews, SizersView
 
-import PaletteStore
-
-from . import Controllers
+from . import Controllers, EditorHelper, ResourceSupport, wxPythonEditorModels
 from .Controllers import addTool
 from .PythonControllers import BaseAppController, ModuleController
-from . import EditorHelper, wxPythonEditorModels
-from Views import EditorViews, AppViews, Designer, DataView, SizersView
+
+print('importing Models.wxPythonControllers')
+
 
 class AppController(BaseAppController):
     Model = wxPythonEditorModels.AppModel
@@ -36,20 +38,23 @@ class AppController(BaseAppController):
 
 
 class BaseFrameController(ModuleController):
-    DefaultViews = ModuleController.DefaultViews + [EditorViews.ExploreEventsView]
+    DefaultViews = ModuleController.DefaultViews + \
+        [EditorViews.ExploreEventsView]
 
     designerBmp = 'Images/Shared/Designer.png'
 
     def actions(self, model):
         return ModuleController.actions(self, model) + [
-              (_('Frame Designer'), self.OnDesigner, self.designerBmp, 'Designer')]
+            (_('Frame Designer'), self.OnDesigner, self.designerBmp, 'Designer')]
 
     def createModel(self, source, filename, main, saved, modelParent=None):
-        return self.Model(source, filename, main, self.editor, saved, modelParent)
+        return self.Model(source, filename, main,
+                          self.editor, saved, modelParent)
 
     def createNewModel(self, modelParent=None):
         if modelParent:
-            name = self.editor.getValidName(self.Model, modelParent.absModulesPaths())
+            name = self.editor.getValidName(
+                self.Model, modelParent.absModulesPaths())
         else:
             name = self.editor.getValidName(self.Model)
 
@@ -105,7 +110,8 @@ class BaseFrameController(ModuleController):
         try:
             cwd = os.getcwd()
             mwd = Utils.getModelBaseDir(model)
-            if mwd and mwd.startswith('file://'): os.chdir(mwd[7:])
+            if mwd and mwd.startswith('file://'):
+                os.chdir(mwd[7:])
 
             try:
                 # update any view modifications
@@ -118,13 +124,13 @@ class BaseFrameController(ModuleController):
                     # add or focus data view
                     if 'Data' not in model.views:
                         dataView = DataView.DataView(modulePage.notebook,
-                             self.editor.inspector, model, self.editor.compPalette)
+                                                     self.editor.inspector, model, self.editor.compPalette)
                         dataView.addToNotebook(modulePage.notebook)
                         model.views['Data'] = dataView
                         dataView.initialize()
                     else:
                         dataView = model.views['Data']
-                except:
+                except BaseException:
                     if 'Data' in model.views:
                         self._cancelView(model.views['Data'], 'Data')
                     raise
@@ -136,12 +142,12 @@ class BaseFrameController(ModuleController):
                     # add or focus frame designer
                     if 'Designer' not in model.views:
                         designer = Designer.DesignerView(self.editor,
-                              self.editor.inspector, model,
-                              self.editor.compPalette, model.Companion,
-                              dataView)
+                                                         self.editor.inspector, model,
+                                                         self.editor.compPalette, model.Companion,
+                                                         dataView)
                         model.views['Designer'] = designer
                         designer.refreshCtrl()
-                except:
+                except BaseException:
                     self._cancelDesigner(model.views)
                     raise
 
@@ -150,14 +156,14 @@ class BaseFrameController(ModuleController):
                         # add sizer view
                         if 'Sizers' not in model.views:
                             sizersView = SizersView.SizersView(modulePage.notebook,
-                                 self.editor.inspector, model,
-                                 self.editor.compPalette, model.views['Designer'])
+                                                               self.editor.inspector, model,
+                                                               self.editor.compPalette, model.views['Designer'])
                             sizersView.addToNotebook(modulePage.notebook)
                             model.views['Sizers'] = sizersView
                             sizersView.initialize()
                         else:
                             sizersView = model.views['Sizers']
-                    except:
+                    except BaseException:
                         if 'Sizers' in model.views:
                             self._cancelView(model.views['Sizers'], 'Sizers')
                         self._cancelDesigner(model.views)
@@ -176,45 +182,56 @@ class BaseFrameController(ModuleController):
                 os.chdir(cwd)
 
         except Exception as error:
-            self.editor.setStatus(\
-                _('An error occured while opening the Designer: %s')%str(error),
-                  'Error')
+            self.editor.setStatus(
+                _('An error occured while opening the Designer: %s') % str(error),
+                'Error')
             self.editor.statusBar.progress.SetValue(0)
             raise
+
 
 class FrameController(BaseFrameController):
     Model = wxPythonEditorModels.FrameModel
 
+
 class DialogController(BaseFrameController):
     Model = wxPythonEditorModels.DialogModel
+
 
 class MiniFrameController(BaseFrameController):
     Model = wxPythonEditorModels.MiniFrameModel
 
+
 class MDIParentController(BaseFrameController):
     Model = wxPythonEditorModels.MDIParentModel
+
 
 class MDIChildController(BaseFrameController):
     Model = wxPythonEditorModels.MDIChildModel
 
+
 class PopupWindowController(BaseFrameController):
     Model = wxPythonEditorModels.PopupWindowModel
+
     def getModelParams(self, model):
         tempComp = self.Model.Companion('', None, None)
         params = tempComp.designTimeSource()
         params['parent'] = 'prnt'
         return params
+
 
 class PopupTransientWindowController(BaseFrameController):
     Model = wxPythonEditorModels.PopupTransientWindowModel
+
     def getModelParams(self, model):
         tempComp = self.Model.Companion('', None, None)
         params = tempComp.designTimeSource()
         params['parent'] = 'prnt'
         return params
 
+
 class FramePanelController(BaseFrameController):
     Model = wxPythonEditorModels.FramePanelModel
+
     def getModelParams(self, model):
         tempComp = self.Model.Companion('', None, None)
         params = tempComp.designTimeSource()
@@ -222,19 +239,24 @@ class FramePanelController(BaseFrameController):
         params['id'] = Utils.windowIdentifier(model.main, '')
         return params
 
+
 class WizardController(DialogController):
     Model = wxPythonEditorModels.WizardModel
 
+
 class PyWizardPageController(FramePanelController):
     Model = wxPythonEditorModels.PyWizardPageModel
+
     def getModelParams(self, model):
         tempComp = self.Model.Companion('', None, None)
         params = tempComp.designTimeSource()
         params['parent'] = 'prnt'
         return params
+
 
 class WizardPageSimpleController(FramePanelController):
     Model = wxPythonEditorModels.WizardPageSimpleModel
+
     def getModelParams(self, model):
         tempComp = self.Model.Companion('', None, None)
         params = tempComp.designTimeSource()
@@ -242,29 +264,27 @@ class WizardPageSimpleController(FramePanelController):
         return params
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-Preferences.paletteTitle = Preferences.paletteTitle +' - wxPython GUI Builder'
+Preferences.paletteTitle = Preferences.paletteTitle + ' - wxPython GUI Builder'
 
 # this registers the class browser under Tools
-import ClassBrowser
 # registers resource support
-from . import ResourceSupport
 
 Controllers.appModelIdReg.append(wxPythonEditorModels.AppModel.modelIdentifier)
 
 for name, Ctrlr in [
-      ('wx.App', AppController),
-      ('wx.Frame', FrameController),
-      ('wx.Dialog', DialogController),
-      ('wx.MiniFrame', MiniFrameController),
-      ('wx.MDIParentFrame', MDIParentController),
-      ('wx.MDIChildFrame', MDIChildController),
-      ('wx.PopupWindow', PopupWindowController),
-      ('wx.PopupTransientWindow', PopupTransientWindowController),
-      ('wx.FramePanel', FramePanelController),
-      ('wx.wizard.Wizard', WizardController),
-      ('wx.wizard.PyWizardPage', PyWizardPageController),
-      ('wx.wizard.WizardPageSimple', WizardPageSimpleController),
-    ]:
+    ('wx.App', AppController),
+    ('wx.Frame', FrameController),
+    ('wx.Dialog', DialogController),
+    ('wx.MiniFrame', MiniFrameController),
+    ('wx.MDIParentFrame', MDIParentController),
+    ('wx.MDIChildFrame', MDIChildController),
+    ('wx.PopupWindow', PopupWindowController),
+    ('wx.PopupTransientWindow', PopupTransientWindowController),
+    ('wx.FramePanel', FramePanelController),
+    ('wx.wizard.Wizard', WizardController),
+    ('wx.wizard.PyWizardPage', PyWizardPageController),
+    ('wx.wizard.WizardPageSimple', WizardPageSimpleController),
+]:
     Plugins.registerFileType(Ctrlr, newName=name)

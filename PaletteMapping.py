@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        PaletteMapping.py
 # Purpose:     Module that initialises the Palette's data and provides
 #              the namespace in which design time code is evaluated
@@ -9,7 +9,7 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 """ Based on core support preferences this module initialises Companion, Model,
 View and Controller classes. It also executes all active Plug-ins.
@@ -24,46 +24,47 @@ Hence the needed import * and execfile.
 
 import os
 
-import Preferences, Utils, Plugins
-from Preferences import IS
-from Utils import _
+import wx
 
 import PaletteStore
+import Plugins
+import Preferences
+import Utils
+from Preferences import IS
+from Utils import _
 
 # keep until 2.5 upgrade complete
 #from wxPython.wx import *
 
-import wx
 
 if Preferences.csWxPythonSupport:
     # This should be the first time the Companion classes are imported
     # As the modules are imported they add themselves to the PaletteStore
     from Companions.Companions import *
-
+    from Companions.ContainerCompanions import *
     from Companions.FrameCompanions import *
     from Companions.WizardCompanions import *
-    from Companions.ContainerCompanions import *
     if Preferences.dsUseSizers:
         from Companions.SizerCompanions import *
     from Companions.BasicCompanions import *
-    from Companions.DateTimeCompanions import *
     from Companions.ButtonCompanions import *
-    from Companions.ListCompanions import *
+    from Companions.DateTimeCompanions import *
     from Companions.GizmoCompanions import *
     from Companions.LibCompanions import *
+    from Companions.ListCompanions import *
     if Utils.IsComEnabled():
         from Companions.ComCompanions import *
     # Define and add a User page to the palette
     PaletteStore.paletteLists['User'] = upl = []
     PaletteStore.palette.append([_('User'), 'Editor/Tabs/User', upl])
-    from Companions.UtilCompanions import *
     from Companions.DialogCompanions import *
+    from Companions.UtilCompanions import *
 
 # Zope requires spesific support
 if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
     from ZopeLib.ZopeCompanions import *
 
-#-Controller imports which auto-registers themselves on the Palette-------------
+# -Controller imports which auto-registers themselves on the Palette------
 
 from Models import EditorHelper
 
@@ -82,14 +83,19 @@ if Preferences.csPythonSupport and not Preferences.csWxPythonSupport:
 # The text and makepy controllers are registered outside the Controllers
 # module so that their palette order can be fine tuned
 from Models import Controllers
+
 PaletteStore.newControllers['Text'] = Controllers.TextController
 PaletteStore.paletteLists['New'].append('Text')
 
-#-Registration of other built in support----------------------------------------
-if Preferences.csConfigSupport: from Models import ConfigSupport
-if Preferences.csCppSupport: from Models import CPPSupport
-if Preferences.csHtmlSupport: from Models import HTMLSupport
-if Preferences.csXmlSupport: from Models import XMLSupport
+# -Registration of other built in support---------------------------------
+if Preferences.csConfigSupport:
+    from Models import ConfigSupport
+if Preferences.csCppSupport:
+    from Models import CPPSupport
+if Preferences.csHtmlSupport:
+    from Models import HTMLSupport
+if Preferences.csXmlSupport:
+    from Models import XMLSupport
 
 if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
     import ZopeLib.ZopeEditorModels
@@ -98,7 +104,7 @@ if Utils.IsComEnabled():
     PaletteStore.newControllers['MakePy-Dialog'] = Controllers.MakePyController
     PaletteStore.paletteLists['New'].append('MakePy-Dialog')
 
-#-Plug-ins initialisation-------------------------------------------------------
+# -Plug-ins initialisation------------------------------------------------
 if Preferences.pluginPaths:
     print('executing plug-ins...')
     fails = Preferences.failedPlugins
@@ -109,25 +115,25 @@ if Preferences.pluginPaths:
             continue
 
         pluginBasename = os.path.basename(pluginFilename)
-        
-        print(('executing %s'% os.path.splitext(pluginBasename)[0]))
-        
+
+        print(('executing %s' % os.path.splitext(pluginBasename)[0]))
+
         filename = pluginFilename.lower()
         try:
-            exec(open(pluginFilename,'r'))
+            exec(open(pluginFilename, 'r'))
             succeeded.append(filename)
         except Plugins.SkipPluginSilently as msg:
             fails[filename] = ('Skipped', msg)
         except Plugins.SkipPlugin as msg:
             fails[filename] = ('Skipped', msg)
-            wx.LogWarning(_('Plugin skipped: %s, %s')%(pluginBasename, msg))
+            wx.LogWarning(_('Plugin skipped: %s, %s') % (pluginBasename, msg))
         except Exception as error:
             fails[filename] = ('Error', str(error))
             if Preferences.pluginErrorHandling == 'raise':
                 raise
             elif Preferences.pluginErrorHandling == 'report':
-                wx.LogError(_('Problem executing plug-in %s:\n%s') %\
-                    (pluginBasename, str(error)) )
+                wx.LogError(_('Problem executing plug-in %s:\n%s') %
+                            (pluginBasename, str(error)))
             # else ignore
 
 # XXX legacy references
@@ -138,9 +144,14 @@ zopePalette = PaletteStore.zopePalette
 helperClasses = PaletteStore.helperClasses
 compInfo = PaletteStore.compInfo
 
-class DesignTimeExpressionError(Exception): pass
+
+class DesignTimeExpressionError(Exception):
+    pass
+
 
 _NB = None
+
+
 def evalCtrl(expr, localsDct=None, preserveExc=True):
     """ Function usually used to evaluate source snippets.
 
@@ -161,4 +172,4 @@ def evalCtrl(expr, localsDct=None, preserveExc=True):
             raise
         else:
             clsName = err.__class__.__name__
-            raise DesignTimeExpressionError(clsName+': '+str(err))
+            raise DesignTimeExpressionError(clsName + ': ' + str(err))

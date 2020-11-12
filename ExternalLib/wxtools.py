@@ -4,9 +4,11 @@ Created on Jul 28, 2014
 @author: cwt
 '''
 
+import io
 # Code from wxPython-2.8 wx.tools.img2py
 import zlib
-import io
+
+
 def crunch_data(data, compressed):
     # compress it?
     if compressed:
@@ -15,7 +17,8 @@ def crunch_data(data, compressed):
     # convert to a printable format, so it can be in a Python source file
     data = repr(data)
 
-    # This next bit is borrowed from PIL.  It is used to wrap the text intelligently.
+    # This next bit is borrowed from PIL.  It is used to wrap the text
+    # intelligently.
     fp = io.StringIO()
     data = data + " "  # buffer for the +1 test
     c = i = 0

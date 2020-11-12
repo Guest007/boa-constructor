@@ -30,15 +30,17 @@ connection for each request.)
 
 import socket
 import string
+
 import mimetools
 
 HTTP_VERSION = 'HTTP/1.0'
 HTTP_PORT = 80
 
+
 class HTTP:
     """This class manages a connection to an HTTP server."""
 
-    def __init__(self, host = '', port = 0):
+    def __init__(self, host='', port=0):
         """Initialize a new instance.
 
         If specified, `host' is the name of the remote host to which
@@ -48,7 +50,8 @@ class HTTP:
         """
         self.debuglevel = 0
         self.file = None
-        if host: self.connect(host, port)
+        if host:
+            self.connect(host, port)
 
     def set_debuglevel(self, debuglevel):
         """Set the debug output level.
@@ -59,7 +62,7 @@ class HTTP:
         """
         self.debuglevel = debuglevel
 
-    def connect(self, host, port = 0):
+    def connect(self, host, port=0):
         """Connect to a host on a given port.
 
         Note:  This method is automatically invoked by __init__,
@@ -69,18 +72,22 @@ class HTTP:
         if not port:
             i = string.find(host, ':')
             if i >= 0:
-                host, port = host[:i], host[i+1:]
-                try: port = string.atoi(port)
+                host, port = host[:i], host[i + 1:]
+                try:
+                    port = string.atoi(port)
                 except string.atoi_error:
                     raise socket.error("nonnumeric port")
-        if not port: port = HTTP_PORT
+        if not port:
+            port = HTTP_PORT
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if self.debuglevel > 0: print('connect:', (host, port))
-        self.sock.connect( (host, port) )
+        if self.debuglevel > 0:
+            print('connect:', (host, port))
+        self.sock.connect((host, port))
 
     def send(self, str):
         """Send `str' to the server."""
-        if self.debuglevel > 0: print('send:', repr(str))
+        if self.debuglevel > 0:
+            print('send:', repr(str))
         self.sock.send(str)
 
     def putrequest(self, request, selector):
@@ -91,7 +98,8 @@ class HTTP:
         '/index.html'.
 
         """
-        if not selector: selector = '/'
+        if not selector:
+            selector = '/'
         str = '%s %s %s\r\n' % (request, selector, HTTP_VERSION)
         self.send(str)
 
@@ -101,7 +109,7 @@ class HTTP:
         For example: h.putheader('Accept', 'text/html')
 
         """
-        str = '%s: %s\r\n' % (header, string.joinfields(args,'\r\n\t'))
+        str = '%s: %s\r\n' % (header, string.joinfields(args, '\r\n\t'))
         self.send(str)
 
     def endheaders(self):
@@ -119,7 +127,8 @@ class HTTP:
         """
         self.file = self.sock.makefile('rb')
         line = self.file.readline()
-        if self.debuglevel > 0: print('reply:', repr(line))
+        if self.debuglevel > 0:
+            print('reply:', repr(line))
         try:
             [ver, code, msg] = string.split(line, None, 2)
         except ValueError:
@@ -164,16 +173,19 @@ def test():
     by the www.python.org server.
 
     """
-    import sys
     import getopt
+    import sys
     opts, args = getopt.getopt(sys.argv[1:], 'd')
     dl = 0
     for o, a in opts:
-        if o == '-d': dl = dl + 1
+        if o == '-d':
+            dl = dl + 1
     host = 'www.python.org'
     selector = '/'
-    if args[0:]: host = args[0]
-    if args[1:]: selector = args[1]
+    if args[0:]:
+        host = args[0]
+    if args[1:]:
+        selector = args[1]
     h = HTTP()
     h.set_debuglevel(dl)
     h.connect(host)
@@ -184,7 +196,8 @@ def test():
     print('errmsg  =', errmsg)
     print()
     if headers:
-        for header in headers.headers: print(string.strip(header))
+        for header in headers.headers:
+            print(string.strip(header))
     print()
     print(h.getfile().read())
 

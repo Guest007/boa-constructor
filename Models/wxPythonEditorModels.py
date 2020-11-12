@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        wxPythonEditorModels.py
 # Purpose:
 #
@@ -8,31 +8,40 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-print('importing Models.wxPythonEditorModels')
+import imp
+import os
+import re
+import string
+import sys
 
-import re, string, os, imp, sys, new
-
+import new
 import wx
 
-import Preferences, Utils
+import Preferences
+import sourceconst
+import Utils
+from Companions import BaseCompanions, FrameCompanions, WizardCompanions
 from Utils import _
 
 from . import EditorHelper
-from .PythonEditorModels import ClassModel, BaseAppModel, ModuleModel
-from Companions import BaseCompanions, FrameCompanions, WizardCompanions
+from .PythonEditorModels import BaseAppModel, ClassModel, ModuleModel
 
-import sourceconst
+print('importing Models.wxPythonEditorModels')
+
 
 (imgAppModel, imgFrameModel, imgDialogModel, imgMiniFrameModel,
  imgMDIParentModel, imgMDIChildModel, imgPopupWindowModel,
  imgPopupTransientWindowModel, imgFramePanelModel,
  imgWizardModel, imgPyWizardPageModel, imgWizardPageSimpleModel,
-) = EditorHelper.imgIdxRange(12)
+ ) = EditorHelper.imgIdxRange(12)
 
-class _your_frame_attrs_: pass
+
+class _your_frame_attrs_:
+    pass
 #    def __repr__(self):return `self.__dict__`
+
 
 class BaseFrameModel(ClassModel):
     """ Base class for all frame type models that can be opened in the Designer
@@ -43,6 +52,7 @@ class BaseFrameModel(ClassModel):
     modelIdentifier = 'Frames'
     dialogLook = False
     Companion = BaseCompanions.DesignTimeCompanion
+
     def __init__(self, data, name, main, editor, saved, app=None):
         ClassModel.__init__(self, data, name, main, editor, saved, app)
         self.designerTool = None
@@ -54,13 +64,12 @@ class BaseFrameModel(ClassModel):
         self.defWindowIds = sourceconst.defWindowIds
         self.defSrcVals = {}
 
-
     def renameMain(self, oldName, newName):
         """ Rename the main class of the module """
         ClassModel.renameMain(self, oldName, newName)
         if 'create' in self.getModule().functions:
             self.getModule().replaceFunctionBody('create',
-                  ['    return %s(parent)'%newName, ''])
+                                                 ['    return %s(parent)' % newName, ''])
 
     def renameCtrl(self, oldName, newName):
         # Currently DesignerView maintains ctrls
@@ -70,22 +79,22 @@ class BaseFrameModel(ClassModel):
         """ Create a new frame module """
         paramLst = []
         for param in list(params.keys()):
-            paramLst.append(Preferences.cgKeywordArgFormat %{'keyword': param,
-                                                        'value': params[param]})
-        
+            paramLst.append(Preferences.cgKeywordArgFormat % {'keyword': param,
+                                                              'value': params[param]})
+
         # XXX Refactor line wrappers to Utils and wrap this
         paramStr = 'self, ' + ', '.join(paramLst)
 
-        srcValsDict = {'modelIdent': self.modelIdentifier, 
-                       'main': self.main, 
+        srcValsDict = {'modelIdent': self.modelIdentifier,
+                       'main': self.main,
                        'idNames': Utils.windowIdentifier(self.main, ''),
-                       'idIdent': sourceconst.init_ctrls, 
-                       'idCount': 1, 'defaultName': self.defaultName, 
+                       'idIdent': sourceconst.init_ctrls,
+                       'idCount': 1, 'defaultName': self.defaultName,
                        'params': paramStr}
         srcValsDict.update(self.defSrcVals)
-                       
-        self.data = (sourceconst.defSig + self.defImport + \
-                     self.defCreateClass + self.defWindowIds + \
+
+        self.data = (sourceconst.defSig + self.defImport +
+                     self.defCreateClass + self.defWindowIds +
                      self.defClass) % srcValsDict
 
         self.savedAs = False
@@ -118,8 +127,9 @@ class BaseFrameModel(ClassModel):
 
     def readDesignerMethod(self, meth, codeBody):
         """ Create a new ObjectCollection by parsing the given method body """
-        from Views import ObjCollection
         import methodparse
+        from Views import ObjCollection
+
         # Collection method
         if ObjCollection.isInitCollMeth(meth):
             ctrlName = methodparse.ctrlNameFromMeth(meth)
@@ -127,44 +137,55 @@ class BaseFrameModel(ClassModel):
                 res = Utils.split_seq(codeBody, '', string.strip)
                 inits, body, fins = res[:3]
             except ValueError:
-                raise Exception(_('Collection body %s not in init, body, fin form') % meth)
+                raise Exception(
+                    _('Collection body %s not in init, body, fin form') %
+                    meth)
 
-            allInitialisers, unmatched = methodparse.parseMixedBody(\
-             [methodparse.EventParse, methodparse.CollectionItemInitParse],body)
+            allInitialisers, unmatched = methodparse.parseMixedBody(
+                [methodparse.EventParse, methodparse.CollectionItemInitParse], body)
 
-            creators = allInitialisers.get(methodparse.CollectionItemInitParse, [])
+            creators = allInitialisers.get(
+                methodparse.CollectionItemInitParse, [])
             collectionInits = []
             properties = []
             events = allInitialisers.get(methodparse.EventParse, [])
 
-            methodparse.decorateParseItems(creators + events, ctrlName, self.main)
+            methodparse.decorateParseItems(
+                creators + events, ctrlName, self.main)
         # Normal method
         else:
             inits = []
             fins = []
 
-            allInitialisers, unmatched = methodparse.parseMixedBody(\
-              [methodparse.ConstructorParse, methodparse.EventParse,
-               methodparse.CollectionInitParse, methodparse.PropertyParse],
-               codeBody)
+            allInitialisers, unmatched = methodparse.parseMixedBody(
+                [methodparse.ConstructorParse, methodparse.EventParse,
+                 methodparse.CollectionInitParse, methodparse.PropertyParse],
+                codeBody)
 
             creators = allInitialisers.get(methodparse.ConstructorParse, [])
-            collectionInits = allInitialisers.get(methodparse.CollectionInitParse, [])
+            collectionInits = allInitialisers.get(
+                methodparse.CollectionInitParse, [])
             properties = allInitialisers.get(methodparse.PropertyParse, [])
             events = allInitialisers.get(methodparse.EventParse, [])
 
         newObjColl = ObjCollection.ObjectCollection()
-        newObjColl.setup(creators, properties, events, collectionInits, inits, fins)
+        newObjColl.setup(
+            creators,
+            properties,
+            events,
+            collectionInits,
+            inits,
+            fins)
 
         if unmatched:
-            wx.LogWarning(_('The following lines were not used by the Designer '\
+            wx.LogWarning(_('The following lines were not used by the Designer '
                             'and will be lost:\n'))
             for line in unmatched:
                 wx.LogWarning(line)
-            wx.LogWarning(_('\nThere were unprocessed lines in the source code of '\
-                            'method: %s\nIf this was unexpected, it is advised '\
-                            'that you cancel this Designer session and correct '\
-                            'the problem before continuing.')%meth)
+            wx.LogWarning(_('\nThere were unprocessed lines in the source code of '
+                            'method: %s\nIf this was unexpected, it is advised '
+                            'that you cancel this Designer session and correct '
+                            'the problem before continuing.') % meth)
 
         return newObjColl
 
@@ -215,42 +236,42 @@ class BaseFrameModel(ClassModel):
             for attr, blocks in list(attributes.items()):
                 for block in blocks:
                     if startline <= block.start <= endline and attr not in attrs:
-                        linePos = block.start-1
+                        linePos = block.start - 1
                         line = source[linePos]
-                        val = line[line.find('=')+1:].strip()
+                        val = line[line.find('=') + 1:].strip()
                         # handle lines continued with ,
                         while val.endswith(','):
                             linePos += 1
                             val += source[linePos].strip()
 
-                        attrs.append( (attr, val) )
-                            
+                        attrs.append((attr, val))
 
         if extAttrInitName:
             if extAttrInitName not in mod.from_imports_names:
-                raise Exception('%s.__init__ called, but not imported in the form: '\
-                      'from [ModuleName] import %s'%(extAttrInitName, extAttrInitName))
+                raise Exception('%s.__init__ called, but not imported in the form: '
+                                'from [ModuleName] import %s' % (extAttrInitName, extAttrInitName))
             # try to load external attrs
             extModName = mod.from_imports_names[extAttrInitName]
             extModFilename = os.path.join(os.path.dirname(self.filename),
-                                          extModName+'.py')
+                                          extModName + '.py')
             from Explorers.Explorer import openEx
             try:
                 data = openEx(extModFilename).load()
             except Exception as error:
-                raise Exception('Problem loading %s: File expected at: %s'%(extModName,
-                                                                 extModFilename))
+                raise Exception('Problem loading %s: File expected at: %s' % (extModName,
+                                                                              extModFilename))
             exModModel = ModuleModel(data, extModFilename, self.editor, 1)
             extModule = exModModel.getModule()
             extClass = extModule.classes[extAttrInitName]
             extMeth = extClass.methods['__init__']
 
             readAttrsFromSrc(attrs, extClass.attributes, extModule.source,
-                  extMeth.start, extMeth.end)
+                             extMeth.start, extMeth.end)
 
         readAttrsFromSrc(attrs, cls.attributes, mod.source, startline, endline)
 
         import PaletteMapping
+
         # build a dictionary that can be passed to eval
         evalNS = _your_frame_attrs_()
         for attr, code in attrs:
@@ -290,10 +311,11 @@ class BaseFrameModel(ClassModel):
                 srcline = cls_attr.start
 
                 # multiline parser ;)
-                while 1:
+                while True:
                     try:
-                        custClasses = PaletteMapping.evalCtrl(attr_val, preserveExc=True)
-                        assert type(custClasses) == type({})
+                        custClasses = PaletteMapping.evalCtrl(
+                            attr_val, preserveExc=True)
+                        assert isinstance(custClasses, type({}))
                         break
                     except SyntaxError as err:
                         if err[0] == 'unexpected EOF while parsing':
@@ -302,7 +324,7 @@ class BaseFrameModel(ClassModel):
                         else:
                             raise
             except Exception as err:
-                raise Exception(_('_custom_classes is not valid: ')+str(err))
+                raise Exception(_('_custom_classes is not valid: ') + str(err))
 
             for wxClassName, customs in list(custClasses.items()):
                 wxClass = PaletteMapping.evalCtrl(wxClassName)
@@ -329,30 +351,32 @@ class BaseFrameModel(ClassModel):
 
             self.specialAttrs = self.readSpecialAttrs(module, main)
             self.customClasses = self.readCustomClasses(module, main)
-            self.resources = self.readResources(module, main, 
-                  specialAttrs=self.specialAttrs)
+            self.resources = self.readResources(module, main,
+                                                specialAttrs=self.specialAttrs)
 
             for oc in self.identifyCollectionMethods():
                 codeSpan = main.methods[oc]
-                codeBody = module.source[codeSpan.start : codeSpan.end]
+                codeBody = module.source[codeSpan.start: codeSpan.end]
 
-                self.objectCollections[oc] = self.readDesignerMethod(oc, codeBody)
+                self.objectCollections[oc] = self.readDesignerMethod(
+                    oc, codeBody)
 
                 # XXX Hack: This should not be necessary !!
                 for prop in self.objectCollections[oc].properties[:]:
-                    if prop.asText() in ('self.%s()'%sourceconst.init_utils, 
-                                         'self.%s()'%sourceconst.init_sizers):
+                    if prop.asText() in ('self.%s()' % sourceconst.init_utils,
+                                         'self.%s()' % sourceconst.init_sizers):
                         self.objectCollections[oc].properties.remove(prop)
 
             # Set the model's constructor
             if sourceconst.init_ctrls in self.objectCollections:
                 try:
                     self.mainConstr = \
-                      self.objectCollections[sourceconst.init_ctrls].creators[0]
+                        self.objectCollections[sourceconst.init_ctrls].creators[0]
                 except IndexError:
                     Exception, _('Inherited __init__ method missing')
         else:
-            Exception, _('Main class "%s" not found. Please fix file header or class name.')%self.main
+            Exception, _(
+                'Main class "%s" not found. Please fix file header or class name.') % self.main
 
     def removeWindowIds(self, colMeth):
         """ Remove a method's corresponding window ids from the source code """
@@ -405,17 +429,17 @@ class BaseFrameModel(ClassModel):
             lines = []
             if len(lst) > 1 and Preferences.cgWrapLines:
                 # build win ids spanning multiple lines
-                line = '['+lst[0]+', '
+                line = '[' + lst[0] + ', '
                 for seg in lst[1:]:
-                    newLine = line+seg +', '
+                    newLine = line + seg + ', '
                     if len(newLine) >= Preferences.cgLineWrapWidth:
                         lines.append(line)
-                        line = ' '+seg+', '
+                        line = ' ' + seg + ', '
                     else:
                         line = newLine
                 lines.append(line)
                 lines.append((sourceconst.defWindowIdsCont %
-                      {'idIdent': colMeth, 'idCount': len(lst)}).strip())
+                              {'idIdent': colMeth, 'idCount': len(lst)}).strip())
             else:
                 lines.append((sourceconst.defWindowIds % {
                     'idNames': ', '.join(lst), 'idIdent': colMeth,
@@ -423,13 +447,14 @@ class BaseFrameModel(ClassModel):
             lines.append('')
 
             if winIdIdx == -1:
-                # No window id definitions could be found add one above class def
+                # No window id definitions could be found add one above class
+                # def
                 insPt = module.classes[self.main].block.start - 1
                 module.source[insPt:insPt] = lines
                 module.renumber(len(lines), insPt)
             else:
                 module.source[winIdIdx:winIdIdx + winIdLen] = lines
-                module.renumber(len(lines)-winIdLen, winIdIdx)
+                module.renumber(len(lines) - winIdLen, winIdIdx)
 
     def update(self):
         ClassModel.update(self)
@@ -447,6 +472,7 @@ class FrameModel(BaseFrameModel):
     imgIdx = imgFrameModel
     Companion = FrameCompanions.FrameDTC
 
+
 class DialogModel(BaseFrameModel):
     modelIdentifier = 'Dialog'
     defaultName = 'wx.Dialog'
@@ -458,12 +484,14 @@ class DialogModel(BaseFrameModel):
     def getSimpleRunnerSrc(self):
         return sourceconst.simpleAppDialogRunSrc
 
+
 class MiniFrameModel(BaseFrameModel):
     modelIdentifier = 'MiniFrame'
     defaultName = 'wx.MiniFrame'
     bitmap = 'wx.MiniFrame.png'
     imgIdx = imgMiniFrameModel
     Companion = FrameCompanions.MiniFrameDTC
+
 
 class MDIParentModel(BaseFrameModel):
     modelIdentifier = 'MDIParent'
@@ -472,6 +500,7 @@ class MDIParentModel(BaseFrameModel):
     imgIdx = imgMDIParentModel
     Companion = FrameCompanions.MDIParentFrameDTC
 
+
 class MDIChildModel(BaseFrameModel):
     modelIdentifier = 'MDIChild'
     defaultName = 'wx.MDIChildFrame'
@@ -479,6 +508,7 @@ class MDIChildModel(BaseFrameModel):
     imgIdx = imgMDIChildModel
     dialogLook = True
     Companion = FrameCompanions.MDIChildFrameDTC
+
 
 class PopupWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupWindow'
@@ -491,6 +521,7 @@ class PopupWindowModel(BaseFrameModel):
     def getSimpleRunnerSrc(self):
         return sourceconst.simpleAppPopupRunSrc
 
+
 class PopupTransientWindowModel(BaseFrameModel):
     modelIdentifier = 'PopupTransientWindow'
     defaultName = 'wx.PopupTransientWindow'
@@ -502,6 +533,7 @@ class PopupTransientWindowModel(BaseFrameModel):
     def getSimpleRunnerSrc(self):
         return sourceconst.simpleAppPopupRunSrc
 
+
 class AppModel(BaseAppModel):
     modelIdentifier = 'App'
     defaultName = 'wx.App'
@@ -511,18 +543,19 @@ class AppModel(BaseAppModel):
     def renameMain(self, oldName, newName):
         BaseAppModel.renameMain(self, oldName, newName)
         self.getModule().replaceFunctionBody('main',
-          ['    application = %s(0)'%newName, '    application.MainLoop()', ''])
+                                             ['    application = %s(0)' % newName, '    application.MainLoop()', ''])
 
     def new(self, mainModule):
-        self.data = (sourceconst.defEnvPython + sourceconst.defSig + \
-              sourceconst.defImport + sourceconst.defApp) % {
-                'modelIdent': self.modelIdentifier,
-                'main': sourceconst.boaClass,
-                'mainModule': mainModule}
+        self.data = (sourceconst.defEnvPython + sourceconst.defSig +
+                     sourceconst.defImport + sourceconst.defApp) % {
+            'modelIdent': self.modelIdentifier,
+            'main': sourceconst.boaClass,
+            'mainModule': mainModule}
         self.saved = False
         self.modified = True
         self.update()
         self.notify()
+
 
 class FramePanelModel(BaseFrameModel):
     modelIdentifier = 'FramePanel'
@@ -538,12 +571,14 @@ class FramePanelModel(BaseFrameModel):
         self.defCreateClass = ''
         # can this be any uglier (or shorter ;) ?
         self.defClass = sourceconst.defClass.replace('parent',
-              'parent, id, pos, size, style, name', 1)
+                                                     'parent, id, pos, size, style, name', 1)
 
     def getSimpleRunnerSrc(self):
         return ''
 
+
 sourceconst.defWizardImport = sourceconst.wsfix('\nimport wx.wizard\n')
+
 
 class WizardModel(DialogModel):
     modelIdentifier = 'Wizard'
@@ -555,12 +590,13 @@ class WizardModel(DialogModel):
 
     def __init__(self, data, name, main, editor, saved, app=None):
         DialogModel.__init__(self, data, name, main, editor, saved, app)
-        self.defImport = sourceconst.defImport.strip()+sourceconst.defWizardImport
-        
+        self.defImport = sourceconst.defImport.strip() + sourceconst.defWizardImport
+
     def getSimpleRunnerSrc(self):
         return ''
 
-sourceconst.defPyWizPageClass = sourceconst.defClass+sourceconst.wsfix('''
+
+sourceconst.defPyWizPageClass = sourceconst.defClass + sourceconst.wsfix('''
 \tdef GetNext(self):
 \t\treturn None
 
@@ -580,11 +616,12 @@ class PyWizardPageModel(FramePanelModel):
     def __init__(self, data, name, main, editor, saved, app=None):
         FramePanelModel.__init__(self, data, name, main, editor, saved, app)
         self.defClass = sourceconst.defPyWizPageClass
-        self.defImport = sourceconst.defImport.strip()+sourceconst.defWizardImport
+        self.defImport = sourceconst.defImport.strip() + sourceconst.defWizardImport
         self.defWindowIds = ''
 
     def getSimpleRunnerSrc(self):
         return ''
+
 
 class WizardPageSimpleModel(FramePanelModel):
     modelIdentifier = 'WizardPageSimple'
@@ -597,8 +634,8 @@ class WizardPageSimpleModel(FramePanelModel):
     def __init__(self, data, name, main, editor, saved, app=None):
         FramePanelModel.__init__(self, data, name, main, editor, saved, app)
         self.defClass = sourceconst.defClass
-        self.defImport = sourceconst.defImport.strip()+sourceconst.defWizardImport
+        self.defImport = sourceconst.defImport.strip() + sourceconst.defWizardImport
         self.defWindowIds = ''
-        
+
     def getSimpleRunnerSrc(self):
         return ''

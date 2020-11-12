@@ -1,26 +1,31 @@
-import os, pprint
+import os
+import pprint
 from reprlib import Repr
 
 import wx
 import wx.lib.stattext
 
-import Preferences, Utils
+import Preferences
+import Utils
+from Explorers import Explorer
 from Preferences import IS
 from Utils import _
-
-from Explorers import Explorer
 
 from .Breakpoint import bplist
 
 SEL_STATE = wx.LIST_STATE_SELECTED | wx.LIST_STATE_FOCUSED
 
+
 class DebuggerListCtrl(wx.ListView, Utils.ListCtrlSelectionManagerMix):
     def __init__(self, parent, wId):
         wx.ListView.__init__(self, parent, wId,
-              style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_VRULES | wx.CLIP_CHILDREN)
+                             style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_VRULES | wx.CLIP_CHILDREN)
         Utils.ListCtrlSelectionManagerMix.__init__(self)
 
+
 wxID_STACKVIEW = wx.NewId()
+
+
 class StackViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, flist, debugger):
         DebuggerListCtrl.__init__(self, parent, wxID_STACKVIEW)
@@ -29,7 +34,10 @@ class StackViewCtrl(DebuggerListCtrl):
         self.InsertColumn(1, _('Line'), wx.LIST_FORMAT_LEFT, 35)
         self.InsertColumn(2, _('Code'), wx.LIST_FORMAT_LEFT, 300)
 
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnStackItemSelected, id=wxID_STACKVIEW)
+        self.Bind(
+            wx.EVT_LIST_ITEM_SELECTED,
+            self.OnStackItemSelected,
+            id=wxID_STACKVIEW)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnGotoSource)
 
         self.flist = flist
@@ -55,12 +63,12 @@ class StackViewCtrl(DebuggerListCtrl):
                 #item = "%s, line %d: %s" % (modname, lineno, sourceline)
                 attrib = modname
             else:
-                #item = "%s.%s(), line %d: %s" % (modname, funcname,
+                # item = "%s.%s(), line %d: %s" % (modname, funcname,
                 #                                 lineno, sourceline)
                 # XXX methods will be shown as "module.function"
                 # when maybe they ought to be shown as "module.class.method".
                 attrib = modname + '.' + funcname
-            #if pos == index:
+            # if pos == index:
             #    item = "> " + item
             if pos >= count:
                 # Insert.
@@ -117,27 +125,29 @@ class StackViewCtrl(DebuggerListCtrl):
                 serverPath = entry['filename']
                 if serverPath[0] == '<' and serverPath[-1] == '>':
                     wx.LogError(_('Not a source file: %s, probably an executed '
-                               'string.')%serverPath)
+                                  'string.') % serverPath)
                     return
 
                 res = wx.MessageBox(_('Could not open file: %s.\n\nIf This is a '
-                      'server path for which you\nhave not defined a mapping '
-                      'click "Yes" to browse to the file to the mapping can '
-                      'be computed.\nPress "No" to open the path dialog.')%filename,
-                      _('File Open Error, try to compute path?'),
-                      wx.ICON_WARNING | wx.YES_NO | wx.CANCEL)
+                                      'server path for which you\nhave not defined a mapping '
+                                      'click "Yes" to browse to the file to the mapping can '
+                                      'be computed.\nPress "No" to open the path dialog.') % filename,
+                                    _('File Open Error, try to compute path?'),
+                                    wx.ICON_WARNING | wx.YES_NO | wx.CANCEL)
                 if res == wx.YES:
-                    clientPath = editor.openFileDlg(curfile=os.path.basename(filename))
+                    clientPath = editor.openFileDlg(
+                        curfile=os.path.basename(filename))
                     if clientPath:
-                        clientPath = prevClientPath = Explorer.splitURI(clientPath)[2]
+                        clientPath = prevClientPath = Explorer.splitURI(clientPath)[
+                            2]
                         prevServerPath = serverPath
-                        while 1:
+                        while True:
                             serverPath, serverBase = os.path.split(serverPath)
                             clientPath, clientBase = os.path.split(clientPath)
 
                             if serverBase != clientBase:
                                 paths = self.debugger.serverClientPaths[:]
-                                paths.append( (prevServerPath, prevClientPath) )
+                                paths.append((prevServerPath, prevClientPath))
                                 if self.debugger.OnPathMappings(paths=paths):
                                     self.refreshClientFilenames()
                                 break
@@ -164,11 +174,12 @@ class StackViewCtrl(DebuggerListCtrl):
     def refreshClientFilenames(self):
         for entry in self.stack:
             entry['client_filename'] = \
-                  self.debugger.serverFNToClientFN(entry['filename'])
+                self.debugger.serverFNToClientFN(entry['filename'])
 
 
 [wxID_BREAKVIEW, wxID_BREAKSOURCE, wxID_BREAKEDIT, wxID_BREAKDELETE,
  wxID_BREAKENABLED, wxID_BREAKREFRESH, wxID_BREAKIGNORE] = Utils.wxNewIds(7)
+
 
 class BreakViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, debugger):
@@ -248,8 +259,10 @@ class BreakViewCtrl(DebuggerListCtrl):
             bp = bps[p]
             # setup prelim image
             imgIdx = 0
-            if not bp['enabled']: imgIdx = 2
-            elif bp['temporary']: imgIdx = 3
+            if not bp['enabled']:
+                imgIdx = 2
+            elif bp['temporary']:
+                imgIdx = 3
 
             self.InsertImageStringItem(
                 p, os.path.basename(bp['filename']), imgIdx)
@@ -275,7 +288,7 @@ class BreakViewCtrl(DebuggerListCtrl):
     def selectBreakpoint(self, filename, lineno):
         idx = 0
         for bp in self.bps:
-            if bp['filename']==filename and bp['lineno']==lineno:
+            if bp['filename'] == filename and bp['lineno'] == lineno:
                 self.SetItemState(idx, SEL_STATE, SEL_STATE)
                 self.EnsureVisible(idx)
                 return
@@ -321,7 +334,7 @@ class BreakViewCtrl(DebuggerListCtrl):
             if sourceView:
                 sourceView.deleteBreakMarkers(bp['lineno'])
 
-            #self.debugger.requestDebuggerStatus()
+            # self.debugger.requestDebuggerStatus()
             self.refreshList()
 
     def OnRefresh(self, event):
@@ -370,7 +383,7 @@ class BreakViewCtrl(DebuggerListCtrl):
             cond = bp['cond']
 
             dlg = wx.TextEntryDialog(self, _('Condition to break on:'),
-                  _('Change condition'), cond)
+                                     _('Change condition'), cond)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     cond = dlg.GetValue().strip()
@@ -382,7 +395,7 @@ class BreakViewCtrl(DebuggerListCtrl):
                         'conditionalBreakpoints', (server_fn, lineno, cond))
 
                     self.debugger.requestDebuggerStatus()
-                    #self.refreshList()
+                    # self.refreshList()
             finally:
                 dlg.Destroy()
 
@@ -395,7 +408,7 @@ class BreakViewCtrl(DebuggerListCtrl):
             ignore = bp['ignore']
 
             dlg = wx.TextEntryDialog(self, _('Number of hits to ignore:'),
-                  _('Change ignore count'), repr(ignore))
+                                     _('Change ignore count'), repr(ignore))
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     ignore = int(dlg.GetValue())
@@ -406,13 +419,16 @@ class BreakViewCtrl(DebuggerListCtrl):
                         'ignoreBreakpoints', (server_fn, lineno, ignore))
 
                     self.debugger.requestDebuggerStatus()
-                    #self.refreshList()
+                    # self.refreshList()
             finally:
                 dlg.Destroy()
 
 # XXX Expose classes' dicts as indented items
 
+
 wxID_NSVIEW = wx.NewId()
+
+
 class NamespaceViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, debugger, is_local, name):
         DebuggerListCtrl.__init__(self, parent, wxID_NSVIEW)
@@ -494,6 +510,8 @@ class NamespaceViewCtrl(DebuggerListCtrl):
 
 
 wxID_WATCHVIEW = wx.NewId()
+
+
 class WatchViewCtrl(DebuggerListCtrl):
     def __init__(self, parent, images, debugger):
         DebuggerListCtrl.__init__(self, parent, wxID_WATCHVIEW)
@@ -547,7 +565,7 @@ class WatchViewCtrl(DebuggerListCtrl):
         if name:
             if pos < 0 or pos >= len(self.watches):
                 self.watches.append((name, local))
-                pos = len(self.watches)-1
+                pos = len(self.watches) - 1
             else:
                 self.watches.insert(pos, (name, local))
         else:
@@ -556,11 +574,11 @@ class WatchViewCtrl(DebuggerListCtrl):
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     self.watches.append((dlg.GetValue(), local))
-                    pos = len(self.watches)-1
+                    pos = len(self.watches) - 1
             finally:
                 dlg.Destroy()
         #self.SetItemState(pos, SEL_STATE, SEL_STATE)
-        #self.EnsureVisible(pos)
+        # self.EnsureVisible(pos)
 
     def showLoading(self):
         self.load_dict(None, loading=1)
@@ -661,31 +679,36 @@ class DebugStatusBar(wx.StatusBar):
         self.SetMinHeight(30)
         #self.SetStatusWidths([-1, -1, 16])
 
-        self.stateCols = {'except': wx.Colour(0xFF, 0xFF, 0x44),#wxNamedColour('yellow'),
-                          'info':   wx.NamedColour('white'),
-                          'break':  wx.Colour(0xFF, 0x44, 0x44),#wxNamedColour('red'),
-                          'busy':   wx.Colour(0xBB, 0xE0, 0xFF)}
+        self.stateCols = {'except': wx.Colour(0xFF, 0xFF, 0x44),  # wxNamedColour('yellow'),
+                          'info': wx.NamedColour('white'),
+                          # wxNamedColour('red'),
+                          'break': wx.Colour(0xFF, 0x44, 0x44),
+                          'busy': wx.Colour(0xBB, 0xE0, 0xFF)}
 
         self.instr_ptr = wx.lib.stattext.GenStaticText(self, -1, ' ',
-              style=wx.ALIGN_CENTER | wx.ST_NO_AUTORESIZE)
+                                                       style=wx.ALIGN_CENTER | wx.ST_NO_AUTORESIZE)
         self.instr_ptr.SetBackgroundColour(wx.Colour(0xEE, 0xEE, 0xEE))
         self._setCtrlDims(self.instr_ptr, self.GetFieldRect(0))
 
         self.state = wx.lib.stattext.GenStaticText(self, -1, _('Ready.'),
-              style=wx.ALIGN_CENTER | wx.ST_NO_AUTORESIZE)
+                                                   style=wx.ALIGN_CENTER | wx.ST_NO_AUTORESIZE)
         self.state.SetBackgroundColour(self.stateCols['info'])
         self._setCtrlDims(self.state, self.GetFieldRect(1))
 
         dc = wx.ClientDC(self)
         dc.SetFont(self.GetFont())
-        (w,h) = dc.GetTextExtent('X')
+        (w, h) = dc.GetTextExtent('X')
         h = int(h * 1.8)
         self.SetSize(wx.Size(100, h))
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def _setCtrlDims(self, ctrl, rect):
-        ctrl.SetDimensions(rect.x+2, rect.y+2, rect.width-4, rect.height-4)
+        ctrl.SetDimensions(
+            rect.x + 2,
+            rect.y + 2,
+            rect.width - 4,
+            rect.height - 4)
 
     def updateState(self, message, sts_type='except'):
         if message:

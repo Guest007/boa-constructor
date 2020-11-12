@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        FindResults.py
 # Purpose:
 #
@@ -9,15 +9,16 @@
 # Copyright:   (c) 2001 - 2007 Tim Hochberg,
 #              but substantially derived from code (c) by Riaan Booysen
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 
 import wx
 
-from Views.EditorViews import ListCtrlView, CloseableViewMix
 from Preferences import keyDefs
 from Utils import _
+from Views.EditorViews import CloseableViewMix, ListCtrlView
+
 
 class FindResults(ListCtrlView, CloseableViewMix):
     gotoLineBmp = 'Images/Editor/GotoLine.png'
@@ -26,14 +27,14 @@ class FindResults(ListCtrlView, CloseableViewMix):
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, _('find results'))
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          ( (_('Goto match'), self.OnGoto, self.gotoLineBmp, ()),
-            (_('Re-run query'), self.OnRerun, '-', 'Refresh')
-          ) + self.closingActionItems, 0)
+                              ((_('Goto match'), self.OnGoto, self.gotoLineBmp, ()),
+                               (_('Re-run query'), self.OnRerun, '-', 'Refresh')
+                               ) + self.closingActionItems, 0)
 
-        self.InsertColumn(0, _('Module'), width = 100)
+        self.InsertColumn(0, _('Module'), width=100)
         self.InsertColumn(1, _('Line no'), wx.LIST_FORMAT_CENTRE, 40)
         self.InsertColumn(2, _('Col'), wx.LIST_FORMAT_CENTRE, 40)
-        self.InsertColumn(3, _('Text'), width = 550)
+        self.InsertColumn(3, _('Text'), width=550)
 
         self.results = {}
         self.listResultIdxs = []
@@ -47,8 +48,8 @@ class FindResults(ListCtrlView, CloseableViewMix):
         #self.Bind(wx.EVT_IDLE, self.OnIdle)
         #self.doRefresh = 0
 
-##    def _refresh(self):
-##        self.refreshCtrl()
+# def _refresh(self):
+# self.refreshCtrl()
 ##        self.modified = False
 
     def refreshCtrl(self):
@@ -61,9 +62,11 @@ class FindResults(ListCtrlView, CloseableViewMix):
                 for result in self.results[mod]:
                     self.listResultIdxs.append((mod, result))
                     i = self.addReportItems(i, (os.path.basename(mod), repr(result[0]),
-                      repr(result[1]), result[2].strip()) )
+                                                repr(result[1]), result[2].strip()))
 
-            self.model.editor.statusBar.setHint(_('%d matches of "%s".')%(i, self.findPattern))
+            self.model.editor.statusBar.setHint(
+                _('%d matches of "%s".') %
+                (i, self.findPattern))
             self.pastelise()
         finally:
             wx.EndBusyCursor()
@@ -72,10 +75,10 @@ class FindResults(ListCtrlView, CloseableViewMix):
         self.refreshCtrl()
         #self.doRefresh = 1
 
-##    def OnIdle(self, event):
-##        if self.doRefresh:
+# def OnIdle(self, event):
+# if self.doRefresh:
 ##            self.doRefresh = 0
-##            self._refresh()
+# self._refresh()
 
     def OnGoto(self, event):
         if self.selected >= 0:
@@ -90,11 +93,15 @@ class FindResults(ListCtrlView, CloseableViewMix):
             srcView.lastSearchPattern = self.findPattern
             srcView.lastSearchResults = self.results[modName]
             try:
-                srcView.lastMatchPosition = self.results[modName].index(foundInfo)
-            except:
+                srcView.lastMatchPosition = self.results[modName].index(
+                    foundInfo)
+            except BaseException:
                 srcView.lastMatchPosition = 0
                 print('foundInfo not found')
-            srcView.selectSection(foundInfo[0]-1, foundInfo[1]-1, self.findPattern)
+            srcView.selectSection(
+                foundInfo[0] - 1,
+                foundInfo[1] - 1,
+                self.findPattern)
             self.model.prevSwitch = self
 
     def OnRerun(self, event):

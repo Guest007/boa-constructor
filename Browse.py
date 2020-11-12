@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        Browse.py
 # Purpose:
 #
@@ -8,7 +8,7 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2000 - 2007 Riaan Booysen
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 class HistoryBrowsePage:
     def __init__(self, modulepage, view, marker):
@@ -30,7 +30,7 @@ class HistoryBrowsePage:
 
     def __repr__(self):
         return 'BrowsePage(%s, %s, %s)' % (repr(self.modulePage), repr(self.view),
-               repr(self.marker))
+                                           repr(self.marker))
 
 
 class HistoryBrowser:
@@ -42,11 +42,11 @@ class HistoryBrowser:
         page = HistoryBrowsePage(modulepage, view, marker)
         if self.pages and page == self.pages[self.idx]:
             return
-        if self.idx == len(self.pages)-1:
+        if self.idx == len(self.pages) - 1:
             self.pages.append(page)
         else:
             self.pages[self.idx:] = [page]
-        self.idx = len(self.pages)-1
+        self.idx = len(self.pages) - 1
 
     def checkRemoval(self, modPage):
         for page in self.pages[:]:
@@ -61,7 +61,7 @@ class HistoryBrowser:
         self.idx = self.idx + dir
 
     def canForward(self):
-        return self.idx < len(self.pages)-1
+        return self.idx < len(self.pages) - 1
 
     def forward(self):
         if self.canForward():

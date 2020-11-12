@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        JavaSupport.py
 # Purpose:     Simple Java Support
 #
@@ -8,19 +8,19 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2003 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 
 import wx
 import wx.stc
 
-import Preferences, Utils, Plugins
-from Utils import _
-
 import PaletteStore
-
+import Plugins
+import Preferences
+import Utils
 from Models import Controllers, EditorHelper, EditorModels
+from Utils import _
 from Views import SourceViews, StyledTextCtrls
 
 # Allocate an image index for Java files
@@ -29,31 +29,38 @@ EditorHelper.imgJavaModel = EditorHelper.imgIdxRange()
 Plugins.registerPreference('JavaSupport', 'jsJavaCompilerPath', "''",
                            ['Path to the compiler'], 'type: filepath')
 
+
 class JavaModel(EditorModels.SourceModel):
     modelIdentifier = 'Java'
     defaultName = 'java'  # default name given to newly created files
-    bitmap = 'Java.png' # this image must exist in Images/Modules
+    bitmap = 'Java.png'  # this image must exist in Images/Modules
     ext = '.java'
     imgIdx = EditorHelper.imgJavaModel
 
+
 # get the style definitions file in either the prefs directory or the Boa root
 java_cfgfile = os.path.join(Preferences.rcPath, 'stc-java.rc.cfg')
-#if not os.path.exists(java_cfgfile):
+# if not os.path.exists(java_cfgfile):
 #    java_cfgfile = Preferences.pyPath +'/Plug-ins/stc-java.rc.cfg'
+
 
 class JavaStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
     def __init__(self, wId):
         StyledTextCtrls.LanguageSTCMix.__init__(self, wId,
-              (0, Preferences.STCLineNumMarginWidth), 'java', java_cfgfile)
+                                                (0, Preferences.STCLineNumMarginWidth), 'java', java_cfgfile)
         self.setStyles()
 
+
 wxID_JAVASOURCEVIEW = wx.NewId()
+
+
 class JavaSourceView(SourceViews.EditorStyledTextCtrl, JavaStyledTextCtrlMix):
     viewName = 'Source'
     viewTitle = _('Source')
+
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, wxID_JAVASOURCEVIEW,
-          model, (), -1)
+                                                  model, (), -1)
         JavaStyledTextCtrlMix.__init__(self, wxID_JAVASOURCEVIEW)
         self.active = True
 
@@ -61,6 +68,8 @@ class JavaSourceView(SourceViews.EditorStyledTextCtrl, JavaStyledTextCtrlMix):
 # The compile action is just added as an example of how to add an action to
 # a controller and is not implemented
 wxID_JAVACOMPILE = wx.NewId()
+
+
 class JavaController(Controllers.SourceController):
     Model = JavaModel
     DefaultViews = [JavaSourceView]
@@ -69,17 +78,22 @@ class JavaController(Controllers.SourceController):
 
     def actions(self, model):
         return Controllers.SourceController.actions(self, model) + [
-              (_('Compile'), self.OnCompile, '-', 'CheckSource')]
+            (_('Compile'), self.OnCompile, '-', 'CheckSource')]
 
     def OnCompile(self, event):
         wx.LogWarning(_('Not implemented'))
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 Plugins.registerFileType(JavaController)
-Plugins.registerLanguageSTCStyle('Java', 'java', JavaStyledTextCtrlMix, java_cfgfile)
+Plugins.registerLanguageSTCStyle(
+    'Java',
+    'java',
+    JavaStyledTextCtrlMix,
+    java_cfgfile)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 # XXX find some actual java example code :)
@@ -129,7 +143,7 @@ style.java.037=
 [style.java.default]
 
 [java]
-displaysrc='''+repr(javaSource)[1:-1]+'''
+displaysrc = ''' + repr(javaSource)[1:-1] + '''
 braces={'good': (5, 10), 'bad': (5, 38)}
 keywords=abstract double int strictfp boolean else interface super break extends long switch byte final native synchronized case finally new this catch float package throw har for private throws class goto protected transient const if public try continue implements return void default import short volatile do instanceof static while True False null
 lexer=wx.stc.STC_LEX_CPP
@@ -138,12 +152,14 @@ styleidnames={wx.stc.STC_C_DEFAULT: 'Default', wx.stc.STC_C_COMMENT: 'Comment',w
 
 Plugins.assureConfigFile(java_cfgfile, javaStyleEditorConfig)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-#Boa:PyImgResource:JavaPalette
+# Boa:PyImgResource:JavaPalette
+
+
 def getJavaPaletteData():
     return \
-'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
+        '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
 \x00\x00\x00\xe0w=\xf8\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\
 \x02bIDATx\x9c\xe5\x95OH\x93a\x1c\xc7?\xef\xbbwn\xd3\xb5\xcd\x99\xe92/\n\xce\
 Xj\xc6\x12b\x97\x86\x04Q\x87\x08\xa3\x88\x08\xeb yH\xd2\x0c*qF\x14Y;L\x0f\
@@ -171,10 +187,12 @@ t\x94\xfa\xa9\xfd\xb4\x8c\x9c\xbb@4\xdf\xcc\xbc5\'\x93\xd6\xf4\x80\xcb\xd7\
 \xbe|\xfe\x8a\xdda\xc5\x96\xe7L\xb9{\xc8\xf0-\xfa\x9bZ_?\xda\xff\t\xf8\tge\
 \xd3\xa54\xf7\xa6\xda\x00\x00\x00\x00IEND\xaeB`\x82'
 
-#Boa:PyImgResource:JavaModule
+# Boa:PyImgResource:JavaModule
+
+
 def getJavaModuleData():
     return \
-'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
+        '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
 \x00\x00\x00\x1f\xf3\xffa\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\
 \x00\x02DIDATx\x9c\x95\x92_H\x93Q\x18\x87\x9f\xf3\xed\x9b\xdbtmsf\xba\xcc\
 \x1b\x05g,5c\t\xb1\x9b\x86\x04Q\x17\x11F\x11\x11\xd6\x85\xe4E\x92fT\x8a3\xc2\
@@ -200,6 +218,7 @@ dR\xa3\xc8\xe3\xa1\xa1\xf1<J\x8eY\x86\xc3a\xb1n0\xfbv\x9a\xde\xf0u\xfc558\
 \xb9\xab\x82H4B\xf1\xb6B\x86\x86\x1f\x89\x14\x00\xc0\x9d\xbb\x83\xa2\xb2\xd2\
 +g\xa6gx\xfe\xf4%\xf7\x87\x1f\xac\x17\xd5\x9f<-\xbf}\xfd\x8e\xd3e\xc7\x91\
 \xe3N\xd9\x83\xdf\xc7*\xd3\xf0\xe4\xd9j@\x00\x00\x00\x00IEND\xaeB`\x82'
+
 
 Preferences.IS.registerImage('Images/Modules/Java.png', getJavaModuleData())
 Preferences.IS.registerImage('Images/Palette/Java.png', getJavaPaletteData())

@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        languagectrls.py
 # Purpose:
 #
@@ -8,7 +8,7 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2007 Riaan Booysen
 # License:     wxPython
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 """ ListCtrl and functions to display languages and the flags of their countries
 """
 import wx
@@ -256,6 +256,7 @@ for _l in ('LANGUAGE_UNKNOWN', 'LANGUAGE_USER_DEFINED', 'LANGUAGE_SERBIAN'):
     if _l in _wxLangIds:
         _wxLangIds.remove(_l)
 
+
 def CreateLanguagesResourceLists(filter=LC_AVAILABLE, only=()):
     """ Returns a tuple of (bitmaps, language descriptions, language ids) """
     icons = wx.ImageList(16, 11)
@@ -301,6 +302,7 @@ def CreateLanguagesResourceLists(filter=LC_AVAILABLE, only=()):
 
     return icons, names, langs
 
+
 def GetLanguageFlag(lang):
     """ Returns a bitmap of the flag for the country of the language id """
     langIdNameMap = BuildLanguageCountryMapping()
@@ -309,6 +311,7 @@ def GetLanguageFlag(lang):
         if cnt in flagart.catalog:
             return flagart.catalog[cnt].getBitmap()
     return flagart.catalog['BLANK'].getBitmap()
+
 
 def BuildLanguageCountryMapping():
     """ Builds a mapping of language ids to LANG_COUNTRY codes """
@@ -334,6 +337,7 @@ def BuildLanguageCountryMapping():
             res[wn] = code
     return res
 
+
 def GetWxIdentifierForLanguage(lang):
     """ Returns the language id as a string """
     for n in dir(wx):
@@ -342,10 +346,11 @@ def GetWxIdentifierForLanguage(lang):
     raise Exception('Language %s not found' % lang)
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 class LanguageListCtrl(wx.ListCtrl):
     """ wx.ListCtrl derived control that displays languages and flags """
+
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL,
                  filter=LC_AVAILABLE, only=(), select=None, name='languagelistctrl'):
@@ -360,7 +365,8 @@ class LanguageListCtrl(wx.ListCtrl):
         lang = self.GetLanguage()
 
         self.filter, self.only = filter, only
-        self.icons, self.choices, self.langs = CreateLanguagesResourceLists(filter, only)
+        self.icons, self.choices, self.langs = CreateLanguagesResourceLists(
+            filter, only)
 
         self.AssignImageList(self.icons, wx.IMAGE_LIST_SMALL)
 
@@ -387,9 +393,12 @@ class LanguageListCtrl(wx.ListCtrl):
                 self.Select(idx)
                 self.Focus(idx)
 
-    Language = property(GetLanguage, SetLanguage, doc="See `GetLanguage` and `SetLanguage`")
+    Language = property(
+        GetLanguage,
+        SetLanguage,
+        doc="See `GetLanguage` and `SetLanguage`")
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 if __name__ == '__main__':
@@ -404,14 +413,14 @@ if __name__ == '__main__':
     try:
         f.lc = LanguageListCtrl(f.p, pos=(220, 10), size=(200, 25))
         s.Add(f.lc, 0, wx.GROW)
-    except:
+    except BaseException:
         pass
     f.llc = LanguageListCtrl(f.p, pos=(10, 10), size=(200, 200),
-          filter=LC_ONLY,
-          only=(wx.LANGUAGE_AFRIKAANS, wx.LANGUAGE_ENGLISH,
-            wx.LANGUAGE_FRENCH, wx.LANGUAGE_GERMAN, wx.LANGUAGE_ITALIAN,
-            wx.LANGUAGE_PORTUGUESE_BRAZILIAN, wx.LANGUAGE_SPANISH),
-          select=wx.LANGUAGE_ENGLISH)
+                             filter=LC_ONLY,
+                             only=(wx.LANGUAGE_AFRIKAANS, wx.LANGUAGE_ENGLISH,
+                                   wx.LANGUAGE_FRENCH, wx.LANGUAGE_GERMAN, wx.LANGUAGE_ITALIAN,
+                                   wx.LANGUAGE_PORTUGUESE_BRAZILIAN, wx.LANGUAGE_SPANISH),
+                             select=wx.LANGUAGE_ENGLISH)
 # #            filter=LC_ALL)
     s.Add(f.llc, 1, wx.GROW)
     f.Show()

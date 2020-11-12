@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ResourceSupport.py
 # Purpose:     Management of modules that contain functions to create images
 #
@@ -8,31 +8,41 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2003 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-#Boa:Dialog:ResourceSelectDlg
+# -----------------------------------------------------------------------------
+# Boa:Dialog:ResourceSelectDlg
 
-import string, sys
+import os
+import string
+import sys
+from io import StringIO
 
 import wx
-from wx.tools import img2py
 from wx.lib.anchors import LayoutAnchors
+from wx.tools import img2py
 
+import Plugins
+import Preferences
+import Utils
+from Models import (Controllers, EditorHelper, PythonControllers,
+                    PythonEditorModels)
 from Utils import _
+from Views import EditorViews
 
-[wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL, 
- wxID_RESOURCESELECTDLGBTNFILEDLG, wxID_RESOURCESELECTDLGBTNOK, 
-] = [wx.NewId() for _init_ctrls in range(4)]
+[wxID_RESOURCESELECTDLG, wxID_RESOURCESELECTDLGBTNCANCEL,
+ wxID_RESOURCESELECTDLGBTNFILEDLG, wxID_RESOURCESELECTDLGBTNOK,
+ ] = [wx.NewId() for _init_ctrls in range(4)]
+
 
 class ResourceSelectDlg(wx.Dialog):
     def _init_coll_boxSizerButtons_Items(self, parent):
         # generated method, don't edit
 
         parent.AddWindow(self.btnOK, 0, border=15,
-              flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
+                         flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
         parent.AddWindow(self.btnCancel, 0, border=15,
-              flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
+                         flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
         parent.AddWindow(self.btnFileDlg, 0, border=15,
-              flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
+                         flag=wx.BOTTOM | wx.TOP | wx.LEFT | wx.ALIGN_RIGHT)
 
     def _init_coll_boxSizerMain_Items(self, parent):
         # generated method, don't edit
@@ -53,29 +63,29 @@ class ResourceSelectDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_RESOURCESELECTDLG,
-              name='ResourceSelectDlg', parent=prnt, pos=wx.Point(384, 293),
-              size=wx.Size(307, 359),
-              style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
-              title=_('Select Resource'))
+                           name='ResourceSelectDlg', parent=prnt, pos=wx.Point(384, 293),
+                           size=wx.Size(307, 359),
+                           style=wx.RESIZE_BORDER | wx.DEFAULT_DIALOG_STYLE,
+                           title=_('Select Resource'))
         self.SetClientSize(wx.Size(299, 332))
 
         self.btnOK = wx.Button(id=wx.ID_OK, label=_('OK'), name='btnOK',
-              parent=self, pos=wx.Point(15, 15), size=wx.Size(75, 23), style=0)
+                               parent=self, pos=wx.Point(15, 15), size=wx.Size(75, 23), style=0)
 
         self.btnCancel = wx.Button(id=wx.ID_CANCEL, label=_('Cancel'),
-              name='btnCancel', parent=self, pos=wx.Point(105, 15),
-              size=wx.Size(75, 23), style=0)
+                                   name='btnCancel', parent=self, pos=wx.Point(105, 15),
+                                   size=wx.Size(75, 23), style=0)
 
         self.btnFileDlg = wx.Button(id=wxID_RESOURCESELECTDLGBTNFILEDLG,
-              label=_('File Dialog...'), name='btnFileDlg', parent=self,
-              pos=wx.Point(195, 15), size=wx.Size(75, 23), style=0)
+                                    label=_('File Dialog...'), name='btnFileDlg', parent=self,
+                                    pos=wx.Point(195, 15), size=wx.Size(75, 23), style=0)
         self.btnFileDlg.Bind(wx.EVT_BUTTON, self.OnBtnfiledlgButton,
-              id=wxID_RESOURCESELECTDLGBTNFILEDLG)
+                             id=wxID_RESOURCESELECTDLGBTNFILEDLG)
 
         self._init_sizers()
 
     def __init__(self, parent, editor, resourceFilename, imageName='',
-          onlyIcons=False):
+                 onlyIcons=False):
         self._init_ctrls(parent)
 
         from Explorers import Explorer
@@ -84,12 +94,12 @@ class ResourceSelectDlg(wx.Dialog):
         model.transport = Explorer.openEx(resourceFilename)
         model.load(notify=False)
         self.resources = PyResourceImagesSelectionView(self, model,
-              listStyle=wx.LC_SMALL_ICON | wx.LC_ALIGN_TOP,
-              imgLstStyle=wx.IMAGE_LIST_SMALL)
+                                                       listStyle=wx.LC_SMALL_ICON | wx.LC_ALIGN_TOP,
+                                                       imgLstStyle=wx.IMAGE_LIST_SMALL)
         self.resources.onlyIcons = onlyIcons
 
         self.boxSizerMain.Prepend(self.resources, 1,
-                                  wx.LEFT|wx.RIGHT|wx.TOP|wx.GROW, 15)
+                                  wx.LEFT | wx.RIGHT | wx.TOP | wx.GROW, 15)
         self.resources.refreshCtrl()
 
         if imageName:
@@ -110,21 +120,15 @@ class ResourceSelectDlg(wx.Dialog):
         self.EndModal(wx.ID_YES)
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-import os
-from io import StringIO
-
-import Preferences, Utils
-
-from Views import EditorViews
-from Models import EditorHelper, Controllers, PythonEditorModels, PythonControllers
 
 class PyResourceModuleExec:
     def __init__(self, pyResImgSrc):
         self.imageFunctions = {}
-        src = Utils.toUnixEOLMode(pyResImgSrc)+'\n\n'
+        src = Utils.toUnixEOLMode(pyResImgSrc) + '\n\n'
         exec(src, self.imageFunctions)
+
 
 class PyResourceArtProvider(wx.ArtProvider):
     def __init__(self, pyResModExec):
@@ -134,10 +138,12 @@ class PyResourceArtProvider(wx.ArtProvider):
     def CreateBitmap(self, artid, client, size):
         return self.imageFunctions[artid]()
 
+
 extTypeMap = {'.bmp': wx.BITMAP_TYPE_BMP,
               '.gif': wx.BITMAP_TYPE_GIF,
               '.jpg': wx.BITMAP_TYPE_JPEG,
               '.png': wx.BITMAP_TYPE_PNG}
+
 
 class PyResourceImagesView(EditorViews.ListCtrlView):
     viewName = 'Images'
@@ -153,15 +159,15 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
     onlyIcons = False
 
     def __init__(self, parent, model, listStyle=wx.LC_ICON | wx.LC_ALIGN_TOP,
-                                      imgLstStyle=wx.IMAGE_LIST_NORMAL):
+                 imgLstStyle=wx.IMAGE_LIST_NORMAL):
         EditorViews.ListCtrlView.__init__(self, parent, model, listStyle,
-          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''), 
-#           ('Move up', self.OnMoveUp, self.moveUpBmp, ''), 
-#           ('Move down', self.OnMoveDown, self.moveDownBmp, ''), 
-#           ('Delete image', self.OnDeleteImage, self.deleteBmp, ''), 
-##           ('Add image', self.OnAddImage, '-', ''),
-#           ('Export image', self.OnExportImage, '-', ''), 
-           ), 0)
+                                          ((_('Goto line'), self.OnGoto, self.gotoLineBmp, ''),
+                                           #           ('Move up', self.OnMoveUp, self.moveUpBmp, ''),
+                                           #           ('Move down', self.OnMoveDown, self.moveDownBmp, ''),
+                                           #           ('Delete image', self.OnDeleteImage, self.deleteBmp, ''),
+                                           ##           ('Add image', self.OnAddImage, '-', ''),
+                                           #           ('Export image', self.OnExportImage, '-', ''),
+                                           ), 0)
 
         self.images = wx.ImageList(*self.imageSize)
         self.AssignImageList(self.images, imgLstStyle)
@@ -183,23 +189,27 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
         wx.ArtProvider.PushProvider(artProv)
         try:
             m = self.model.getModule()
-            self.cataloged = ('catalog' in m.globals) and ('index' in m.globals)
+            self.cataloged = (
+                'catalog' in m.globals) and (
+                'index' in m.globals)
             self.eol = m.eol
             for f in m.function_order:
                 if f.startswith('get') and f.endswith('Data'):
                     name = f[3:-4]
-                    iconFunction = 'get%sIcon'%name in m.functions
+                    iconFunction = 'get%sIcon' % name in m.functions
                     if self.onlyIcons and not iconFunction:
                         continue
-                    bmpFunctionStart = m.functions['get%sBitmap'%name].start
-                    firstDataLine = m.source[m.functions['get%sData'%name].start]
+                    bmpFunctionStart = m.functions['get%sBitmap' % name].start
+                    firstDataLine = m.source[m.functions['get%sData' % name].start]
                     compressed = firstDataLine.strip().startswith('return zlib.decompress')
-                    bmp = wx.ArtProvider.GetBitmap('get%sBitmap'%name, size=self.imageSize)
+                    bmp = wx.ArtProvider.GetBitmap(
+                        'get%sBitmap' %
+                        name, size=self.imageSize)
                     idx = self.images.Add(bmp)
                     self.InsertImageStringItem(idx, name, idx)
                     self.imageSrcInfo.append(
                         (name, (m.functions[f].start, bmpFunctionStart),
-                         compressed, iconFunction) )
+                         compressed, iconFunction))
         finally:
             wx.ArtProvider.PopProvider()
 
@@ -208,45 +218,46 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
             srcView = self.model.getSourceView()
             srcView.focus()
             lineNo = self.imageSrcInfo[self.selected][1][0]
-            srcView.gotoLine(lineNo-1)
+            srcView.gotoLine(lineNo - 1)
 
-##    def OnAddImage(self, event):
+# def OnAddImage(self, event):
 ##        from Explorers.Explorer import openEx
 ##        fn = self.model.editor.openFileDlg(filter='*.*', curdir='.')
-##        if fn.find('://') != -1:
+# if fn.find('://') != -1:
 ##            fn = fn.split('://', 1)[1]
-##        ConvertImgToPy
-        
+# ConvertImgToPy
+
 ##        dlg =wx.DirDialog(self.model.editor)
-##        try:
-##            if dlg.ShowModal() != wx.ID_OK:
-##                return
+# try:
+# if dlg.ShowModal() != wx.ID_OK:
+# return
 ##            dir = dlg.GetPath()
 ##            res = []
 ##            os.path.walk(dir, visitor, res)
-##        finally:
-##            dlg.Destroy()
+# finally:
+# dlg.Destroy()
 ##
-##def visitor(files, dirname, names):
-##    for name in names:
+# def visitor(files, dirname, names):
+# for name in names:
 ##        filename = os.path.join(dirname, name)
-##        if os.path.isfile(filename):
-##            files.append(filename)
+# if os.path.isfile(filename):
+# files.append(filename)
 
     def OnExportImage(self, event):
         if self.selected != -1:
             name = self.imageSrcInfo[self.selected][0]
-            dlg = wx.FileDialog(self, 'Save image', '.', name+'.png', 
-                  ';'.join(['*%s'%e for e in extTypeMap]), wx.SAVE)
+            dlg = wx.FileDialog(self, 'Save image', '.', name + '.png',
+                                ';'.join(['*%s' % e for e in extTypeMap]), wx.SAVE)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     path = dlg.GetPath()
                     ext = os.path.splitext(path)[-1].lower()
                     if ext in extTypeMap:
-                        func = self.functions.imageFunctions['get%sBitmap'%name]()
+                        func = self.functions.imageFunctions['get%sBitmap' % name](
+                        )
                         func.SaveFile(path, extTypeMap[ext])
                     else:
-                        wx.LogError(_('Unsupported image type: %s')%ext)
+                        wx.LogError(_('Unsupported image type: %s') % ext)
             finally:
                 dlg.Destroy()
 
@@ -258,14 +269,16 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
 
     def OnDeleteImage(self, event):
         pass
-            
+
 
 class PyResourceImagesSelectionView(PyResourceImagesView):
     docked = False
     imageSize = (16, 16)
+
     def OnGoto(self, event):
         if self.selected != -1:
             self.GetParent().EndModal(wx.ID_OK)
+
 
 class PyResourceBitmapModel(PythonEditorModels.ModuleModel):
     modelIdentifier = 'PyImgResource'
@@ -277,26 +290,30 @@ class PyResourceBitmapModel(PythonEditorModels.ModuleModel):
         crunched = StringIO(crunch_data(data, subImage['zip'])).readlines()
         if subImage['zip']:
             crunched[-1].rstrip()
-            crunched[-1] += ' )'+subImage['eol']
+            crunched[-1] += ' )' + subImage['eol']
         srcLines = self.getDataAsLines()
-        srcLines[subImage['start']:subImage['end']] = crunched + [subImage['eol']]
+        srcLines[subImage['start']:subImage['end']
+                 ] = crunched + [subImage['eol']]
 
         self.setDataFromLines(srcLines)
         self.modified = True
 
         subImage['data'] = data
 
+
 class PyResourceBitmapController(PythonControllers.ModuleController):
     Model = PyResourceBitmapModel
-    DefaultViews    = PythonControllers.ModuleController.DefaultViews + \
-                      [PyResourceImagesView]
+    DefaultViews = PythonControllers.ModuleController.DefaultViews + \
+        [PyResourceImagesView]
 
 
-validFuncChars = string.letters+string.digits+'_'
+validFuncChars = string.letters + string.digits + '_'
 funcCharMap = {'-': '_', '.': '_'}
+
+
 def fileNameToFunctionName(fn):
     res = []
-    if fn and fn[0] in string.letters+'_':
+    if fn and fn[0] in string.letters + '_':
         res.append(fn[0])
     for c in fn[1:]:
         if c not in validFuncChars:
@@ -306,23 +323,27 @@ def fileNameToFunctionName(fn):
             res.append(c)
     return ''.join(res)
 
+
 zopt = '-u '
+
+
 def ConvertImgToPy(imgPath, editor):
-    funcName = fileNameToFunctionName(os.path.basename(os.path.splitext(imgPath)[0]))
-    pyResPath, ok = editor.saveAsDlg(funcName+'_img.py')
+    funcName = fileNameToFunctionName(
+        os.path.basename(os.path.splitext(imgPath)[0]))
+    pyResPath, ok = editor.saveAsDlg(funcName + '_img.py')
     if ok:
         if pyResPath.find('://') != -1:
             pyResPath = pyResPath.split('://', 1)[1]
 
         # snip script usage, leave only options
-        docs = img2py.__doc__[img2py.__doc__.find('Options:')+11:]
+        docs = img2py.__doc__[img2py.__doc__.find('Options:') + 11:]
 
-        cmdLine = zopt+'-n %s'%(funcName)
+        cmdLine = zopt + '-n %s' % (funcName)
         if os.path.exists(pyResPath):
             cmdLine = '-a ' + cmdLine
 
         dlg = wx.TextEntryDialog(editor,
-              _('Options:\n\n%s\n\nEdit options string:')%docs, 'img2py', cmdLine)
+                                 _('Options:\n\n%s\n\nEdit options string:') % docs, 'img2py', cmdLine)
         try:
             if dlg.ShowModal() != wx.ID_OK:
                 return
@@ -341,22 +362,25 @@ def ConvertImgToPy(imgPath, editor):
             sys.argv[0] = tmp
 
         import sourceconst
-        header = (sourceconst.defSig%{'modelIdent':'PyImgResource', 'main':''}).strip()
+        header = (
+            sourceconst.defSig % {
+                'modelIdent': 'PyImgResource',
+                'main': ''}).strip()
         if os.path.exists(pyResPath):
             src = open(pyResPath, 'r').readlines()
             if not (src and src[0].startswith(header)):
-                src.insert(0, header+'\n')
+                src.insert(0, header + '\n')
                 src.insert(1, '\n')
                 open(pyResPath, 'w').writelines(src)
-    
+
             m, c = editor.openOrGotoModule(pyResPath)
             c.OnReload(None)
         else:
-            wx.LogWarning(_('Resource module not found. img2py failed to create the module'))
+            wx.LogWarning(
+                _('Resource module not found. img2py failed to create the module'))
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-import Plugins
 
 Plugins.registerFileType(PyResourceBitmapController, addToNew=False)
 

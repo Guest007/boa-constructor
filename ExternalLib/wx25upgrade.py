@@ -1,5 +1,5 @@
 # -*- coding: iso-8859-1 -*-#
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        wx25upgrade.py
 # Purpose:     Upgrade code from 2.4 style to 2.5
 #
@@ -11,7 +11,7 @@
 #
 # Created:     Feb 2005
 # RCS-ID:      $Id$
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
 # WARNING - changes files, take care!
 #
@@ -25,8 +25,8 @@
 # self.importNames, for import statements
 # self.specialNames, for classes, e.g. 'GenButton': 'wx.lib.buttons.GenButton'
 # self.specialNames2, for other names, e.g. 'wxGrid.wxGrid': 'wx.grid.Grid.wxGrid'
-# 
-# This file currently munges the 
+#
+# This file currently munges the
 # - EVT_xxx change from wxPython 2.4 style to 2.5/2.6 style
 # - .Append for menu, changes 'helpString' to 'help', 'item' to 'text' and
 #   wxITEM to wx.ITEM
@@ -49,9 +49,11 @@
 # A lot is converted however manual inspection and correction of code
 # IS STILL REQUIRED!
 
-from .pyparsing import *
-import string
 import copy
+import string
+
+from .pyparsing import *
+
 
 def lit(text):
     '''For when you want to return a literal value independent of the input'''
@@ -62,7 +64,9 @@ def lit(text):
 # parse action to remove quotation marks from quoted strings
 # used e.g. for customClasses
 # Thanks to Paul McGuire
-def stripQuotes(s,l,t):
+
+
+def stripQuotes(s, l, t):
     return t[0][1:-1]
 
 
@@ -90,11 +94,11 @@ class Upgrade:
                              "ColumnSorterMixin": "listmix.ColumnSorterMixin",
                              }
 
-        self.specialNames2 = {"wxInitAllImageHandlers" : "wx.InitAllImageHandlers",
-                              "wxIcon" : "wx.Icon",
-                              "wxBITMAP" : "wx.BITMAP",
-                              "wxBitmap" : "wx.Bitmap",
-                              "wxSize" : "wx.Size",
+        self.specialNames2 = {"wxInitAllImageHandlers": "wx.InitAllImageHandlers",
+                              "wxIcon": "wx.Icon",
+                              "wxBITMAP": "wx.BITMAP",
+                              "wxBitmap": "wx.Bitmap",
+                              "wxSize": "wx.Size",
                               "wxNullBitmap": "wx.NullBitmap",
                               "wxPoint": "wx.Point",
                               "wxNewId": "wx.NewId",
@@ -198,7 +202,7 @@ class Upgrade:
                               "wxALIGN_TOP": "wx.ALIGN_TOP",
                               "wxALIGN_BOTTOM": "wx.ALIGN_BOTTOM",
                               "wxALIGN_CENTER_VERTICAL": "wx.ALIGN_CENTER_VERTICAL",
-                              "wxALIGN_CENTER_HORIZONTAL": "wx.ALIGN_CENTER_HORIZONTAL",                             
+                              "wxALIGN_CENTER_HORIZONTAL": "wx.ALIGN_CENTER_HORIZONTAL",
                               }
 
         self.importNames = {"wx": "import wx",
@@ -226,19 +230,21 @@ class Upgrade:
         RBRACE = Suppress("}")
         LBRACK = Suppress("[")
         RBRACK = Suppress("]")
-        COLON  = Suppress(":")
+        COLON = Suppress(":")
 
-        ident = Word(alphas+"_",alphanums+"_")
-        uident = Word(string.ascii_uppercase+"_")        
-        qualIdent = Word(alphas+"_",alphanums+"_.")
-        qualIdent2 = Word(alphas+"_",alphanums+"_.()")
+        ident = Word(alphas + "_", alphanums + "_")
+        uident = Word(string.ascii_uppercase + "_")
+        qualIdent = Word(alphas + "_", alphanums + "_.")
+        qualIdent2 = Word(alphas + "_", alphanums + "_.()")
         intOnly = Word(nums)
-        uident2 = Word(string.ascii_uppercase+"_",string.ascii_uppercase+"_123456789")
-        
+        uident2 = Word(
+            string.ascii_uppercase + "_",
+            string.ascii_uppercase + "_123456789")
+
         wxExp = Suppress("wx")
-        flagExp = (wxExp+uident2)
+        flagExp = (wxExp + uident2)
         flags = delimitedList(flagExp, delim="|")
-        
+
         # 2 Parameter evt macros.
         evt_P2 = Literal("EVT_") + uident + LPAREN +\
             qualIdent + COMMA +\
@@ -274,8 +280,8 @@ class Upgrade:
 
         # wxFont
         wxfont = Suppress("wxFont") + LPAREN + \
-                        intOnly + COMMA + ident + COMMA + ident + COMMA + \
-                        ident
+            intOnly + COMMA + ident + COMMA + ident + COMMA + \
+            ident
         wxfont.setParseAction(self.wxfontAction)
 
         # SetStatusText keyword args
@@ -289,19 +295,19 @@ class Upgrade:
         addSpacer.setParseAction(self.addSpacerAction)
 
         # Flags
-        flags = OneOrMore( oneOf( "flag style orient kind" ) + "=" ) + flags
+        flags = OneOrMore(oneOf("flag style orient kind") + "=") + flags
         flags.setParseAction(self.flagsAction)
 
         # map(lambda... to wx.NewId() for etc
         RANGE = Suppress("range") + Suppress("(")
         COL = Suppress(":")
         repId1 = Suppress("map(lambda") + qualIdent2 + COL \
-                + qualIdent2 + COMMA + RANGE + intOnly + RPAREN + RPAREN
+            + qualIdent2 + COMMA + RANGE + intOnly + RPAREN + RPAREN
         repId1.setParseAction(self.repId1Action)
-        
+
         # import
-        imp = Literal("from wxPython.") + delimitedList(ident,".",combine=True)\
-                + Literal("import") + restOfLine
+        imp = Literal("from wxPython.") + delimitedList(ident, ".", combine=True)\
+            + Literal("import") + restOfLine
         imp.setParseAction(self.impAction)
 
         # Specific name space changes
@@ -311,16 +317,17 @@ class Upgrade:
         # wx to wx. e.g. wxFrame1(wxFrame)to wxFrame1(wx.Frame)
         repWX = Literal("(") + Literal("wx") + ident + ")"
         repWX.setParseAction(self.repWXAction)
-        
+
         # wx to wx. e.g. self.panel1 = wxPanel to self.Panel1 = wx.Panel
-        repWX2 = Literal("=") + Literal("wx") + ident + "(" 
+        repWX2 = Literal("=") + Literal("wx") + ident + "("
         repWX2.setParseAction(self.repWX2Action)
-        
+
         # init wx to wx.
         repWX3 = Literal("wx") + ident + ".__"
         repWX3.setParseAction(self.repWX3Action)
 
-        # Multiple class inheritance, e.g. (wxListCtrl, wxListCtrlAutoWidthMixin)
+        # Multiple class inheritance, e.g. (wxListCtrl,
+        # wxListCtrlAutoWidthMixin)
         repWX4 = Literal("(wx") + ident + COMMA + ident + RPAREN
         repWX4.setParseAction(self.repWX4Action)
 
@@ -331,29 +338,33 @@ class Upgrade:
         # false to False
         repFalse = Literal("false")
         repFalse.setParseAction(lit("False"))
-        
+
         # custom_classes
         # Special thanks to Paul McGuire
-        removeQuotes = copy.copy(quotedString).setParseAction(stripQuotes)        
+        removeQuotes = copy.copy(quotedString).setParseAction(stripQuotes)
         # Define expressions for the keys and values in the input list data - may
         # need to expand the allowed contents
         # of the delimitedList in dictVal, depending on occurrence of real numbers,
         # booleans, nested lists, etc.
         dictKey = quotedString
-        dictVal = Group( LBRACK + delimitedList( removeQuotes | intOnly ) + RBRACK )
+        dictVal = Group(
+            LBRACK +
+            delimitedList(
+                removeQuotes | intOnly) +
+            RBRACK)
         custClass = Literal("_custom_classes") + EQ + \
-                    LBRACE+ dictOf( dictKey, COLON + dictVal + Optional(COMMA)
-                        ).setResultsName("dictData") + RBRACE
+            LBRACE + dictOf(dictKey, COLON + dictVal + Optional(COMMA)
+                            ).setResultsName("dictData") + RBRACE
 
         custClass.setParseAction(self.custClassAction)
 
         self.grammar = evt_P2 | evt_P3 | append | wxfont\
             | setStatusText | addSpacer | flags | repId1 | imp\
             | repWXSpec | repWX | repWX2 | repWX3 | repWX4\
-            | repTrue | repFalse | custClass 
-             
+            | repTrue | repFalse | custClass
+
         if specialEventCode:
-            self.grammar ^= evt_P3a 
+            self.grammar ^= evt_P3a
 
     def evt_P2Action(self, s, l, t):
         ev, evname, win, fn = t
@@ -370,42 +381,42 @@ class Upgrade:
         ev, evname, win, id, fn = t
         return "%s.Bind(wx.%s%s, %s, id=%s)" % (win, ev, evname, fn, id)
 
-##    def appendAction(self, s, l, t):
-##        # tokens assumed to be in keyword, arg pairs in sequence
+# def appendAction(self, s, l, t):
+# tokens assumed to be in keyword, arg pairs in sequence
 ##        subs = {"helpString": "help", "item": "text"}
 ##        skipOne = False
 ##        arglist = []
-##        for i in range(0, len(t), 1):
-##            if skipOne == True:
+# for i in range(0, len(t), 1):
+# if skipOne == True:
 ##                skipOne = False
-##            else:
+# else:
 ##                kw, arg = t[i:i+2]
-##                if arg == 'u':
+# if arg == 'u':
 ##                    arg = 'u' + t[i+2:i+3][0]
 ##                    skipOne = True
-##                try:
+# try:
 ##                    kw = subs[kw]
-##                except:
-##                    pass
-##                if kw == "kind":
+# except:
+# pass
+# if kw == "kind":
 ##                    arg = arg.replace("wx", "wx.")
 ##                arglist.append("%s=%s" % (kw, arg))
-##        return ".Append(" + string.join(arglist, ", ") + ")"
+# return ".Append(" + string.join(arglist, ", ") + ")"
     def appendAction(self, s, l, t):
         # tokens assumed to be in keyword, arg pairs in sequence
         subs = {"helpString": "help", "item": "text"}
         arglist = []
         i = 0
         while i < len(t):
-            kw, arg = t[i:i+2]
+            kw, arg = t[i:i + 2]
             if arg == 'u':
-                arg = 'u' + t[i+2:i+3][0]
-                i = i+3
+                arg = 'u' + t[i + 2:i + 3][0]
+                i = i + 3
             else:
-                i = i+2
+                i = i + 2
             try:
                 kw = subs[kw]
-            except:
+            except BaseException:
                 pass
             if kw == "kind":
                 arg = arg.replace("wx", "wx.")
@@ -417,7 +428,7 @@ class Upgrade:
         b = b.replace("wx", "wx.")
         c = c.replace("wx", "wx.")
         d = d.replace("wx", "wx.")
-        return "wx.Font("+a+","+b+","+c+","+d
+        return "wx.Font(" + a + "," + b + "," + c + "," + d
 
     def setStatusTextAction(self, s, l, t):
         a, b = t
@@ -425,14 +436,14 @@ class Upgrade:
 
     def addSpacerAction(self, s, l, t):
         a, b = t
-        return ".AddSpacer(wx.Size("+a+","+b+")"
-    
+        return ".AddSpacer(wx.Size(" + a + "," + b + ")"
+
     def flagsAction(self, s, l, t):
         return t[0] + t[1] + "wx." + string.join(t[2:], " | wx.")
 
     def repId1Action(self, s, l, t):
         a, b, c = t
-        return "[wx.NewId() for "+a+" in range("+c+")]"
+        return "[wx.NewId() for " + a + " in range(" + c + ")]"
 
     def impAction(self, s, l, t):
         a, b, c, d = t
@@ -440,7 +451,7 @@ class Upgrade:
             newImport = self.importNames[b]
             return newImport
         except KeyError:
-            return a+b+" "+c +d
+            return a + b + " " + c + d
 
     def repNamespace(self, s, l, t):
         return self.specialNames2[t[0]]
@@ -452,44 +463,44 @@ class Upgrade:
             a, b, c, d = t
             try:
                 newWX = self.specialNames[c]
-                return "("+newWX+d
+                return "(" + newWX + d
             except KeyError:
-                return "(wx."+c+d
+                return "(wx." + c + d
 
     def repWX2Action(self, s, l, t):
         a, b, c, d = t
         try:
             newWX = self.specialNames[c]
-            return a +newWX +d
+            return a + newWX + d
         except KeyError:
-            return a +" wx." +c +d
+            return a + " wx." + c + d
 
     def repWX3Action(self, s, l, t):
         a, b, c = t
         try:
             newWX = self.specialNames[b]
-            return newWX +c
+            return newWX + c
         except KeyError:
-            return "wx." +b +c
+            return "wx." + b + c
 
     def repWX4Action(self, s, l, t):
         a, b, c = t
         try:
             b = self.specialNames[b]
         except KeyError:
-            b = "wx."+b
+            b = "wx." + b
         try:
             c = c.replace("wx", "")
             c = self.specialNames[c]
         except KeyError:
-            c = "wx."+c
-        return "("+b +", " +c +")"
+            c = "wx." + c
+        return "(" + b + ", " + c + ")"
 
     def custClassAction(self, s, l, t):
         res = "_custom_classes" + " = {"
         dictTokens = t.dictData
         for k in list(dictTokens.keys()):
-            res = res + k.replace("wx", "wx.")  + ": "
+            res = res + k.replace("wx", "wx.") + ": "
             res = res + str(dictTokens[k])
             res = res + ","
         res = res + "}"
@@ -498,6 +509,7 @@ class Upgrade:
     def upgrade(self, intext):
         '''Upgrade the text from wx2.4 style to wx2.5/2.6'''
         return self.grammar.transformString(intext)
+
 
 if __name__ == "__main__":
     import sys

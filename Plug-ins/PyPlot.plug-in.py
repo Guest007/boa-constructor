@@ -1,39 +1,44 @@
 import wx
 
-import Preferences, Utils, Plugins
+import Plugins
+import Preferences
+import Utils
 from Companions import BaseCompanions
 from PropEdit import PropertyEditors
 
 try:
     import wx.lib.plot
 except ImportError:
-    raise Plugins.SkipPlugin('PyPlot can not be imported (it probably requires Numeric)')
+    raise Plugins.SkipPlugin(
+        'PyPlot can not be imported (it probably requires Numeric)')
+
 
 class PlotCanvasDTC(BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
-        BaseCompanions.WindowDTC.__init__(self, name, designer, parent, ctrlClass)
+        BaseCompanions.WindowDTC.__init__(
+            self, name, designer, parent, ctrlClass)
 
     def writeImports(self):
         return 'import wx.lib.plot'
 
     def onlyPersistProps(self):
         return BaseCompanions.WindowDTC.onlyPersistProps(self) + \
-               ['EnableZoom']
+            ['EnableZoom']
 
     def applyRunTime(self):
         return BaseCompanions.WindowDTC.applyRunTime(self) + \
-               ['EnableZoom']
+            ['EnableZoom']
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-import Plugins
 
-Plugins.registerComponent('Library', wx.lib.plot.PlotCanvas, 
+Plugins.registerComponent('Library', wx.lib.plot.PlotCanvas,
                           'wx.lib.plot.PlotCanvas', PlotCanvasDTC)
+
 
 def getPlotCanvasData():
     return \
-"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
+        "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
 \x00\x00\x00\xe0w=\xf8\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\
 \x00\xc8IDATx\x9c\xb5VY\x0e\x85 \x10k\x89\xf7\xbf\x13'\xeb\xfbq\xe1\x01\xb3\
 \xb80\x891\x08\xb6\xa53\x8cR\x92\xb00\xca*\xe0Z\xeb:\x82\x03\x1c\x00\xb6\xcc\
@@ -45,4 +50,7 @@ h\xd5\xf7\xbdi6\xbeM\x10\xf5\xa5\xcc\x0eS\xed\x1a\x98\xf7\xaaO\t\x9e\xe6\xe3\
 $h?s_FY\t\x0e\x00\\\xfd\xdb\xf2\x03D\x18iL\x82$\x10\xc0\x00\x00\x00\x00IEND\
 \xaeB`\x82"
 
-Preferences.IS.registerImage('Images/Palette/wx.lib.plot.PlotCanvas.png', getPlotCanvasData())
+
+Preferences.IS.registerImage(
+    'Images/Palette/wx.lib.plot.PlotCanvas.png',
+    getPlotCanvasData())

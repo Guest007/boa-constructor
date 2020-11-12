@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        Explorer.py
 # Purpose:     Controls to explore and initialise different data sources
 #
@@ -8,28 +8,33 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
-print('importing Explorers')
-
+import fnmatch
+import glob
+import os
+import sys
+import time
 from os import path
-import os, sys
-import time, glob, fnmatch
 from types import ClassType
 
 import wx
 
-import Preferences, Utils
+import Preferences
+import Utils
+from Models import EditorHelper
 from Preferences import IS
 from Utils import _
 
-from Models import EditorHelper
-
 from . import ExplorerNodes
-from .ExplorerNodes import TransportError, TransportLoadError, TransportSaveError
-from .ExplorerNodes import TransportCategoryError
+from .ExplorerNodes import (TransportCategoryError, TransportError,
+                            TransportLoadError, TransportSaveError)
 
-#---Explorer utility functions--------------------------------------------------
+print('importing Explorers')
+
+
+# ---Explorer utility functions-------------------------------------------
+
 
 def makeCategoryEx(protocol, name='', struct=None):
     """ """
@@ -48,7 +53,10 @@ def makeCategoryEx(protocol, name='', struct=None):
 
             return name
 
-    raise TransportCategoryError(_('No category found for protocol %s')%protocol)
+    raise TransportCategoryError(
+        _('No category found for protocol %s') %
+        protocol)
+
 
 def openEx(filename, transports=None):
     """ Returns a transport node for the given uri """
@@ -57,24 +65,27 @@ def openEx(filename, transports=None):
         transports = ExplorerNodes.all_transports
     return getTransport(prot, category, respath, transports)
 
-def listdirEx(filepath, extfilter = ''):
+
+def listdirEx(filepath, extfilter=''):
     """ Returns a list of transport nodes for given folderish filepath """
     return [n.treename for n in openEx(filepath).openList()
-            if not extfilter or \
-               os.path.splitext(n.treename)[1].lower() == extfilter]
+            if not extfilter or
+            os.path.splitext(n.treename)[1].lower() == extfilter]
 
 # XXX Handle compound URIs by splitting on the first 2 :// and calling
 # XXX splitURI again recursively ??
+
+
 def splitURI(filename):
     protsplit = filename.split('://')
     # check FS (No prot defaults to 'file')
     if len(protsplit) == 1:
-        return 'file', '', filename, 'file://'+filename
+        return 'file', '', filename, 'file://' + filename
     else:
         itemLen = len(protsplit)
         if (protsplit[0], itemLen) in ExplorerNodes.uriSplitReg:
-            return ExplorerNodes.uriSplitReg[(protsplit[0], itemLen)]\
-                   (*([filename]+protsplit[1:]))
+            return ExplorerNodes.uriSplitReg[(protsplit[0], itemLen)](
+                *([filename] + protsplit[1:]))
 
         else:
             prot, filepath = protsplit
@@ -82,16 +93,19 @@ def splitURI(filename):
             if idx == -1:
                 raise TransportCategoryError(_('Category not found'), filepath)
             else:
-                category, respath = filepath[:idx], filepath[idx+1:]
+                category, respath = filepath[:idx], filepath[idx + 1:]
             return prot, category, respath, filename
+
 
 def getTransport(prot, category, respath, transports):
     if prot in ExplorerNodes.transportFindReg:
-        return ExplorerNodes.transportFindReg[prot](category, respath, transports)
+        return ExplorerNodes.transportFindReg[prot](
+            category, respath, transports)
     elif category:
         return findCatExplorerNode(prot, category, respath, transports)
     else:
-        raise TransportError(_('Unhandled transport'), (prot, category, respath))
+        raise TransportError(_('Unhandled transport'),
+                             (prot, category, respath))
 
 
 def findCatExplorerNode(prot, category, respath, transports):
@@ -101,18 +115,26 @@ def findCatExplorerNode(prot, category, respath, transports):
             for itm in itms:
                 if itm.name == category or itm.treename == category:
                     # connect if not a stateless protocol
-                    #if itm.connection:
+                    # if itm.connection:
                     #    itm.openList()
                     return itm.getNodeFromPath(respath)
-    raise TransportError(_('Catalog transport could not be found: %s || %s')%(category, respath))
+    raise TransportError(
+        _('Catalog transport could not be found: %s || %s') %
+        (category, respath))
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 (wxID_PFE, wxID_PFT, wxID_PFL) = Utils.wxNewIds(3)
 
+
 class BaseExplorerTree(wx.TreeCtrl):
     def __init__(self, parent, images):
-        wx.TreeCtrl.__init__(self, parent, wxID_PFT, style=wx.TR_HAS_BUTTONS | wx.CLIP_CHILDREN)#|wxNO_BORDER)
+        wx.TreeCtrl.__init__(
+            self,
+            parent,
+            wxID_PFT,
+            style=wx.TR_HAS_BUTTONS | wx.CLIP_CHILDREN)  # |wxNO_BORDER)
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnOpen, id=wxID_PFT)
         self.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.OnOpened, id=wxID_PFT)
         self.Bind(wx.EVT_TREE_ITEM_COLLAPSED, self.OnClose, id=wxID_PFT)
@@ -148,7 +170,7 @@ class BaseExplorerTree(wx.TreeCtrl):
     def getChildNamed(self, node, name):
         if not node.IsOk():
             return None
-        
+
         child, cookie = self.GetFirstChild(node)
 
         while child.IsOk() and self.GetItemText(child) != name:
@@ -160,7 +182,8 @@ class BaseExplorerTree(wx.TreeCtrl):
 
     def OnOpen(self, event):
         item = event.GetItem()
-        if self.IsExpanded(item): return
+        if self.IsExpanded(item):
+            return
         data = self.GetPyData(item)
         hasFolders = True
         if data:
@@ -176,7 +199,7 @@ class BaseExplorerTree(wx.TreeCtrl):
                     if itm.isFolderish():
                         hasFolders = True
                         new = self.AppendItem(item, itm.treename or itm.name,
-                              itm.imgIdx, -1, wx.TreeItemData(itm))
+                                              itm.imgIdx, -1, wx.TreeItemData(itm))
                         self.SetItemHasChildren(new, True)
                         if itm.bold:
                             self.SetItemBold(new, True)
@@ -187,12 +210,13 @@ class BaseExplorerTree(wx.TreeCtrl):
             finally:
                 wx.EndBusyCursor()
 
-        self.SetItemHasChildren(item, True)#hasFolders)
+        self.SetItemHasChildren(item, True)  # hasFolders)
 
     def OnClose(self, event):
         item = event.GetItem()
         data = self.GetPyData(item)
         data.closeList()
+
 
 def importTransport(moduleName):
     try:
@@ -200,7 +224,7 @@ def importTransport(moduleName):
     except ImportError as error:
         if Preferences.pluginErrorHandling == 'raise':
             raise
-        wx.LogWarning(_('%s not installed: %s') %(moduleName, str(error)))
+        wx.LogWarning(_('%s not installed: %s') % (moduleName, str(error)))
         ExplorerNodes.failedModules[moduleName] = str(error)
         return True
     else:
@@ -219,16 +243,19 @@ class ExplorerStore:
         self.clipboards = {'global': ExplorerNodes.GlobalClipper()}
         for Clss, info in list(ExplorerNodes.explorerNodeReg.items()):
             Clip = info['clipboard']
-            if type(Clip) is ClassType:
-                self.clipboards[Clss.protocol] = Clip(self.clipboards['global'])
+            if isinstance(Clip, ClassType):
+                self.clipboards[Clss.protocol] = Clip(
+                    self.clipboards['global'])
 
         # Root node and transports
         self.boaRoot = ExplorerNodes.RootNode('Boa Constructor')
 
         self.openEditorFiles = \
-            ExplorerNodes.nodeRegByProt['boa.open-models'](editor, self.boaRoot)
+            ExplorerNodes.nodeRegByProt['boa.open-models'](
+                editor, self.boaRoot)
 
-        self.transports = ExplorerNodes.ContainerNode('Transport', EditorHelper.imgFolder)
+        self.transports = ExplorerNodes.ContainerNode(
+            'Transport', EditorHelper.imgFolder)
         self.transports.entriesByProt = {}
         self.transports.bold = True
 
@@ -237,23 +264,25 @@ class ExplorerStore:
             self._ref_all_transp = True
 
         self.recentFiles = ExplorerNodes.MRUCatNode(self.clipboards, conf, None,
-            self.transports, self)
+                                                    self.transports, self)
 
         self.bookmarks = ExplorerNodes.BookmarksCatNode(self.clipboards, conf,
-            None, self.transports, self)
+                                                        None, self.transports, self)
 
         self.pluginNodes = [
-          ExplorerNodes.nodeRegByProt[prot](self.clipboards['file'], None, self.bookmarks)
-          for prot in ExplorerNodes.explorerRootNodesReg]
+            ExplorerNodes.nodeRegByProt[prot](
+                self.clipboards['file'], None, self.bookmarks)
+            for prot in ExplorerNodes.explorerRootNodesReg]
 
         self.preferences = \
-              ExplorerNodes.nodeRegByProt['boa.prefs.group'](self.boaRoot)
+            ExplorerNodes.nodeRegByProt['boa.prefs.group'](self.boaRoot)
 
-        assert 'file' in self.clipboards, _('File system transport must be loaded')
+        assert 'file' in self.clipboards, _(
+            'File system transport must be loaded')
 
         # root level of the tree
         self.boaRoot.entries = [self.openEditorFiles, self.recentFiles, self.bookmarks,
-              self.transports] + self.pluginNodes + [self.preferences]
+                                self.transports] + self.pluginNodes + [self.preferences]
 
         # Populate transports with registered node categories
         # Protocol also has to be defined in the explorer section of the config
@@ -262,10 +291,11 @@ class ExplorerStore:
             for Clss in list(ExplorerNodes.explorerNodeReg.keys()):
                 if Clss.protocol == name:
                     Cat = ExplorerNodes.explorerNodeReg[Clss]['category']
-                    if not Cat: break
+                    if not Cat:
+                        break
 
                     Clip = ExplorerNodes.explorerNodeReg[Clss]['clipboard']
-                    if type(Clip) == type(''):
+                    if isinstance(Clip, type('')):
                         clip = self.clipboards[Clip]
                     elif Clss.protocol in self.clipboards:
                         clip = self.clipboards[Clss.protocol]
@@ -279,22 +309,22 @@ class ExplorerStore:
                             self.transports.entries.append(cat)
                             self.transports.entriesByProt[Cat.itemProtocol] = cat
                         except Exception as error:
-                            wx.LogWarning(_('Transport category %s not added: %s')\
-                                   %(Cat.defName, str(error)))
+                            wx.LogWarning(_('Transport category %s not added: %s')
+                                          % (Cat.defName, str(error)))
                     break
 
     def importExplorers(self, conf):
         """ Import names defined in the config files to register them """
         installTransports = ['Explorers.PrefsExplorer', 'Explorers.EditorExplorer'] +\
-              eval(conf.get('explorer', 'installedtransports'), {})
+            eval(conf.get('explorer', 'installedtransports'), {})
 
         warned = False
         for moduleName in installTransports:
             warned = warned | importTransport(moduleName)
         if warned:
             wx.LogWarning(_('One or more transports could not be loaded, if the problem '
-                         'is not rectifiable,\nconsider removing the transport under '
-                         'Preferences->Plug-ins->Transports. Click "Details"'))
+                            'is not rectifiable,\nconsider removing the transport under '
+                            'Preferences->Plug-ins->Transports. Click "Details"'))
 
     def initInstalledControllers(self, editor, list):
         """ Creates controllers for built-in, plugged-in and installed nodes
@@ -303,15 +333,15 @@ class ExplorerStore:
         controllers = {}
         links = []
         for instMod in ['Explorers.ExplorerNodes', 'PaletteMapping'] + \
-              ExplorerNodes.installedModules:
+                ExplorerNodes.installedModules:
             for Clss, info in list(ExplorerNodes.explorerNodeReg.items()):
                 if Clss.__module__ == instMod and info['controller']:
                     Ctrlr = info['controller']
-                    if type(Ctrlr) == type(''):
+                    if isinstance(Ctrlr, type('')):
                         links.append((Clss.protocol, Ctrlr))
                     else:
                         controllers[Clss.protocol] = Ctrlr(editor, list,
-                              editor.inspector, controllers)
+                                                           editor.inspector, controllers)
 
         for protocol, link in links:
             controllers[protocol] = controllers[link]
@@ -336,7 +366,7 @@ class ExplorerTree(BaseExplorerTree):
 
     def buildTree(self):
         rootItem = self.AddRoot('', EditorHelper.imgBoaLogo, -1,
-              wx.TreeItemData(self.store.boaRoot))
+                                wx.TreeItemData(self.store.boaRoot))
 
     def destroy(self):
         self.defaultBookmarkItem = None
@@ -351,13 +381,14 @@ class ExplorerTree(BaseExplorerTree):
         self.Expand(trtn)
 
         self.defaultBookmarkItem = self.getChildNamed(bktn,
-              self.store.bookmarks.getDefault())
+                                                      self.store.bookmarks.getDefault())
+
 
 class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
     def __init__(self, parent, filepath, pos=wx.DefaultPosition,
-          size=wx.DefaultSize, updateNotify=None, style=0, menuFunc=None):
+                 size=wx.DefaultSize, updateNotify=None, style=0, menuFunc=None):
         wx.ListCtrl.__init__(self, parent, wxID_PFL, pos=pos, size=size,
-              style=wx.LC_LIST | wx.LC_EDIT_LABELS | wx.CLIP_CHILDREN | style)
+                             style=wx.LC_LIST | wx.LC_EDIT_LABELS | wx.CLIP_CHILDREN | style)
         Utils.ListCtrlSelectionManagerMix.__init__(self)
 
         self.filepath = filepath
@@ -376,7 +407,8 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
         self.setLocalFilter()
 
     def destroy(self):
-        if self._destr: return
+        if self._destr:
+            return
 
         self.DeleteAllItems()
 
@@ -396,7 +428,7 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
     def getPopupMenu(self):
         return self.menuFunc()
 
-#---Selection-------------------------------------------------------------------
+# ---Selection-------------------------------------------------------------------
     def selectItemNamed(self, name):
         for idx in range(self.GetItemCount()):
             item = self.GetItem(idx)
@@ -431,7 +463,7 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
     def getSelection(self):
         # XXX Fix, this can return IndexErrors !!!
         if self.selected >= self.idxOffset:
-            return self.items[self.selected-self.idxOffset]
+            return self.items[self.selected - self.idxOffset]
         else:
             return None
 
@@ -443,7 +475,7 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
             return res
         for idx in range(self.idxOffset, self.GetItemCount()):
             if self.GetItemState(idx, wx.LIST_STATE_SELECTED):
-                res.append(idx-self.idxOffset)
+                res.append(idx - self.idxOffset)
         return res
 
     def setLocalFilter(self, filter='*'):
@@ -471,11 +503,14 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
         # Setup a blank list
         self.DeleteAllItems()
         self.items = []
-        self.InsertImageStringItem(self.GetItemCount(), '..', explNode.upImgIdx)
+        self.InsertImageStringItem(
+            self.GetItemCount(), '..', explNode.upImgIdx)
 
         wx.BeginBusyCursor()
-        try: items = explNode.openList()
-        finally: wx.EndBusyCursor()
+        try:
+            items = explNode.openList()
+        finally:
+            wx.EndBusyCursor()
 
         # Build a filtered, sorted list
         orderedList = []
@@ -486,8 +521,9 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
                     sortName = name.lower()
                 else:
                     sortName = name
-                orderedList.append( (not itm.isFolderish(), sortName, name, itm) )
-        if not explNode.vetoSort :
+                orderedList.append(
+                    (not itm.isFolderish(), sortName, name, itm))
+        if not explNode.vetoSort:
             orderedList.sort()
 
         # Populate the ctrl
@@ -522,26 +558,37 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
             self.selected = -1
         event.Skip()
 
+
 class ExplorerList(BaseExplorerList):
     pass
 
+
 class BaseExplorerSplitter(wx.SplitterWindow):
     def __init__(self, parent, modimages, editor, store,
-          XList=ExplorerList, XTree=ExplorerTree):
+                 XList=ExplorerList, XTree=ExplorerTree):
         wx.SplitterWindow.__init__(self, parent, wxID_PFE,
-              style=wx.CLIP_CHILDREN | wx.SP_LIVE_UPDATE)# | wxNO_3D | wxSP_3D)
+                                   style=wx.CLIP_CHILDREN | wx.SP_LIVE_UPDATE)  # | wxNO_3D | wxSP_3D)
 
         self.editor = editor
         self.store = store
         self.list, self.listContainer = self.createList(XList, '')
         self.modimages = modimages
 
-        self.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnOpen, id=self.list.GetId())
+        self.list.Bind(
+            wx.EVT_LIST_ITEM_ACTIVATED,
+            self.OnOpen,
+            id=self.list.GetId())
 
         self.list.Bind(wx.EVT_LEFT_DOWN, self.OnListClick)
 
-        self.list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelect, id=wxID_PFL)
-        self.list.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemDeselect, id=wxID_PFL)
+        self.list.Bind(
+            wx.EVT_LIST_ITEM_SELECTED,
+            self.OnItemSelect,
+            id=wxID_PFL)
+        self.list.Bind(
+            wx.EVT_LIST_ITEM_DESELECTED,
+            self.OnItemDeselect,
+            id=wxID_PFL)
 
         self.tree, self.treeContainer = self.createTree(XTree, modimages)
 
@@ -550,11 +597,14 @@ class BaseExplorerSplitter(wx.SplitterWindow):
 
         self.controllers = self.initInstalledControllers()
 
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit, id=wxID_PFL)
+        self.Bind(
+            wx.EVT_LIST_BEGIN_LABEL_EDIT,
+            self.OnBeginLabelEdit,
+            id=wxID_PFL)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndLabelEdit, id=wxID_PFL)
 
         self.SplitVertically(self.treeContainer, self.listContainer,
-              Preferences.exDefaultTreeWidth)
+                             Preferences.exDefaultTreeWidth)
 
         self.SetMinimumPaneSize(self.GetSashSize())
 
@@ -566,7 +616,7 @@ class BaseExplorerSplitter(wx.SplitterWindow):
 
     def createList(self, XList, name):
         list = XList(self, name, updateNotify=self.OnUpdateNotify,
-              menuFunc=self.getMenu)
+                     menuFunc=self.getMenu)
         return list, list
 
     def addTools(self, toolbar):
@@ -582,9 +632,9 @@ class BaseExplorerSplitter(wx.SplitterWindow):
                 elif bmp != '-':
                     if name[0] == '+':
                         # XXX Add toggle button
-                        name = name [1:]
+                        name = name[1:]
                     Utils.AddToolButtonBmpObject(self.editor, toolbar,
-                          IS.load(bmp), name, meth)
+                                                 IS.load(bmp), name, meth)
 
     def getMenu(self):
         if self.list.node and self.list.node.protocol in self.controllers:
@@ -618,11 +668,14 @@ class BaseExplorerSplitter(wx.SplitterWindow):
         title = self.tree.GetItemText(item)
         if data:
             imgs = data.images
-            if not imgs: imgs = self.modimages
+            if not imgs:
+                imgs = self.modimages
             self.list.refreshItems(imgs, data)
             title = data.getTitle()
 
-        self.editor.SetTitle('%s - Explorer - %s' % (self.editor.editorTitle, title))
+        self.editor.SetTitle(
+            '%s - Explorer - %s' %
+            (self.editor.editorTitle, title))
 
     def initInstalledControllers(self):
         return self.store.initInstalledControllers(self.editor, self.list)
@@ -664,24 +717,27 @@ class BaseExplorerSplitter(wx.SplitterWindow):
                     if treeItem.IsOk():
                         tree.SelectItem(treeItem)
             else:
-##                if event and event.AltDown() and \
-##                      self.controllers.has_key(list.node.protocol):
-##                    ctrlr = self.controllers[list.node.protocol]
-##                    if hasattr(ctrlr, 'OnInspectItem'):
-##                        event.Skip()
-##                        ctrlr.OnInspectItem(None)
-##                        return
-                item = list.items[list.selected-1]
+                # if event and event.AltDown() and \
+                # self.controllers.has_key(list.node.protocol):
+                ##                    ctrlr = self.controllers[list.node.protocol]
+                # if hasattr(ctrlr, 'OnInspectItem'):
+                # event.Skip()
+                # ctrlr.OnInspectItem(None)
+                # return
+                item = list.items[list.selected - 1]
                 if item.isFolderish():
                     tItm = tree.GetSelection()
                     if not tree.IsExpanded(tItm):
                         tree.itemCache = self.list.items
-                        try: tree.Expand(tItm)
-                        finally: tree.itemCache = None
+                        try:
+                            tree.Expand(tItm)
+                        finally:
+                            tree.itemCache = None
                     chid = tree.getChildNamed(tree.GetSelection(), name)
                     tree.SelectItem(chid)
                 else:
-                    list.openNodeInEditor(item, self.editor, self.store.recentFiles)
+                    list.openNodeInEditor(
+                        item, self.editor, self.store.recentFiles)
 
     def OnKeyPressed(self, event):
         key = event.GetKeyCode()
@@ -694,7 +750,7 @@ class BaseExplorerSplitter(wx.SplitterWindow):
         palette = self.editor.palette
 
         if palette.componentSB.selection and self.list.node and \
-              self.list.node.canAdd(palette.componentSB.prevPage.name):
+                self.list.node.canAdd(palette.componentSB.prevPage.name):
             name, desc, Compn = palette.componentSB.selection
             newName = self.list.node.newItem(name, Compn)
             try:
@@ -722,7 +778,7 @@ class BaseExplorerSplitter(wx.SplitterWindow):
             event.Skip()
             try:
                 self.list.node.renameItem(self.oldLabelVal, newText)
-            except:
+            except BaseException:
                 wx.CallAfter(self.list.refreshCurrent)
                 raise
             self.list.refreshCurrent()
@@ -740,7 +796,8 @@ class BaseExplorerSplitter(wx.SplitterWindow):
         self.list.OnItemSelect(event)
         if self.list.node:
             sel = self.list.getSelection()
-            if not sel: sel = self.list.node
+            if not sel:
+                sel = self.list.node
             self.editor.statusBar.setHint(sel.getDescription())
 
     def OnItemDeselect(self, event):
@@ -751,4 +808,6 @@ class BaseExplorerSplitter(wx.SplitterWindow):
     def OnSplitterDoubleClick(self, event):
         pass
 
-class ExplorerSplitter(BaseExplorerSplitter): pass
+
+class ExplorerSplitter(BaseExplorerSplitter):
+    pass

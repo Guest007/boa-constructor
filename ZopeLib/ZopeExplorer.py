@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ZopeExplorer.py
 # Purpose:
 #
@@ -8,29 +8,40 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2001 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing ZopeLib.ZopeExplorer')
-
-import os, urllib.request, urllib.parse, urllib.error, urllib.parse, time, socket
+# -----------------------------------------------------------------------------
+import os
+import socket
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from _thread import start_new_thread
 
 import wx
 
-from Explorers import ExplorerNodes
-from Models import EditorHelper, Controllers
-from ExternalLib import xmlrpclib, BasicAuthTransport
-from Preferences import IS
-import Utils, Preferences
-import Views, Views.SourceViews, Views.PySourceView
 import PaletteStore
+import Preferences
+import Utils
+import Views
+import Views.PySourceView
+import Views.SourceViews
+from Explorers import ExplorerNodes
+from Explorers.PrefsExplorer import SourceBasedPrefColNode
+from ExternalLib import BasicAuthTransport, xmlrpclib
+from Models import Controllers, EditorHelper
+from Preferences import IS
 
-from . import ZopeEditorModels, ZopeViews, Client, ExtMethDlg
-from .ZopeCompanions import ZopeConnection, ZopeCompanion, FolderZC
+from . import Client, ExtMethDlg, ZopeEditorModels, ZopeViews
+from .ZopeCompanions import FolderZC, ZopeCompanion, ZopeConnection
+
+print('importing ZopeLib.ZopeExplorer')
+
 
 # XXX Add owner property
 
 # XXX root attribute is no longer really necessary
 # XXX Improve '/' management ;)
+
 
 class ZopeEClip(ExplorerNodes.ExplorerClipboard):
     def __init__(self, globClip, props):
@@ -41,13 +52,16 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
         self.zc = ZopeConnection()
         self.zc.connect(props['host'], props['httpport'],
                         props['username'], props['passwd'])
+
     def callAndSetRef(self, objpath, method, nodes):
         names = [n.name for n in nodes]
-        mime, res = self.zc.call(objpath, method, ids = names)
+        mime, res = self.zc.call(objpath, method, ids=names)
         self.clipRef = mime.get('Set-Cookie').split('"')[1]
+
     def clipCut(self, node, nodes):
         ExplorerNodes.ExplorerClipboard.clipCut(self, node, nodes)
         self.callAndSetRef(node.resourcepath, 'manage_cutObjects', nodes)
+
     def clipCopy(self, node, nodes):
         ExplorerNodes.ExplorerClipboard.clipCopy(self, node, nodes)
         self.callAndSetRef(node.resourcepath, 'manage_copyObjects', nodes)
@@ -56,7 +70,7 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
 
     def clipPaste_ZopeEClip(self, node, nodes, mode):
         mime, res = self.zc.call(node.resourcepath,
-              'manage_pasteObjects', cb_copy_data = self.clipRef)
+                                 'manage_pasteObjects', cb_copy_data=self.clipRef)
 
     def clipPaste_FileSysExpClipboard(self, node, nodes, mode):
         for file in nodes:
@@ -67,6 +81,7 @@ class ZopeEClip(ExplorerNodes.ExplorerClipboard):
                                                    file.openList(), mode)
             else:
                 node.uploadFromFS(file)
+
 
 class ZopeCatNode(ExplorerNodes.CategoryNode):
     protocol = 'config.zope'
@@ -81,9 +96,10 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
                      'username': '',
                      'servicename': '',
                      'startuptimeout': 30}
+
     def __init__(self, globClip, config, parent, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'Zope', ('explorer', 'zope'),
-              None, config, None)
+                                            None, config, None)
         self.globClip = globClip
         self.bookmarks = bookmarks
 
@@ -91,7 +107,7 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
         # Zope clipboards should be global but unique on site / user
         clipboard = ZopeEClip(self.globClip, props)
         zin = ZopeItemNode('', props['path'], clipboard,
-            EditorHelper.imgZopeConnection, self, None, None, props, 'Folder')
+                           EditorHelper.imgZopeConnection, self, None, None, props, 'Folder')
         zin.category = name
         zin.treename = name
         zin.bookmarks = self.bookmarks
@@ -101,6 +117,7 @@ class ZopeCatNode(ExplorerNodes.CategoryNode):
         comp = ExplorerNodes.CategoryDictCompanion(catNode.treename, self)
         return comp
 
+
 class ZopeItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'zope'
     Model = ZopeEditorModels.ZopeBlankEditorModel
@@ -109,10 +126,11 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
                        ZopeViews.ZopeUndoView)
     itemsSubPath = ''
     connection = False
+
     def __init__(self, name, resourcepath, clipboard, imgIdx, parent, xmlrpcsvr,
-          root, properties, metatype):
+                 root, properties, metatype):
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
-              imgIdx, None, properties)
+                                            imgIdx, None, properties)
         self.metatype = metatype
         self.image = imgIdx
         self.root = None
@@ -123,7 +141,8 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         self.typ = None
 
     def getURI(self):
-        return '%s://%s/<%s>%s'%(self.protocol, self.category, self.metatype, self.getTitle())
+        return '%s://%s/<%s>%s' % (self.protocol,
+                                   self.category, self.metatype, self.getTitle())
 
     def buildUrl(self):
         path = urllib.parse.quote(self.resourcepath)
@@ -131,7 +150,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
             if path == '/':
                 path = '//'
             if path[0] != '/':
-                path = '/'+path
+                path = '/' + path
         else:
             path = '//'
         return '%(host)s:%(httpport)d' % self.properties + path
@@ -156,7 +175,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         itm = self.checkentry(id, metatype, tmppath)
         if itm.imgIdx == -1:
             itm.imgIdx = ZopeEditorModels.ZOAIcons.get(metatype,
-                         ZopeEditorModels.ZOAIcons['unknown'])
+                                                       ZopeEditorModels.ZOAIcons['unknown'])
         itm.category = self.category
         itm.bookmarks = self.bookmarks
         return itm
@@ -164,7 +183,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
     def checkentry(self, name, metatype, path):
         ZopeNodeClass = zopeClassMap.get(metatype, ZopeItemNode)
         return ZopeNodeClass(*(name, path, self.clipboard, -1, self,
-            self.server, self.root, self.properties, metatype))
+                               self.server, self.root, self.properties, metatype))
 
     def whole_name(self):
         return self.resourcepath
@@ -173,37 +192,37 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         if not url:
             url = self.buildUrl()
         return getServer(url, self.properties['username'],
-               self.properties['passwd'])
+                         self.properties['passwd'])
 
     def getParentResource(self):
         path, name = os.path.split(self.name)
         return self.getResource(os.path.dirname(self.buildUrl())), name
 
-    def openList(self, root = None):
-        url = self.buildUrl()+self.itemsSubPath
+    def openList(self, root=None):
+        url = self.buildUrl() + self.itemsSubPath
         if url[-1] == '/':
             url = url[:-1]
         self.server = self.getResource(url)
         try:
             self.entries, self.entryIds = list(self.server.zoa.items())
         except xmlrpclib.Fault as error:
-            #print str(error)
+            # print str(error)
             # see if zoa object is installed
             try:
-                Client.call('http://%s/zoa'%self.buildUrl(),
-                      self.properties['username'], self.properties['passwd'],
-                      function='version')
+                Client.call('http://%s/zoa' % self.buildUrl(),
+                            self.properties['username'], self.properties['passwd'],
+                            function='version')
             except Client.NotFound:
                 if wx.MessageBox(
-                  'The zoa object not found in the root of your Zope tree.\n\n'
-                  'Do you want to install it?', 'Install zoa',
-                  wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
+                    'The zoa object not found in the root of your Zope tree.\n\n'
+                    'Do you want to install it?', 'Install zoa',
+                        wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
 
                     from . import ZoaClient
-                    conninfo = ('http://%s'%self.buildUrl(),
-                         self.properties['username'], self.properties['passwd'])
+                    conninfo = ('http://%s' % self.buildUrl(),
+                                self.properties['username'], self.properties['passwd'])
                     ZoaClient.installFromFS(conninfo,
-                          os.path.join(Preferences.pyPath, 'ZopeLib', 'zoa', ))
+                                            os.path.join(Preferences.pyPath, 'ZopeLib', 'zoa', ))
 
                     # try again, if this fails the real error should break thru
                     self.entries, self.entryIds = list(self.server.zoa.items())
@@ -216,7 +235,7 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         result = []
         if self.entryIds:
             for i in range(len(self.entries)):
-                z = self.createChildNode(self.entries[i], self.entryIds[i] )
+                z = self.createChildNode(self.entries[i], self.entryIds[i])
                 if z:
                     result.append(z)
                     self.cache[self.entryIds[i]] = z
@@ -233,37 +252,39 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 
     def deleteItems(self, names):
         mime, res = self.clipboard.zc.call(self.resourcepath,
-              'manage_delObjects', ids = names)
+                                           'manage_delObjects', ids=names)
 
     def renameItem(self, name, newName):
         mime, res = self.clipboard.zc.call(self.resourcepath,
-              'manage_renameObject', id = name, new_id = newName)
+                                           'manage_renameObject', id=name, new_id=newName)
 
     def exportObj(self):
         mime, res = self.clipboard.zc.call(os.path.dirname(self.resourcepath),
-              'manage_exportObject', download = 1, id = self.name)
+                                           'manage_exportObject', download=1, id=self.name)
         return res
 
     def uploadObj(self, content):
         mime, res = self.clipboard.zc.call(self.resourcepath,
-              'manage_upload', file = content)
+                                           'manage_upload', file=content)
         return res
 
     def listImportFiles(self):
         if 'localpath' in self.properties and self.properties['localpath']:
             from Explorers import Explorer
-            return Explorer.listdirEx(self.properties['localpath']+'/import', '.zexp')
+            return Explorer.listdirEx(
+                self.properties['localpath'] + '/import', '.zexp')
         else:
             return []
 
     def importObj(self, name):
         try:
-            mime, res = self.clipboard.zc.call(self.resourcepath, 'manage_importObject', file = name)
+            mime, res = self.clipboard.zc.call(
+                self.resourcepath, 'manage_importObject', file=name)
         except Exception as message:
             wx.MessageBox(repr(message.args), 'Error on import')
-            #raise
+            # raise
 
-    def newItem(self, name, Compn, getNewValidName = True):
+    def newItem(self, name, Compn, getNewValidName=True):
         props = self.properties
         if getNewValidName:
             name = Utils.getValidName(list(self.cache.keys()), name)
@@ -283,18 +304,17 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
         self.getResource().manage_undo_transactions(transactionIds)
 
     def getPermissions(self):
-        return self.getResource().permission_settings()#ZOA('permissions')
+        return self.getResource().permission_settings()  # ZOA('permissions')
 
     def getRoles(self):
         return self.getResource().valid_roles()
 
     def load(self, mode='rb'):
-        return ''#return self.getResource().document_src()
-
+        return ''  # return self.getResource().document_src()
 
     def save(self, filename, data, mode='wb'):
         """ Saves contents of data to Zope """
-        pass#self.getResource().manage_upload(data)
+        pass  # self.getResource().manage_upload(data)
 
     def newFolder(self, name):
         self.getResource().manage_addFolder(name)
@@ -309,8 +329,8 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
     def uploadFromFS(self, filenode):
         props = self.properties
         from ExternalLib.WebDAV.client import Resource
-        r = Resource(('http://%(host)s:%(httpport)s/'+self.resourcepath+'/'+\
-            filenode.name) % props, props['username'], props['passwd'])
+        r = Resource(('http://%(host)s:%(httpport)s/' + self.resourcepath + '/' +
+                      filenode.name) % props, props['username'], props['passwd'])
         r.put(filenode.load())
 
     def downloadToFS(self, filename):
@@ -318,14 +338,17 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
 
     def getNodeFromPath(self, respath, metatype):
         return self.createChildNode(metatype, os.path.basename(respath),
-              os.path.dirname(respath))
+                                    os.path.dirname(respath))
 
     def findItems(self, obj_ids=(), obj_metatypes=None, obj_searchterm=None,
-          search_sub=1):
+                  search_sub=1):
         # silly xml-rpc restrictions
-        if obj_metatypes is None: obj_metatypes=0
-        if obj_searchterm is None: obj_searchterm=0
-        if not search_sub: search_sub=''
+        if obj_metatypes is None:
+            obj_metatypes = 0
+        if obj_searchterm is None:
+            obj_searchterm = 0
+        if not search_sub:
+            search_sub = ''
 
         return self.getResource().zoa.find(obj_ids, obj_metatypes, obj_searchterm)
 
@@ -335,29 +358,31 @@ class ZopeItemNode(ExplorerNodes.ExplorerNode):
  wxID_ZCCSTART, wxID_ZCCRESTART, wxID_ZCCSHUTDOWN, wxID_ZCCTEST, wxID_ZCCOPENLOG,
  wxID_ZACONFZ2, wxID_ZOPEMANAGEBROWSER, wxID_ZOPEFIND,
  wxID_ZCOPENZ2, wxID_ZCBREAKINTO,
-) = Utils.wxNewIds(18)
+ ) = Utils.wxNewIds(18)
+
 
 class ZopeCatController(ExplorerNodes.CategoryController):
     protocol = 'config.zope'
-    zopeStatupTimeout = 60 # default when not read from property
+    zopeStatupTimeout = 60  # default when not read from property
     zopeRunning = 'The server is available'
     err_zopeNotRunning = 'The server is not running'
     err_localpathBlank = 'The "localpath" property must be defined'
-    def __init__(self, editor, list, inspector, controllers, menuDefs = []):
-        zccMenuDef = [ (-1, '-', None, '-'),
-                       (wxID_ZCCSTART, 'Start', self.OnStart, '-'),
-                       (wxID_ZCCRESTART, 'Restart', self.OnRestart, '-'),
-                       (wxID_ZCCSHUTDOWN, 'Shutdown', self.OnShutdown, '-'),
-                       (wxID_ZCCTEST, 'Test', self.OnTest, '-'),
-                       (-1, '-', None, '-'),
-                       (wxID_ZCCOPENLOG, 'Open Zope log', self.OnOpenZopeLog, '-'),
-#                       (wxID_ZACONFZ2, 'Configure z2.py', self.OnConfigureZ2py, '-'),
-                       (-1, '-', None, '-'),
-                       (wxID_ZCOPENZ2, 'Open z2.py', self.OnOpenZ2, '-'),
-                       (wxID_ZCBREAKINTO, 'Break into', self.OnBreakInto, '-'),
-                     ]
+
+    def __init__(self, editor, list, inspector, controllers, menuDefs=[]):
+        zccMenuDef = [(-1, '-', None, '-'),
+                      (wxID_ZCCSTART, 'Start', self.OnStart, '-'),
+                      (wxID_ZCCRESTART, 'Restart', self.OnRestart, '-'),
+                      (wxID_ZCCSHUTDOWN, 'Shutdown', self.OnShutdown, '-'),
+                      (wxID_ZCCTEST, 'Test', self.OnTest, '-'),
+                      (-1, '-', None, '-'),
+                      (wxID_ZCCOPENLOG, 'Open Zope log', self.OnOpenZopeLog, '-'),
+                      #                       (wxID_ZACONFZ2, 'Configure z2.py', self.OnConfigureZ2py, '-'),
+                      (-1, '-', None, '-'),
+                      (wxID_ZCOPENZ2, 'Open z2.py', self.OnOpenZ2, '-'),
+                      (wxID_ZCBREAKINTO, 'Break into', self.OnBreakInto, '-'),
+                      ]
         ExplorerNodes.CategoryController.__init__(self, editor, list, inspector,
-              controllers, menuDefs = menuDefs + zccMenuDef)
+                                                  controllers, menuDefs=menuDefs + zccMenuDef)
 
     def checkAvailability(self, props, timeout=10, showDlg=True):
         retry = True
@@ -365,26 +390,26 @@ class ZopeCatController(ExplorerNodes.CategoryController):
         while retry:
             retry = False
             if showDlg and not dlg:
-                dlg = wx.ProgressDialog('Testing %s'% props['host'],
-                               'Checking availability...', 100, self.editor,
-                               wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
+                dlg = wx.ProgressDialog('Testing %s' % props['host'],
+                                        'Checking availability...', 100, self.editor,
+                                        wx.PD_CAN_ABORT | wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
             try:
                 now = time.time()
                 res = ''
                 while not timeout or time.time() < now + timeout:
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     try:
-                        s.connect( (props['host'], props['httpport']) )
+                        s.connect((props['host'], props['httpport']))
                     except socket.error as err:
                         if err[0] == 10061:
                             # not running
                             res = self.err_zopeNotRunning
                             if time.time() > now + timeout and \
-                                  wx.MessageBox('Keep checking for Zope to become available',
-                                  'Retry?', style=wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
+                                wx.MessageBox('Keep checking for Zope to become available',
+                                              'Retry?', style=wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
                                 retry = True
                         else:
-                            res = 'Socket error: '+err[1]
+                            res = 'Socket error: ' + err[1]
                     else:
                         res = self.zopeRunning
 
@@ -398,7 +423,7 @@ class ZopeCatController(ExplorerNodes.CategoryController):
 
     def getControlPanel(self, props):
         return getServer('%(host)s:%(httpport)d/Control_Panel' % props,
-            props['username'], props['passwd'])
+                         props['username'], props['passwd'])
 
     def callControlPanelMethod(self, props, meth):
         zc = ZopeConnection()
@@ -409,35 +434,45 @@ class ZopeCatController(ExplorerNodes.CategoryController):
     def OnStart(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
             props = node.properties
-            try: zopeStatupTimeout = props['startuptimeout']
-            except KeyError: zopeStatupTimeout = self.zopeStatupTimeout
+            try:
+                zopeStatupTimeout = props['startuptimeout']
+            except KeyError:
+                zopeStatupTimeout = self.zopeStatupTimeout
 
             if props['servicename']:
-                os.system('net start "%s"'%props['servicename'])
+                os.system('net start "%s"' % props['servicename'])
                 self.checkAvailability(node.properties, zopeStatupTimeout)
             elif props['localpath']:
                 if props['localpath'].find(' ') != -1:
-                    wx.LogError('Localpath property may not contain spaces (use SHORT~1 version if necessary)')
+                    wx.LogError(
+                        'Localpath property may not contain spaces (use SHORT~1 version if necessary)')
                 else:
-                    os.system('start %s\\start.bat'%props['localpath'])
+                    os.system('start %s\\start.bat' % props['localpath'])
                     self.checkAvailability(node.properties, zopeStatupTimeout)
             else:
-                wx.LogError('Unable to start '+node.treename)
+                wx.LogError('Unable to start ' + node.treename)
 
     def OnRestart(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
             props = node.properties
-            try: zopeStatupTimeout = props['startuptimeout']
-            except KeyError: zopeStatupTimeout = self.zopeStatupTimeout
+            try:
+                zopeStatupTimeout = props['startuptimeout']
+            except KeyError:
+                zopeStatupTimeout = self.zopeStatupTimeout
             try:
                 self.callControlPanelMethod(node.properties, 'manage_restart')
-                resp = self.checkAvailability(node.properties, zopeStatupTimeout)
+                resp = self.checkAvailability(
+                    node.properties, zopeStatupTimeout)
                 if resp == 'The server is available':
                     self.editor.setStatus(resp)
                 else:
                     self.editor.setStatus(resp, 'Warning')
             except Exception as error:
-                wx.LogError('Restart not supported for '+node.treename+'\n'+str(error))
+                wx.LogError(
+                    'Restart not supported for ' +
+                    node.treename +
+                    '\n' +
+                    str(error))
 
     def OnShutdown(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
@@ -445,15 +480,15 @@ class ZopeCatController(ExplorerNodes.CategoryController):
 
     def OnTest(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
-            wx.LogMessage( '%s : %s' % (node.treename,
-                self.checkAvailability(node.properties, 0)))
+            wx.LogMessage('%s : %s' % (node.treename,
+                                       self.checkAvailability(node.properties, 0)))
 
     def OnOpenZopeLog(self, event):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
             props = node.properties
             if props['localpath']:
                 self.editor.openOrGotoModule(os.path.join(props['localpath'],
-                      'var', 'Z2.log'))
+                                                          'var', 'Z2.log'))
             else:
                 wx.LogError(self.err_localpathBlank)
 
@@ -469,7 +504,7 @@ class ZopeCatController(ExplorerNodes.CategoryController):
         props = node.properties
         if props['localpath']:
             cfgZ2SrcNode = ZopeZ2pySourceBasedPrefColNode('Z2.py',
-                  ('*',), props['localpath']+'/z2.py', -1, node)
+                                                          ('*',), props['localpath'] + '/z2.py', -1, node)
             cfgZ2SrcNode.open(self.editor)
         else:
             wx.LogError(self.err_localpathBlank)
@@ -478,7 +513,7 @@ class ZopeCatController(ExplorerNodes.CategoryController):
         for node in self.getNodesForSelection(self.list.getMultiSelection()):
             localpath = node.properties['localpath']
             if localpath:
-                self.editor.openOrGotoModule(localpath+'/z2.py')
+                self.editor.openOrGotoModule(localpath + '/z2.py')
             else:
                 wx.LogError(self.err_localpathBlank)
 
@@ -494,15 +529,18 @@ class ZopeCatController(ExplorerNodes.CategoryController):
             start_new_thread(self.breakpointInBackground, (zc,))
 
 
-# XXX Better field validation and hints as to when path props shound end in / or not !!
+# XXX Better field validation and hints as to when path props shound end
+# in / or not !!
 
-class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
+class ZopeController(ExplorerNodes.Controller,
+                     ExplorerNodes.ClipboardControllerMix):
     inspectBmp = 'Images/Shared/Inspector.png'
     importBmp = 'Images/Shared/ZopeImport.png'
     exportBmp = 'Images/Shared/ZopeExport.png'
     uploadBmp = 'Images/ZOA/upload_doc.png'
     viewInBrowserBmp = 'Images/ZOA/ViewInBrowser.png'
     findBmp = 'Images/Shared/Find.png'
+
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
         ExplorerNodes.Controller.__init__(self, editor)
@@ -513,22 +551,25 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
 
         self.zopeMenuDef = [
             (wxID_ZOPEINSPECT, 'Inspect', self.OnInspectItem, self.inspectBmp),
-            (-1, '-', None, '') ] +\
+            (-1, '-', None, '')] +\
             self.clipMenuDef +\
-          [ (-1, '-', None, ''),
-            (wxID_ZOPEFIND, 'Find', self.OnFindZopeItems, self.findBmp),
-            (-1, '-', None, ''),
-            (wxID_ZOPEUPLOAD, 'Upload', self.OnUploadZopeItem, self.uploadBmp),
-            (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem, self.exportBmp),
-            (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp),
-            (-1, '-', None, '-'),
-            (wxID_ZOPEOPENINEDITOR, 'Open in Editor', self.OnOpenInEditorZopeItem, '-'),
-            (wxID_ZOPESECURITY, 'Security', self.OnSecurityZopeItem, '-'),
-            (wxID_ZOPEUNDO,     'Undo',     self.OnUndoZopeItem, '-'),
-            (-1, '-', None, ''),
-            (wxID_ZOPEVIEWBROWSER,'View in browser', self.OnViewInBrowser, self.viewInBrowserBmp),
-            (wxID_ZOPEMANAGEBROWSER,'Manage in browser', self.OnManageInBrowser, '-'),
-        ]
+            [(-1, '-', None, ''),
+             (wxID_ZOPEFIND, 'Find', self.OnFindZopeItems, self.findBmp),
+             (-1, '-', None, ''),
+             (wxID_ZOPEUPLOAD, 'Upload', self.OnUploadZopeItem, self.uploadBmp),
+             (wxID_ZOPEEXPORT, 'Export', self.OnExportZopeItem, self.exportBmp),
+             (wxID_ZOPEIMPORT, 'Import', self.OnImportZopeItem, self.importBmp),
+             (-1, '-', None, '-'),
+             (wxID_ZOPEOPENINEDITOR, 'Open in Editor',
+              self.OnOpenInEditorZopeItem, '-'),
+             (wxID_ZOPESECURITY, 'Security', self.OnSecurityZopeItem, '-'),
+             (wxID_ZOPEUNDO, 'Undo', self.OnUndoZopeItem, '-'),
+             (-1, '-', None, ''),
+             (wxID_ZOPEVIEWBROWSER, 'View in browser',
+              self.OnViewInBrowser, self.viewInBrowserBmp),
+             (wxID_ZOPEMANAGEBROWSER, 'Manage in browser',
+              self.OnManageInBrowser, '-'),
+             ]
 
         self.setupMenu(self.menu, self.list, self.zopeMenuDef)
         self.toolbarMenus = [self.zopeMenuDef]
@@ -550,7 +591,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
 
                     from FileDlg import wxFileDialog
                     dlg = wxFileDialog(self.list, 'Save as...', currPath,
-                          item.name+'.zexp', '', wx.SAVE | wx.OVERWRITE_PROMPT)
+                                       item.name + '.zexp', '', wx.SAVE | wx.OVERWRITE_PROMPT)
                     try:
                         if dlg.ShowModal() == wx.ID_OK:
                             zexpFile = dlg.GetFilePath()
@@ -563,7 +604,8 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
         fls = self.list.node.listImportFiles()
 
         if fls:
-            dlg = wx.SingleChoiceDialog(self.list, 'Choose the file to import', 'Import object', fls)
+            dlg = wx.SingleChoiceDialog(
+                self.list, 'Choose the file to import', 'Import object', fls)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     zexp = dlg.GetStringSelection()
@@ -572,7 +614,11 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
             finally:
                 dlg.Destroy()
         else:
-            dlg = wx.TextEntryDialog(self.list, 'Enter file to import', 'Import object', '.zexp')
+            dlg = wx.TextEntryDialog(
+                self.list,
+                'Enter file to import',
+                'Import object',
+                '.zexp')
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     zexp = dlg.GetValue()
@@ -602,7 +648,8 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
         if self.list.node:
             # Create new companion for selection
             zopeItem = self.list.getSelection()
-            if not zopeItem: zopeItem = self.list.node
+            if not zopeItem:
+                zopeItem = self.list.node
             self.doInspectZopeItem(zopeItem)
 
     def OnUploadZopeItem(self, event):
@@ -613,15 +660,17 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 item = self.list.items[idx]
                 if item:
                     from FileDlg import wxFileDialog
-                    dlg = wxFileDialog(self.list, 'Upload '+item.name, currPath,
-                          item.name, '', wx.OPEN)
+                    dlg = wxFileDialog(self.list, 'Upload ' + item.name, currPath,
+                                       item.name, '', wx.OPEN)
                     try:
                         if dlg.ShowModal() == wx.ID_OK:
                             try:
                                 # XXX Update to handle all transports
-                                item.uploadObj(open(dlg.GetFilePath(), 'rb'))#.read())
+                                # .read())
+                                item.uploadObj(open(dlg.GetFilePath(), 'rb'))
                             except Client.NotFound:
-                                wx.MessageBox('Object does not support uploading', 'Error on upload')
+                                wx.MessageBox(
+                                    'Object does not support uploading', 'Error on upload')
                             currPath = dlg.GetDirectory()
                     finally:
                         dlg.Destroy()
@@ -634,7 +683,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 viewName = ZopeViews.ZopeSecurityView.viewName
                 if viewName not in model.views:
                     resultView = self.editor.addNewView(viewName,
-                          ZopeViews.ZopeSecurityView)
+                                                        ZopeViews.ZopeSecurityView)
                 else:
                     resultView = model.views[viewName]
                 resultView.refresh()
@@ -648,7 +697,7 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 viewName = ZopeViews.ZopeUndoView.viewName
                 if viewName not in model.views:
                     resultView = self.editor.addNewView(viewName,
-                          ZopeViews.ZopeUndoView)
+                                                        ZopeViews.ZopeUndoView)
                 else:
                     resultView = model.views[viewName]
                 resultView.refresh()
@@ -663,7 +712,9 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
                 raise Exception('No item selected')
             try:
                 import webbrowser
-                webbrowser.open('http://%s%s'%(zopeItem.buildUrl(), addToUrl))
+                webbrowser.open(
+                    'http://%s%s' %
+                    (zopeItem.buildUrl(), addToUrl))
             except ImportError:
                 raise Exception('Python 2.0 or higher required')
 
@@ -705,9 +756,9 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
 
                     bookmarks, category = node.bookmarks, node.category
                     self.list.node = node = ZopeResultsFolderNode(
-                          'Zope Find Results', node.resourcepath,
-                          node.clipboard, -1, node, node.server, node.root,
-                          node.properties, 'Zope Find Results')
+                        'Zope Find Results', node.resourcepath,
+                        node.clipboard, -1, node, node.server, node.root,
+                        node.properties, 'Zope Find Results')
                     node.bookmarks = bookmarks
                     node.category = category
 
@@ -727,7 +778,8 @@ class ZopeController(ExplorerNodes.Controller, ExplorerNodes.ClipboardController
 
 def getServer(url, user, password):
     return xmlrpclib.Server('http://' + url,
-              BasicAuthTransport.BasicAuthTransport(user, password) )
+                            BasicAuthTransport.BasicAuthTransport(user, password))
+
 
 class ZopeNode(ZopeItemNode):
     def load(self, mode='rb'):
@@ -740,67 +792,82 @@ class ZopeNode(ZopeItemNode):
     def isFolderish(self):
         return False
 
+
 class ZopeImageNode(ZopeNode):
     pass
 
-class DirNode(ZopeItemNode): pass
+
+class DirNode(ZopeItemNode):
+    pass
+
 
 class UserFolderNode(ZopeItemNode):
     def deleteItems(self, names):
-        print('User Folder delete: %s'%names)
+        print('User Folder delete: %s' % names)
 #        mime, res = self.clipboard.zc.call(self.resourcepath,
 #              'manage_delObjects', ids = names)
+
 
 class ZopeUserNode(ZopeNode):
     def isFolderish(self):
         return False
+
     def open(self, editor):
         print('Should inspect')
-        #editor.openOrGotoZopeDocument(self)
+        # editor.openOrGotoZopeDocument(self)
+
 
 class ControlNode(DirNode):
     def checkentry(self, id, entry, path):
         if entry == 'Product Management':
             childnode = PMNode(id, path, self.clipboard, -1, self,
-                self.server, self.root, self.properties, entry)
+                               self.server, self.root, self.properties, entry)
         else:
             childnode = DirNode.checkentry(self, id, entry, path)
         return childnode
 
+
 class PMNode(ControlNode):
-    def checkentry(self,id,entry,path):
-        if entry == 'Product' :
+    def checkentry(self, id, entry, path):
+        if entry == 'Product':
             childnode = ProductNode(id, path, self.clipboard, -1, self,
-            self.server, self.root, self.properties, entry)
+                                    self.server, self.root, self.properties, entry)
         else:
             childnode = ControlNode.checkentry(self, id, entry, path)
         return childnode
 
+
 class ProductNode(DirNode):
     def checkentry(self, id, entry, path):
-        if entry == 'Z Class' :
+        if entry == 'Z Class':
             childnode = ZClassNode(id, path, self.clipboard, -1, self,
-                self.server, self.root, self.properties, entry)
+                                   self.server, self.root, self.properties, entry)
         else:
             childnode = DirNode.checkentry(self, id, entry, path)
         return childnode
 
+
 class ZClassNode(DirNode):
     itemsSubPath = '/propertysheets/methods'
-##    def __init__(self, name, resourcepath, clipboard, imgIdx, parent, xmlrpcsvr, root, properties, metatype):
+# def __init__(self, name, resourcepath, clipboard, imgIdx, parent, xmlrpcsvr, root, properties, metatype):
 ##        resourcepath = resourcepath + '/propertysheets/methods'
-##        DirNode.__init__(self, name, resourcepath, clipboard, imgIdx, parent,
-##              xmlrpcsvr, root, properties, metatype)
+# DirNode.__init__(self, name, resourcepath, clipboard, imgIdx, parent,
+# xmlrpcsvr, root, properties, metatype)
 
 # Thanks to M. Adam Kendall (akendall) for fixing save
+
+
 class ZSQLNode(ZopeNode):
     Model = ZopeEditorModels.ZopeSQLMethodModel
     defaultViews = (ZopeViews.ZopeHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeSecurityView, ZopeViews.ZopeUndoView)
+
     def getParams(self, data):
         return data.split('<params>')[1].split('</params>')[0]
+
     def getBody(self, data):
         return data.split('</params>')[1].lstrip()
+
     def save(self, filename, data, mode='wb'):
         """ Saves contents of data to Zope """
         props = self.getResource().zoa.props.SQLMethod()
@@ -817,6 +884,7 @@ class ZSQLNode(ZopeNode):
         except Exception as error:
             raise ExplorerNodes.TransportSaveError(error, filename)
 
+
 class PythonNode(ZopeNode):
     Model = ZopeEditorModels.ZopePythonScriptModel
     defaultViews = (Views.PySourceView.PythonSourceView,)
@@ -824,10 +892,10 @@ class PythonNode(ZopeNode):
                        ZopeViews.ZopeUndoView)
 
     def getParams(self, data):
-        return data[data.find('(')+1 : data.find('):')]
+        return data[data.find('(') + 1: data.find('):')]
 
     def getBody(self, data):
-        tmp = data[data.find(':')+2:].split('\n')
+        tmp = data[data.find(':') + 2:].split('\n')
         tmp2 = []
         for l in tmp:
             # Handle comments which may be indented less
@@ -840,23 +908,24 @@ class PythonNode(ZopeNode):
 
     def save(self, filename, data, mode='wb'):
         self.getResource().manage_edit(self.name, self.getParams(data),
-              self.getBody(data))
+                                       self.getBody(data))
+
 
 class PythonScriptNode(PythonNode):
     additionalViews = (ZopeViews.ZopeSecurityView,
-          ZopeViews.ZopeUndoView, Views.EditorViews.ToDoView)
+                       ZopeViews.ZopeUndoView, Views.EditorViews.ToDoView)
 
     def preparedata(self, data):
-        tmp=data.split('\n')
-        tmp2=[]
-        h=1
+        tmp = data.split('\n')
+        tmp2 = []
+        h = 1
         for l in tmp:
-            if l[:2] != '##' :
-                h=0
+            if l[:2] != '##':
+                h = 0
             if l[:12] == '##parameters':
-                params = l[l.find('=')+1:]
+                params = l[l.find('=') + 1:]
             if h:
-                pass # perhaps we need this anytime
+                pass  # perhaps we need this anytime
             else:
                 tmp2.append('    ' + l)
         return 'def %s(%s):\n%s' % (self.name, params, '\n'.join(tmp2))
@@ -867,7 +936,8 @@ class PythonScriptNode(PythonNode):
 
     def save(self, filename, data, mode='wb'):
         self.getResource().ZPythonScriptHTML_editAction('fake',
-              self.name, self.getParams(data), self.getBody(data))
+                                                        self.name, self.getParams(data), self.getBody(data))
+
 
 class ExtPythonNode(PythonNode):
     Model = ZopeEditorModels.ZopeExternalMethodModel
@@ -877,7 +947,6 @@ class ExtPythonNode(PythonNode):
                        Views.EditorViews.ModuleDocView,
                        ZopeViews.ZopeSecurityView, Views.EditorViews.ToDoView,
                        ZopeViews.ZopeUndoView)
-
 
     def openTransportFromProperties(self):
         zopePath = self.properties['localpath']
@@ -900,36 +969,43 @@ class ExtPythonNode(PythonNode):
         transp = self.openTransportFromProperties()
         transp.save(transp.currentFilename(), data, mode)
 
+
 class DTMLDocNode(ZopeNode):
     Model = ZopeEditorModels.ZopeDTMLDocumentModel
     defaultViews = (ZopeViews.ZopeHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeUndoView,
-          ZopeViews.ZopeSecurityView, ZopeViews.ZopeHTMLView,)
+                       ZopeViews.ZopeSecurityView, ZopeViews.ZopeHTMLView,)
+
 
 class DTMLMethodNode(ZopeNode):
     Model = ZopeEditorModels.ZopeDTMLMethodModel
     defaultViews = (ZopeViews.ZopeHTMLSourceView,)
     additionalViews = (ZopeViews.ZopeUndoView,
-          ZopeViews.ZopeSecurityView, ZopeViews.ZopeHTMLView)
+                       ZopeViews.ZopeSecurityView, ZopeViews.ZopeHTMLView)
+
 
 class SiteErrorLogNode(ZopeItemNode):
     Model = ZopeEditorModels.ZopeSiteErrorLogModel
     defaultViews = (ZopeViews.ZopeSiteErrorLogView,)
     additionalViews = (ZopeViews.ZopeUndoView,
                        ZopeViews.ZopeSecurityView)
+
     def isFolderish(self):
         return False
+
 
 class HelpTopicNode(ZopeItemNode):
     Model = ZopeEditorModels.ZopeHelpTopicModel
     defaultViews = (ZopeViews.ZopeHTMLView,)
     additionalViews = ()
+
     def isFolderish(self):
         return False
 
-from Explorers.PrefsExplorer import SourceBasedPrefColNode
+
 class ZopeZ2pySourceBasedPrefColNode(SourceBasedPrefColNode):
     pass
+
 
 class ZopeResultsFolderNode(ZopeItemNode):
     results = []
@@ -944,10 +1020,12 @@ class ZopeResultsFolderNode(ZopeItemNode):
         entries = []
 
         for zmeta, zid in self.results:
-            zpath = os.path.dirname(self.resourcepath+'/'+zid)
+            zpath = os.path.dirname(self.resourcepath + '/' + zid)
             name = os.path.basename(zid)
-            node = self.createChildNode(zmeta, name, zpath, '%s (%s)'%(name, zpath))
-            if node:# and not node.isFolderish():
+            node = self.createChildNode(
+                zmeta, name, zpath, '%s (%s)' %
+                (name, zpath))
+            if node:  # and not node.isFolderish():
                 entries.append(node)
 
         self.entries = entries
@@ -965,6 +1043,7 @@ class ZopeResultsFolderNode(ZopeItemNode):
     def getTitle(self):
         return 'Zope Find Results'
 
+
 def findBetween(strg, startMarker, endMarker):
     strL = strg.lower()
     found = ''
@@ -973,8 +1052,9 @@ def findBetween(strg, startMarker, endMarker):
     if idx != -1:
         idx2 = strL.find(endMarker, idx)
         if idx2 != -1:
-            found = strg[idx + len(startMarker)+1: idx2]
+            found = strg[idx + len(startMarker) + 1: idx2]
     return idx, idx2, found
+
 
 class ZopeError(Exception):
     def __init__(self, htmlFaultStr):
@@ -983,7 +1063,7 @@ class ZopeError(Exception):
         # find possible traceback
         idx, idx2, tracebk = findBetween(htmlFaultStr, '<pre>', '</pre>')
         if tracebk:
-            tracebk = 'Traceback:\n'+tracebk
+            tracebk = 'Traceback:\n' + tracebk
         self.traceback = tracebk
 
         txt = Utils.html2txt(htmlFaultStr)
@@ -993,7 +1073,8 @@ class ZopeError(Exception):
         idx, idx1, self.ErrorValue = findBetween(txt, 'Error Value:', '\n')
 
     def __str__(self):
-        return self.ErrorType and ('%s:%s' % (self.ErrorType, self.ErrorValue)) or self.textFault
+        return self.ErrorType and ('%s:%s' % (
+            self.ErrorType, self.ErrorValue)) or self.textFault
 
 
 def zopeHtmlErr2Strs(faultStr):
@@ -1004,18 +1085,20 @@ def zopeHtmlErr2Strs(faultStr):
     if idx != -1:
         idx2 = fs.find('</pre>', idx)
         if idx2 != -1:
-            traceBk = '\nTraceback:\n'+sFaultStr[idx + 5: idx2]
+            traceBk = '\nTraceback:\n' + sFaultStr[idx + 5: idx2]
     txt = Utils.html2txt(sFaultStr)
-    return txt+traceBk
+    return txt + traceBk
+
 
 def uriSplitZope(filename, filepath):
     # zope://[category]/<[meta type]>/[path] format
     segs = filepath.split('/')
     if len(segs) < 2:
         raise ExplorerNodes.TransportCategoryError(
-              'Category not found', filepath)
-    category = segs[0]+'|'+segs[1][1:-1]
+            'Category not found', filepath)
+    category = segs[0] + '|' + segs[1][1:-1]
     return 'zope', category, '/'.join(segs[2:]), filename
+
 
 def uriSplitZopeDebug(filename, filepath):
     # zopedebug://[host[:port]]/[path]/[meta type]
@@ -1023,11 +1106,14 @@ def uriSplitZopeDebug(filename, filepath):
     segs = filepath.split('/')
     if len(segs) < 3:
         raise ExplorerNodes.TransportCategoryError(
-              'Zope debug path invalid', filepath)
+            'Zope debug path invalid', filepath)
     host, filepaths, meta = segs[0], segs[1:-1], segs[-1]
-    try:               host, port = host.split(':')
-    except ValueError: port = 80
-    else:              port = int(port)
+    try:
+        host, port = host.split(':')
+    except ValueError:
+        port = 80
+    else:
+        port = int(port)
     # try to find category that can open this url
     for cat in ExplorerNodes.all_transports.entries:
         if cat.itemProtocol == 'zope':
@@ -1036,18 +1122,19 @@ def uriSplitZopeDebug(filename, filepath):
                 props = itm.properties
                 # @@@ Gogo.
                 if socket.gethostbyname(props['host']) == socket.gethostbyname(host) and \
-                       props['httpport'] == port:
-                # @@@ original code follows:
-                # if props['host'].lower() == host.lower() and \
-                #       props['httpport'] == port:
+                        props['httpport'] == port:
+                    # @@@ original code follows:
+                    # if props['host'].lower() == host.lower() and \
+                    #       props['httpport'] == port:
                     path = '/'.join(filepaths)
                     name = itm.name or itm.treename
-                    return 'zope', '%s|%s' %(name, meta), path, \
-                           'zope://%s/<%s>/%s'%(name, meta, path)
+                    return 'zope', '%s|%s' % (name, meta), path, \
+                           'zope://%s/<%s>/%s' % (name, meta, path)
 
-    raise ExplorerNodes.TransportCategoryError(\
-          'Could not map Zope debug path to defined Zope Category item',
-          filepath)
+    raise ExplorerNodes.TransportCategoryError(
+        'Could not map Zope debug path to defined Zope Category item',
+        filepath)
+
 
 def findZopeExplorerNode(catandmeta, respath, transports):
     category, metatype = catandmeta.split('|')
@@ -1056,33 +1143,34 @@ def findZopeExplorerNode(catandmeta, respath, transports):
             itms = cat.openList()
             for itm in itms:
                 if itm.name == category or itm.treename == category:
-                    return itm.getNodeFromPath('/'+respath, metatype)
+                    return itm.getNodeFromPath('/' + respath, metatype)
     raise ExplorerNodes.TransportError(
-          'Zope transport could not be found: %s || %s'%(category, respath))
+        'Zope transport could not be found: %s || %s' % (category, respath))
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 # maps meta types to ExplorerNodes
-zopeClassMap = { 'Folder': DirNode,
-        'Product Help': DirNode,
-        'Z Class': ZClassNode,
-        'User Folder': UserFolderNode,
-        'Control Panel': ControlNode,
-        'Z SQL Method': ZSQLNode,
-        'DTML Document': DTMLDocNode,
-        'DTML Method': DTMLMethodNode,
-        'Python Method': PythonNode,
-        'External Method': ExtPythonNode,
-        'Script (Python)': PythonScriptNode,
-        'Image': ZopeImageNode,
-        'File': ZopeNode,
-        'User': ZopeUserNode,
-        'Site Error Log': SiteErrorLogNode,
-        'Help Topic': HelpTopicNode,
-       }
+zopeClassMap = {'Folder': DirNode,
+                'Product Help': DirNode,
+                'Z Class': ZClassNode,
+                'User Folder': UserFolderNode,
+                'Control Panel': ControlNode,
+                'Z SQL Method': ZSQLNode,
+                'DTML Document': DTMLDocNode,
+                'DTML Method': DTMLMethodNode,
+                'Python Method': PythonNode,
+                'External Method': ExtPythonNode,
+                'Script (Python)': PythonScriptNode,
+                'Image': ZopeImageNode,
+                'File': ZopeNode,
+                'User': ZopeUserNode,
+                'Site Error Log': SiteErrorLogNode,
+                'Help Topic': HelpTopicNode,
+                }
 
 ExplorerNodes.register(ZopeCatNode, controller=ZopeCatController)
 ExplorerNodes.register(ZopeItemNode, clipboard='global',
-  confdef=('explorer', 'zope'), controller=ZopeController, category=ZopeCatNode)
+                       confdef=('explorer', 'zope'), controller=ZopeController, category=ZopeCatNode)
 ExplorerNodes.uriSplitReg[('zope', 2)] = uriSplitZope
 ExplorerNodes.uriSplitReg[('zopedebug', 2)] = uriSplitZopeDebug
 ExplorerNodes.transportFindReg['zope'] = findZopeExplorerNode

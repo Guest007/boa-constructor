@@ -1,16 +1,15 @@
 from Preferences import IS
 from Utils import _
 
-
 paletteLists = {'New': [],
                 'Dialogs': [],
                 'Zope': [],
-}
+                }
 
 newPalette = [_('New'), 'Editor/Tabs/New', paletteLists['New']]
 palette = []
-dialogPalette =  [_('Dialogs'), 'Editor/Tabs/Dialogs', paletteLists['Dialogs']]
-zopePalette =  [_('Zope'), 'Editor/Tabs/Zope', paletteLists['Zope']]
+dialogPalette = [_('Dialogs'), 'Editor/Tabs/Dialogs', paletteLists['Dialogs']]
+zopePalette = [_('Zope'), 'Editor/Tabs/Zope', paletteLists['Zope']]
 
 helperClasses = {}
 compInfo = {}
@@ -18,11 +17,12 @@ newControllers = {}
 
 artProviderArtIds = []
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 def loadBitmap(name):
     """ Loads bitmap if it exists, else loads default bitmap """
-    imgPath = 'Images/Palette/' + name+'.png'
+    imgPath = 'Images/Palette/' + name + '.png'
     try:
         return IS.load(imgPath)
     except IS.Error:
@@ -34,11 +34,13 @@ def bitmapForComponent(wxClass, wxBase='None'):
 
     "Aquires" bitmap by traversing inheritance thru if necessary.
     """
-    if wxBase != 'None': return loadBitmap(wxBase)
+    if wxBase != 'None':
+        return loadBitmap(wxBase)
     else:
         cls = wxClass
-        try: bse = wxClass.__bases__[0]
-        except:
+        try:
+            bse = wxClass.__bases__[0]
+        except BaseException:
             if wxClass in compInfo:
                 return loadBitmap(compInfo[wxClass][0])
             else:
@@ -49,5 +51,5 @@ def bitmapForComponent(wxClass, wxBase='None'):
                 bse = cls.__bases__[0]
 
             return loadBitmap(compInfo[cls][0])
-        except:
+        except BaseException:
             return loadBitmap('Component')

@@ -1,9 +1,10 @@
-#Boa:WizardPage:wxWizardPage2
+# Boa:WizardPage:wxWizardPage2
 
 import wx
 import wx.wizard
 
 [wxID_WXWIZARDPAGE2] = [wx.NewId() for _init_ctrls in range(1)]
+
 
 class wxWizardPage2(wx.wizard.WizardPage):
     def _init_ctrls(self, prnt):

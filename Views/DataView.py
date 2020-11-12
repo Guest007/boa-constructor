@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        DataView.py
 # Purpose:     Designer for Utility (non visual) objects
 #
@@ -8,55 +8,72 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
-print('importing Views.DataView')
-
-import os, copy
+# ----------------------------------------------------------------------
+import copy
+import os
 
 import wx
 
-import Preferences, Utils
+import Help
+import PaletteMapping
+import PaletteStore
+import Preferences
+import sourceconst
+import Utils
 from Utils import _
 
-import sourceconst
-import PaletteMapping, PaletteStore, Help
-
-from .InspectableViews import InspectableObjectView, DesignerError
 from . import ObjCollection
+from .InspectableViews import DesignerError, InspectableObjectView
+
+print('importing Views.DataView')
+
 
 class DataView(wx.ListView, InspectableObjectView):
     viewName = 'Data'
     viewTitle = _('Data')
-    
+
     collectionMethod = sourceconst.init_utils
     postBmp = 'Images/Inspector/Post.png'
     cancelBmp = 'Images/Inspector/Cancel.png'
+
     def __init__(self, parent, inspector, model, compPal):
         [self.wxID_DATAVIEW] = [wx.NewId() for _init_ctrls in range(1)]
-        wx.ListView.__init__(self, parent, self.wxID_DATAVIEW, size=(0,0),
-              style=Preferences.dataViewListStyle | wx.SUNKEN_BORDER)
+        wx.ListView.__init__(self, parent, self.wxID_DATAVIEW, size=(0, 0),
+                             style=Preferences.dataViewListStyle | wx.SUNKEN_BORDER)
 
         InspectableObjectView.__init__(self, inspector, model, compPal,
-          ((_('Default editor'), self.OnDefaultEditor, '-', ''),
-           (_('Post'), self.OnPost, self.postBmp, ''),
-           (_('Cancel'), self.OnCancel, self.cancelBmp, ''),
-           ('-', None, '-', ''),
-           (_('Cut'), self.OnCutSelected, '-', ''),
-           (_('Copy'), self.OnCopySelected, '-', 'Copy'),
-           (_('Paste'), self.OnPasteSelected, '-', 'Paste'),
-           (_('Delete'), self.OnControlDelete, '-', 'Delete'),
-           ('-', None, '-', ''),
-           (_('Creation/Tab order...'), self.OnCreationOrder, '-', ''),
-           ('-', None, '-', ''),
-           (_('Context help'), self.OnContextHelp, '-', 'ContextHelp'),
-           ), 0)
+                                       ((_('Default editor'), self.OnDefaultEditor, '-', ''),
+                                        (_('Post'), self.OnPost, self.postBmp, ''),
+                                           (_('Cancel'), self.OnCancel,
+                                            self.cancelBmp, ''),
+                                           ('-', None, '-', ''),
+                                           (_('Cut'), self.OnCutSelected, '-', ''),
+                                           (_('Copy'), self.OnCopySelected,
+                                            '-', 'Copy'),
+                                           (_('Paste'), self.OnPasteSelected,
+                                            '-', 'Paste'),
+                                           (_('Delete'), self.OnControlDelete,
+                                            '-', 'Delete'),
+                                           ('-', None, '-', ''),
+                                           (_('Creation/Tab order...'),
+                                            self.OnCreationOrder, '-', ''),
+                                           ('-', None, '-', ''),
+                                           (_('Context help'), self.OnContextHelp,
+                                            '-', 'ContextHelp'),
+                                        ), 0)
 
         self.il = wx.ImageList(24, 24)
         self.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
 
         self.Bind(wx.EVT_LEFT_DOWN, self.OnSelectOrAdd)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnObjectSelect, id=self.wxID_DATAVIEW)
-        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnObjectDeselect, id=self.wxID_DATAVIEW)
+        self.Bind(
+            wx.EVT_LIST_ITEM_SELECTED,
+            self.OnObjectSelect,
+            id=self.wxID_DATAVIEW)
+        self.Bind(
+            wx.EVT_LIST_ITEM_DESELECTED,
+            self.OnObjectDeselect,
+            id=self.wxID_DATAVIEW)
 
         self.selection = []
         self.vetoSelect = False
@@ -73,8 +90,10 @@ class DataView(wx.ListView, InspectableObjectView):
         deps, depLinks = {}, {}
         self.initObjectsAndCompanions(objCol.creators, objCol, deps, depLinks)
 
-    def initObjectsAndCompanions(self, creators, objColl, dependents, depLinks):
-        InspectableObjectView.initObjectsAndCompanions(self, creators, objColl, dependents, depLinks)
+    def initObjectsAndCompanions(
+            self, creators, objColl, dependents, depLinks):
+        InspectableObjectView.initObjectsAndCompanions(
+            self, creators, objColl, dependents, depLinks)
         self.initIdOnlyObjEvts(objColl.events, creators)
 
     def refreshCtrl(self):
@@ -102,7 +121,7 @@ class DataView(wx.ListView, InspectableObjectView):
                     ClassObj = self.model.customClasses[className]
                 else:
                     idx = self.il.Add(PaletteStore.bitmapForComponent(className,
-                          'Component'))
+                                                                      'Component'))
             else:
                 className = ClassObj.__name__
 
@@ -110,7 +129,7 @@ class DataView(wx.ListView, InspectableObjectView):
                 idx = self.il.Add(PaletteStore.bitmapForComponent(ClassObj))
 
             self.InsertImageStringItem(self.GetItemCount(), '%s : %s' % (
-                  ctrl.comp_name, className), idx)
+                ctrl.comp_name, className), idx)
         self.opened = True
 
     def saveCtrls(self, definedCtrls, module=None, collDeps=None):
@@ -126,11 +145,12 @@ class DataView(wx.ListView, InspectableObjectView):
         """ Create and register given control and companion.
             See also: newControl """
         args = self.setupArgs(ctrlName, params,
-          CtrlCompanion.handledConstrParams, evalDct = self.model.specialAttrs)
+                              CtrlCompanion.handledConstrParams, evalDct=self.model.specialAttrs)
 
         # Create control and companion
         companion = CtrlCompanion(ctrlName, self, CtrlClass)
-        self.objects[ctrlName] = [companion, companion.designTimeObject(args), None]
+        self.objects[ctrlName] = [
+            companion, companion.designTimeObject(args), None]
         self.objectOrder.append(ctrlName)
 
         return ctrlName
@@ -150,12 +170,14 @@ class DataView(wx.ListView, InspectableObjectView):
         for itemIdx in range(self.GetItemCount()):
             name = self.GetItemText(itemIdx).split(' : ')[0]
             a = wx.LIST_STATE_SELECTED
-            if name in ctrls: f = a
-            else: f = 0
+            if name in ctrls:
+                f = a
+            else:
+                f = 0
             state = self.GetItemState(itemIdx, a)
             self.SetItemState(itemIdx, f, a)
 
-    def deleteCtrl(self, name, parentRef = None):
+    def deleteCtrl(self, name, parentRef=None):
         self.selectNone()
 
         # notify other components of deletion
@@ -170,7 +192,7 @@ class DataView(wx.ListView, InspectableObjectView):
 
         InspectableObjectView.renameCtrl(self, oldName, newName)
         self.refreshCtrl()
-        self.selectCtrls( (newName,) )
+        self.selectCtrls((newName,))
 
     def destroy(self):
         InspectableObjectView.destroy(self)
@@ -189,7 +211,7 @@ class DataView(wx.ListView, InspectableObjectView):
             name = self.GetItemText(itemIdx).split(' : ')[0]
             state = self.GetItemState(itemIdx, wx.LIST_STATE_SELECTED)
             if state:
-                selected.append( (name, itemIdx) )
+                selected.append((name, itemIdx))
         return selected
 
     def OnSelectOrAdd(self, event=None):
@@ -213,18 +235,17 @@ class DataView(wx.ListView, InspectableObjectView):
             self.compPal.selectNone()
             self.refreshCtrl()
             self.selectCtrls([objName])
-            
+
             return objName
         else:
             # Skip so that OnObjectSelect may be fired
             if event:
                 event.Skip()
-            
 
     def updateSelection(self):
         if len(self.selection) == 1:
             self.inspector.selectObject(self.objects[self.selection[0][0]][0],
-                  False, sessionHandler=self.controllerView)
+                                        False, sessionHandler=self.controllerView)
         else:
             self.inspector.cleanup()
 
@@ -235,7 +256,8 @@ class DataView(wx.ListView, InspectableObjectView):
 
     def OnObjectDeselect(self, event):
         event.Skip()
-        if self.vetoSelect: return
+        if self.vetoSelect:
+            return
         idx = 0
         while idx < len(self.selection):
             name, ctrlIdx = self.selection[idx]
@@ -279,7 +301,9 @@ class DataView(wx.ListView, InspectableObjectView):
 
     def OnPasteSelected(self, event):
         """ Paste current clipboard contents into the current selection """
-        pasted = self.pasteCtrls('', Utils.readTextFromClipboard().split(os.linesep))
+        pasted = self.pasteCtrls(
+            '', Utils.readTextFromClipboard().split(
+                os.linesep))
         if len(pasted):
             self.refreshCtrl()
             self.selectCtrls(pasted)
@@ -303,7 +327,9 @@ class DataView(wx.ListView, InspectableObjectView):
         Help.showCtrlHelp(self.objects[self.selection[0][0]][0].GetClass())
 
     def OnRecreateSelected(self, event):
-        wx.LogError(_('Recreating not supported in the %s view')%self.viewName)
+        wx.LogError(
+            _('Recreating not supported in the %s view') %
+            self.viewName)
 
     def OnCreationOrder(self, event):
         names = [name for name, idx in self.getSelectedNames()]

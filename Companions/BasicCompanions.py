@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        BasicCompanions.py
 # Purpose:
 #
@@ -8,32 +8,34 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Companions.BasicCompanions')
-
+# -----------------------------------------------------------------------------
 import wx
-
+import wx.animate
 import wx.html
 import wx.stc
-import wx.animate
 
+import Plugins
+from PropEdit import InspectorEditorControls
+from PropEdit.Enumerations import *
+from PropEdit.PropertyEditors import *
 from Utils import _
 
-from .BaseCompanions import WindowDTC, ChoicedDTC, CollectionDTC
-
 from . import Constructors
+from .BaseCompanions import ChoicedDTC, CollectionDTC, WindowDTC
 from .EventCollections import *
 
-from PropEdit.PropertyEditors import *
-from PropEdit.Enumerations import *
-from PropEdit import InspectorEditorControls
+print('importing Companions.BasicCompanions')
+
 
 class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wx.SB_HORIZONTAL', 'wx.SB_VERTICAL'] + self.windowStyles
+        self.windowStyles = [
+            'wx.SB_HORIZONTAL',
+            'wx.SB_VERTICAL'] + self.windowStyles
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'pos': position,
                 'size': size,
                 'style': 'wx.SB_HORIZONTAL',
@@ -42,9 +44,12 @@ class ScrollBarDTC(Constructors.MultiItemCtrlsConstr, WindowDTC):
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent', 'CmdScrollEvent']
 
+
 EventCategories['ComboEvent'] = ('wx.EVT_COMBOBOX', 'wx.EVT_TEXT',
                                  'wx.EVT_TEXT_ENTER')
 commandCategories.append('ComboEvent')
+
+
 class ComboBoxDTC(ChoicedDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ChoicedDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -56,7 +61,8 @@ class ComboBoxDTC(ChoicedDTC):
                 'Choices': 'choices', 'Style': 'style',
                 'Name': 'name'}
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'value': repr(self.name),
                 'pos': position,
                 'size': size,
@@ -64,12 +70,12 @@ class ComboBoxDTC(ChoicedDTC):
                 'style': '0',
                 'name': repr(self.name)}
 
-##    def vetoedMethods(self):
-##        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
-##                'GetStringSelection', 'SetStringSelection']
+# def vetoedMethods(self):
+# return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
+# 'GetStringSelection', 'SetStringSelection']
 ##
-##    def hideDesignTime(self):
-##        return ['Label']
+# def hideDesignTime(self):
+# return ['Label']
 
     def events(self):
         return ChoicedDTC.events(self) + ['ComboEvent']
@@ -79,10 +85,14 @@ class ComboBoxDTC(ChoicedDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ComboEvent', 'wx.EVT_COMBOBOX')
 
+
 EventCategories['ChoiceEvent'] = ('wx.EVT_CHOICE',)
 commandCategories.append('ChoiceEvent')
+
+
 class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'pos': position,
                 'size': size,
                 'choices': repr([]),
@@ -97,26 +107,33 @@ class ChoiceDTC(Constructors.ListConstr, ChoicedDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ChoiceEvent', 'wx.EVT_CHOICE')
 
+
 class LabeledNonInputConstr:
     def constructor(self):
         return {'Position': 'pos', 'Size': 'size', 'Label': 'label',
                 'Style': 'style', 'Name': 'name'}
+
 
 class StaticTextDTC(LabeledNonInputConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.ALIGN_LEFT', 'wx.ALIGN_RIGHT', 'wx.ALIGN_CENTRE',
                              'wx.ST_NO_AUTORESIZE'] + self.windowStyles
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'label': repr(self.name),
                 'pos': position,
                 'size': size,
                 'style': '0',
                 'name': repr(self.name)}
 
+
 EventCategories['TextCtrlEvent'] = ('wx.EVT_TEXT', 'wx.EVT_TEXT_ENTER',
                                     'wx.EVT_TEXT_URL', 'wx.EVT_TEXT_MAXLEN')
 commandCategories.append('TextCtrlEvent')
+
+
 class TextCtrlDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -134,14 +151,15 @@ class TextCtrlDTC(WindowDTC):
     def properties(self):
         props = WindowDTC.properties(self)
         props.update({'MaxLength': ('CompnRoute', self.GetMaxLength, self.SetMaxLength),
-                      'Editable':  ('CtrlRoute', wx.TextCtrl.IsEditable, wx.TextCtrl.SetEditable)})
+                      'Editable': ('CtrlRoute', wx.TextCtrl.IsEditable, wx.TextCtrl.SetEditable)})
         return props
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'value': repr(self.name),
                 'pos': position,
                 'size': size,
@@ -150,7 +168,7 @@ class TextCtrlDTC(WindowDTC):
 
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + \
-              ['Selection', 'Title', 'Label', 'DefaultStyle']
+            ['Selection', 'Title', 'Label', 'DefaultStyle']
 
     def events(self):
         return WindowDTC.events(self) + ['TextCtrlEvent']
@@ -165,13 +183,16 @@ class TextCtrlDTC(WindowDTC):
 
 EventCategories['RadioButtonEvent'] = ('wx.EVT_RADIOBUTTON',)
 commandCategories.append('RadioButtonEvent')
+
+
 class RadioButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Value'] = BoolPropEdit
         self.windowStyles = ['wx.RB_GROUP'] + self.windowStyles
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'label': repr(self.name),
                 'pos': position,
                 'size': size,
@@ -189,13 +210,16 @@ class RadioButtonDTC(Constructors.LabeledInputConstr, WindowDTC):
 
 EventCategories['CheckBoxEvent'] = ('wx.EVT_CHECKBOX',)
 commandCategories.append('CheckBoxEvent')
+
+
 class CheckBoxDTC(Constructors.LabeledInputConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Value'] = BoolPropEdit
         self.windowStyles = ['wx.ALIGN_RIGHT'] + self.windowStyles
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'label': repr(self.name),
                 'pos': position,
                 'size': size,
@@ -226,7 +250,8 @@ class SliderDTC(WindowDTC):
                 'Position': 'pos', 'Size': 'size', 'Style': 'style',
                 'Name': 'name'}
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'value': '0',
                 'minValue': '0',
                 'maxValue': '100',
@@ -246,25 +271,29 @@ class SliderDTC(WindowDTC):
         insp.pages.SetSelection(2)
         insp.events.doAddEvent('ScrollEvent', 'wx.EVT_SCROLL')
 
+
 class GaugeDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.GA_HORIZONTAL', 'wx.GA_VERTICAL',
-                        'wx.GA_PROGRESSBAR', 'wx.GA_SMOOTH'] + self.windowStyles
+                             'wx.GA_PROGRESSBAR', 'wx.GA_SMOOTH'] + self.windowStyles
 
     def constructor(self):
         return {'Range': 'range', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'range': '100',
                 'pos': position,
                 'size': size,
                 'style': 'wx.GA_HORIZONTAL',
                 'name': repr(self.name)}
 
+
 class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'label': repr(self.name),
                 'pos': position,
                 'size': self.getDefCtrlSize(),
@@ -276,16 +305,21 @@ class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
         del props['Sizer']
         return props
 
+
 class StaticLineDTC(Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wx.LI_HORIZONTAL', 'wx.LI_VERTICAL'] + self.windowStyles
+        self.windowStyles = [
+            'wx.LI_HORIZONTAL',
+            'wx.LI_VERTICAL'] + self.windowStyles
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'pos': position,
                 'size': size,
                 'style': '0',
                 'name': repr(self.name)}
+
 
 class StaticBitmapDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -296,24 +330,30 @@ class StaticBitmapDTC(WindowDTC):
         return {'Bitmap': 'bitmap', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'bitmap': 'wx.NullBitmap',
                 'pos': position,
                 'size': size,
                 'style': '0',
                 'name': repr(self.name)}
 
+
 class HtmlWindowDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wx.html.HW_SCROLLBAR_NEVER', 'wx.html.HW_SCROLLBAR_AUTO'] + self.windowStyles
+        self.windowStyles = [
+            'wx.html.HW_SCROLLBAR_NEVER',
+            'wx.html.HW_SCROLLBAR_AUTO'] + self.windowStyles
         self._borders = 10
         self.initPropsThruCompanion.append('Borders')
 
     def constructor(self):
-        return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style'}
+        return {'Position': 'pos', 'Size': 'size',
+                'Name': 'name', 'Style': 'style'}
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.html.HW_SCROLLBAR_AUTO',
@@ -321,15 +361,16 @@ class HtmlWindowDTC(WindowDTC):
 
     def properties(self):
         props = WindowDTC.properties(self)
-        props.update({'Borders':  ('CompnRoute', self.GetBorders, self.SetBorders)})
+        props.update(
+            {'Borders': ('CompnRoute', self.GetBorders, self.SetBorders)})
         return props
 
     def events(self):
         return WindowDTC.events(self) + ['ScrollEvent']
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self),
-                           'import wx.html') )
+        return '\n'.join((WindowDTC.writeImports(self),
+                          'import wx.html'))
 
     def GetBorders(self, x):
         return self._borders
@@ -338,18 +379,22 @@ class HtmlWindowDTC(WindowDTC):
         self._borders = value
         self.control.SetBorders(value)
 
+
 stcEOLMode = [wx.stc.STC_EOL_CRLF, wx.stc.STC_EOL_CR, wx.stc.STC_EOL_LF]
 stcEOLModeNames = {'wx.stc.STC_EOL_CRLF': wx.stc.STC_EOL_CRLF,
                    'wx.stc.STC_EOL_CR': wx.stc.STC_EOL_CR,
                    'wx.stc.STC_EOL_LF': wx.stc.STC_EOL_LF}
 
-stcEdgeMode = [wx.stc.STC_EDGE_NONE, wx.stc.STC_EDGE_LINE, wx.stc.STC_EDGE_BACKGROUND]
+stcEdgeMode = [
+    wx.stc.STC_EDGE_NONE,
+    wx.stc.STC_EDGE_LINE,
+    wx.stc.STC_EDGE_BACKGROUND]
 stcEdgeModeNames = {'wx.stc.STC_EDGE_NONE': wx.stc.STC_EDGE_NONE,
                     'wx.stc.STC_EDGE_LINE': wx.stc.STC_EDGE_LINE,
                     'wx.stc.STC_EDGE_BACKGROUND': wx.stc.STC_EDGE_BACKGROUND}
 
 stcLexer = [wx.stc.STC_LEX_NULL, wx.stc.STC_LEX_PYTHON, wx.stc.STC_LEX_CONTAINER,
-            wx.stc.STC_LEX_CPP , wx.stc.STC_LEX_HTML , wx.stc.STC_LEX_XML, wx.stc.STC_LEX_PERL,
+            wx.stc.STC_LEX_CPP, wx.stc.STC_LEX_HTML, wx.stc.STC_LEX_XML, wx.stc.STC_LEX_PERL,
             wx.stc.STC_LEX_SQL, wx.stc.STC_LEX_VB, wx.stc.STC_LEX_PROPERTIES,
             wx.stc.STC_LEX_ERRORLIST, wx.stc.STC_LEX_MAKEFILE, wx.stc.STC_LEX_BATCH,
             wx.stc.STC_LEX_XCODE, wx.stc.STC_LEX_LATEX, wx.stc.STC_LEX_LUA, wx.stc.STC_LEX_DIFF,
@@ -359,42 +404,43 @@ stcLexer = [wx.stc.STC_LEX_NULL, wx.stc.STC_LEX_PYTHON, wx.stc.STC_LEX_CONTAINER
             wx.stc.STC_LEX_VBSCRIPT, wx.stc.STC_LEX_BAAN,
             wx.stc.STC_LEX_MATLAB, wx.stc.STC_LEX_SCRIPTOL, wx.stc.STC_LEX_AUTOMATIC]
 stcLexerNames = {'wx.stc.STC_LEX_NULL': wx.stc.STC_LEX_NULL,
-      'wx.stc.STC_LEX_PYTHON': wx.stc.STC_LEX_PYTHON,
-      'wx.stc.STC_LEX_CONTAINER': wx.stc.STC_LEX_CONTAINER,
-      'wx.stc.STC_LEX_CPP': wx.stc.STC_LEX_CPP, 'wx.stc.STC_LEX_HTML': wx.stc.STC_LEX_HTML,
-      'wx.stc.STC_LEX_XML': wx.stc.STC_LEX_XML, 'wx.stc.STC_LEX_PERL': wx.stc.STC_LEX_PERL,
-      'wx.stc.STC_LEX_SQL': wx.stc.STC_LEX_SQL, 'wx.stc.STC_LEX_VB': wx.stc.STC_LEX_VB,
-      'wx.stc.STC_LEX_PROPERTIES': wx.stc.STC_LEX_PROPERTIES,
-      'wx.stc.STC_LEX_ERRORLIST': wx.stc.STC_LEX_ERRORLIST,
-      'wx.stc.STC_LEX_MAKEFILE': wx.stc.STC_LEX_MAKEFILE,
-      'wx.stc.STC_LEX_BATCH': wx.stc.STC_LEX_BATCH,
-      'wx.stc.STC_LEX_XCODE': wx.stc.STC_LEX_XCODE, 'wx.stc.STC_LEX_LATEX': wx.stc.STC_LEX_LATEX,
-      'wx.stc.STC_LEX_LUA': wx.stc.STC_LEX_LUA, 'wx.stc.STC_LEX_DIFF': wx.stc.STC_LEX_DIFF,
-      'wx.stc.STC_LEX_CONF': wx.stc.STC_LEX_CONF, 'wx.stc.STC_LEX_PASCAL': wx.stc.STC_LEX_PASCAL,
-      'wx.stc.STC_LEX_AVE': wx.stc.STC_LEX_AVE, 'wx.stc.STC_LEX_ADA': wx.stc.STC_LEX_ADA,
-      'wx.stc.STC_LEX_LISP': wx.stc.STC_LEX_LISP, 'wx.stc.STC_LEX_RUBY': wx.stc.STC_LEX_RUBY,
-      'wx.stc.STC_LEX_EIFFEL': wx.stc.STC_LEX_EIFFEL,
-      'wx.stc.STC_LEX_EIFFELKW': wx.stc.STC_LEX_EIFFELKW,
-      'wx.stc.STC_LEX_TCL': wx.stc.STC_LEX_TCL, 'wx.stc.STC_LEX_NNCRONTAB': wx.stc.STC_LEX_NNCRONTAB,
-      'wx.stc.STC_LEX_BULLANT': wx.stc.STC_LEX_BULLANT,
-      'wx.stc.STC_LEX_VBSCRIPT': wx.stc.STC_LEX_VBSCRIPT,
-      'wx.stc.STC_LEX_BAAN': wx.stc.STC_LEX_BAAN,
-      'wx.stc.STC_LEX_MATLAB': wx.stc.STC_LEX_MATLAB,
-      'wx.stc.STC_LEX_SCRIPTOL': wx.stc.STC_LEX_SCRIPTOL,
-      'wx.stc.STC_LEX_AUTOMATIC': wx.stc.STC_LEX_AUTOMATIC}
+                 'wx.stc.STC_LEX_PYTHON': wx.stc.STC_LEX_PYTHON,
+                 'wx.stc.STC_LEX_CONTAINER': wx.stc.STC_LEX_CONTAINER,
+                 'wx.stc.STC_LEX_CPP': wx.stc.STC_LEX_CPP, 'wx.stc.STC_LEX_HTML': wx.stc.STC_LEX_HTML,
+                 'wx.stc.STC_LEX_XML': wx.stc.STC_LEX_XML, 'wx.stc.STC_LEX_PERL': wx.stc.STC_LEX_PERL,
+                 'wx.stc.STC_LEX_SQL': wx.stc.STC_LEX_SQL, 'wx.stc.STC_LEX_VB': wx.stc.STC_LEX_VB,
+                 'wx.stc.STC_LEX_PROPERTIES': wx.stc.STC_LEX_PROPERTIES,
+                 'wx.stc.STC_LEX_ERRORLIST': wx.stc.STC_LEX_ERRORLIST,
+                 'wx.stc.STC_LEX_MAKEFILE': wx.stc.STC_LEX_MAKEFILE,
+                 'wx.stc.STC_LEX_BATCH': wx.stc.STC_LEX_BATCH,
+                 'wx.stc.STC_LEX_XCODE': wx.stc.STC_LEX_XCODE, 'wx.stc.STC_LEX_LATEX': wx.stc.STC_LEX_LATEX,
+                 'wx.stc.STC_LEX_LUA': wx.stc.STC_LEX_LUA, 'wx.stc.STC_LEX_DIFF': wx.stc.STC_LEX_DIFF,
+                 'wx.stc.STC_LEX_CONF': wx.stc.STC_LEX_CONF, 'wx.stc.STC_LEX_PASCAL': wx.stc.STC_LEX_PASCAL,
+                 'wx.stc.STC_LEX_AVE': wx.stc.STC_LEX_AVE, 'wx.stc.STC_LEX_ADA': wx.stc.STC_LEX_ADA,
+                 'wx.stc.STC_LEX_LISP': wx.stc.STC_LEX_LISP, 'wx.stc.STC_LEX_RUBY': wx.stc.STC_LEX_RUBY,
+                 'wx.stc.STC_LEX_EIFFEL': wx.stc.STC_LEX_EIFFEL,
+                 'wx.stc.STC_LEX_EIFFELKW': wx.stc.STC_LEX_EIFFELKW,
+                 'wx.stc.STC_LEX_TCL': wx.stc.STC_LEX_TCL, 'wx.stc.STC_LEX_NNCRONTAB': wx.stc.STC_LEX_NNCRONTAB,
+                 'wx.stc.STC_LEX_BULLANT': wx.stc.STC_LEX_BULLANT,
+                 'wx.stc.STC_LEX_VBSCRIPT': wx.stc.STC_LEX_VBSCRIPT,
+                 'wx.stc.STC_LEX_BAAN': wx.stc.STC_LEX_BAAN,
+                 'wx.stc.STC_LEX_MATLAB': wx.stc.STC_LEX_MATLAB,
+                 'wx.stc.STC_LEX_SCRIPTOL': wx.stc.STC_LEX_SCRIPTOL,
+                 'wx.stc.STC_LEX_AUTOMATIC': wx.stc.STC_LEX_AUTOMATIC}
 
 stcPrintColourMode = [wx.stc.STC_PRINT_NORMAL, wx.stc.STC_PRINT_INVERTLIGHT,
-      wx.stc.STC_PRINT_BLACKONWHITE, wx.stc.STC_PRINT_COLOURONWHITE,
-      wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG]
+                      wx.stc.STC_PRINT_BLACKONWHITE, wx.stc.STC_PRINT_COLOURONWHITE,
+                      wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG]
 stcPrintColourModeNames = {'wx.stc.STC_PRINT_NORMAL': wx.stc.STC_PRINT_NORMAL,
-      'wx.stc.STC_PRINT_INVERTLIGHT': wx.stc.STC_PRINT_INVERTLIGHT,
-      'wx.stc.STC_PRINT_BLACKONWHITE': wx.stc.STC_PRINT_BLACKONWHITE,
-      'wx.stc.STC_PRINT_COLOURONWHITE': wx.stc.STC_PRINT_COLOURONWHITE,
-      'wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG': wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG}
+                           'wx.stc.STC_PRINT_INVERTLIGHT': wx.stc.STC_PRINT_INVERTLIGHT,
+                           'wx.stc.STC_PRINT_BLACKONWHITE': wx.stc.STC_PRINT_BLACKONWHITE,
+                           'wx.stc.STC_PRINT_COLOURONWHITE': wx.stc.STC_PRINT_COLOURONWHITE,
+                           'wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG': wx.stc.STC_PRINT_COLOURONWHITEDEFAULTBG}
 
 stcWrapMode = [wx.stc.STC_WRAP_NONE, wx.stc.STC_WRAP_WORD]
 stcWrapModeNames = {'wx.stc.STC_WRAP_NONE': wx.stc.STC_WRAP_NONE,
                     'wx.stc.STC_WRAP_WORD': wx.stc.STC_WRAP_WORD}
+
 
 class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -418,22 +464,23 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
              'Lexer': EnumPropEdit,
              'PrintColourMode': EnumPropEdit,
              'WrapMode': EnumPropEdit,
-            })
+             })
 
-        self.options.update({'EOLMode'   : stcEOLMode,
-                             'EdgeMode' : stcEdgeMode,
+        self.options.update({'EOLMode': stcEOLMode,
+                             'EdgeMode': stcEdgeMode,
                              'Lexer': stcLexer,
                              'PrintColourMode': stcPrintColourMode,
                              'WrapMode': stcWrapMode,
-                            })
-        self.names.update({'EOLMode'   : stcEOLModeNames,
-                           'EdgeMode' : stcEdgeModeNames,
+                             })
+        self.names.update({'EOLMode': stcEOLModeNames,
+                           'EdgeMode': stcEdgeModeNames,
                            'Lexer': stcLexerNames,
                            'PrintColourMode': stcPrintColourModeNames,
                            'WrapMode': stcWrapModeNames,
-                          })
+                           })
 
-    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
@@ -441,16 +488,18 @@ class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
 
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + ['Anchor', 'CodePage',
-               'DocPointer', 'LastKeydownProcessed', 'ModEventMask',
-               'Status', 'STCFocus']
+                                                 'DocPointer', 'LastKeydownProcessed', 'ModEventMask',
+                                                 'Status', 'STCFocus']
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self),
-                           'import wx.stc') )
+        return '\n'.join((WindowDTC.writeImports(self),
+                          'import wx.stc'))
+
 
 class FilenameConstrPropEdit(ConstrPropEdit):
     dlgCaption = _('Choose a file')
     fileTypeFilter = '*.*'
+
     def getValue(self):
         if self.editorCtrl:
             self.value = self.editorCtrl.getValue()
@@ -460,11 +509,12 @@ class FilenameConstrPropEdit(ConstrPropEdit):
 
     def inspectorEdit(self):
         self.editorCtrl = InspectorEditorControls.ButtonIEC(self, self.value)
-        self.editorCtrl.createControl(self.parent, self.idx, self.width, self.edit)
+        self.editorCtrl.createControl(
+            self.parent, self.idx, self.width, self.edit)
 
     def edit(self, event):
         dlg = wx.FileDialog(self.parent, self.dlgCaption, '.', self.value,
-              self.fileTypeFilter, wx.OPEN)
+                            self.fileTypeFilter, wx.OPEN)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 value = dlg.GetPath()
@@ -480,6 +530,7 @@ class GIFFilenameConstrPropEdit(FilenameConstrPropEdit):
     dlgCaption = _('Choose a gif file')
     fileTypeFilter = '*.gif'
 
+
 class GIFAnimationCtrlDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
@@ -490,16 +541,18 @@ class GIFAnimationCtrlDTC(WindowDTC):
         return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
                 'Filename': 'filename'}
 
-    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'pos': position,
-                'size': size,#self.getDefCtrlSize(),
+                'size': size,  # self.getDefCtrlSize(),
                 'style': 'wx.animate.AN_FIT_ANIMATION|wx.NO_BORDER',
                 'name': repr(self.name),
                 'filename': repr('')}
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self),
-                           'import wx.animate') )
+        return '\n'.join((WindowDTC.writeImports(self),
+                          'import wx.animate'))
+
 
 class MediaCtrlDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
@@ -518,7 +571,8 @@ class MediaCtrlDTC(WindowDTC):
         return {'Position': 'pos', 'Size': 'size', 'Name': 'name', 'Style': 'style',
                 'Filename': 'fileName', 'Backend': 'szBackend'}
 
-    def designTimeSource(self, position='wx.DefaultPosition', size='wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': '0',
@@ -527,8 +581,8 @@ class MediaCtrlDTC(WindowDTC):
                 'szBackend': repr('')}
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self),
-                           'import wx.media') )
+        return '\n'.join((WindowDTC.writeImports(self),
+                          'import wx.media'))
 
 
 EventCategories['RichTextEvent'] = (
@@ -544,78 +598,96 @@ EventCategories['RichTextEvent'] = (
     'wx.richtext.EVT_RICHTEXT_CONTENT_DELETED')
 commandCategories.append('RichTextEvent')
 
+
 class RichTextCtrlDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.richtext.RE_MULTILINE', 'wx.richtext.RE_READONLY',
-                            ] + self.windowStyles
+                             ] + self.windowStyles
         self.editors['Editable'] = BoolPropEdit
+
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style'}
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'value': repr(self.name),
                 'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.richtext.RE_MULTILINE'}
+
     def vetoedMethods(self):
-        return ['GetTargetWindow', 'SetTargetWindow', 'ViewStart', 'TargetWindow']
+        return ['GetTargetWindow', 'SetTargetWindow',
+                'ViewStart', 'TargetWindow']
+
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self),
-                           'import wx.richtext') )
+        return '\n'.join((WindowDTC.writeImports(self),
+                          'import wx.richtext'))
+
     def properties(self):
         import wx.richtext
         props = WindowDTC.properties(self)
-        props.update({'Editable':  ('CtrlRoute', wx.richtext.RichTextCtrl.IsEditable, wx.richtext.RichTextCtrl.SetEditable)})
+        props.update({'Editable': ('CtrlRoute',
+                                   wx.richtext.RichTextCtrl.IsEditable,
+                                   wx.richtext.RichTextCtrl.SetEditable)})
         return props
+
     def hideDesignTime(self):
         return WindowDTC.hideDesignTime(self) + ['TargetRect',
-              'InternalSelectionRange', 'SelectionRange', 'HandlerFlags',
-              'StyleSheet']
+                                                 'InternalSelectionRange', 'SelectionRange', 'HandlerFlags',
+                                                 'StyleSheet']
+
     def events(self):
         return WindowDTC.events(self) + ['RichTextEvent']
+
 
 # Designer support needed to use ComboCtrl directly
 # SetPopupControl(wx.SomeComboPopup) must be generated and set
 EventCategories['ComboCtrlEvent'] = ('wx.EVT_TEXT', 'wx.EVT_TEXT_ENTER')
 commandCategories.append('ComboCtrlEvent')
+
+
 class ComboCtrlDTC(WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.CB_READONLY', 'wx.CB_SORT', 'wx.TE_PROCESS_ENTER',
-          'wx.combo.CC_SPECIAL_DCLICK', 'wx.combo.CC_STD_BUTTON'] + self.windowStyles
+                             'wx.combo.CC_SPECIAL_DCLICK', 'wx.combo.CC_STD_BUTTON'] + self.windowStyles
         self.ctrlDisabled = True
 
     def constructor(self):
         return {'Value': 'value', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
         return {'value': repr(self.name),
                 'pos': position,
                 'size': size,
                 'style': '0',
                 'name': repr(self.name)}
 
-##    def vetoedMethods(self):
-##        return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
-##                'GetStringSelection', 'SetStringSelection']
+# def vetoedMethods(self):
+# return ['GetColumns', 'SetColumns', 'GetSelection', 'SetSelection',
+# 'GetStringSelection', 'SetStringSelection']
 ##
-##    def hideDesignTime(self):
-##        return ['Label']
+# def hideDesignTime(self):
+# return ['Label']
 
     def events(self):
         return WindowDTC.events(self) + ['ComboCtrlEvent']
 
     def writeImports(self):
-        return '\n'.join( (WindowDTC.writeImports(self),
-                           'import wx.combo') )
+        return '\n'.join((WindowDTC.writeImports(self),
+                          'import wx.combo'))
+
 
 class BitmapComboBoxDTC(ComboCtrlDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         ComboCtrlDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Items'] = CollectionPropEdit
         self.subCompanions['Items'] = BitmapComboBoxItemsCDTC
+
 
 class BitmapComboBoxItemsCDTC(CollectionDTC):
     propName = 'Items'
@@ -626,7 +698,7 @@ class BitmapComboBoxItemsCDTC(CollectionDTC):
 
     def __init__(self, name, designer, parentCompanion, ctrl):
         CollectionDTC.__init__(self, name, designer, parentCompanion, ctrl)
-        self.editors = {'Position' : IntConstrPropEdit,
+        self.editors = {'Position': IntConstrPropEdit,
                         'Item': StrConstrPropEdit,
                         'Bitmap': BitmapConstrPropEdit}
 
@@ -636,13 +708,13 @@ class BitmapComboBoxItemsCDTC(CollectionDTC):
     def properties(self):
         props = CollectionDTC.properties(self)
         props.update({'Position': ('NoneRoute', None, None),
-                      'Item':     ('NoneRoute', None, None),
-                      'Bitmap':   ('CompnRoute', self.GetItemBitmap, self.SetItemBitmap)})
+                      'Item': ('NoneRoute', None, None),
+                      'Bitmap': ('CompnRoute', self.GetItemBitmap, self.SetItemBitmap)})
         return props
 
     def designTimeSource(self, wId, method=None):
         return {'pos': repr(wId),
-                'item': repr('%s%d'%(self.propName, wId)),
+                'item': repr('%s%d' % (self.propName, wId)),
                 'bitmap': 'wx.NullBitmap'}
 
     def GetItemBitmap(self):
@@ -659,59 +731,76 @@ class SearchCtrlDTC(TextCtrlDTC):
         self.editors['CancelButtonVisible'] = BoolPropEdit
         self.ctrlDisabled = True
 
-
     def properties(self):
         props = TextCtrlDTC.properties(self)
         props.update({'SearchButtonVisible': ('CtrlRoute',
-            wx.SearchCtrl.IsSearchButtonVisible, wx.SearchCtrl.ShowSearchButton),
+                                              wx.SearchCtrl.IsSearchButtonVisible, wx.SearchCtrl.ShowSearchButton),
                       'CancelButtonVisible': ('CtrlRoute',
-            wx.SearchCtrl.IsCancelButtonVisible, wx.SearchCtrl.ShowCancelButton)})
+                                              wx.SearchCtrl.IsCancelButtonVisible, wx.SearchCtrl.ShowCancelButton)})
         return props
 
 
-#-------------------------------------------------------------------------------
-import Plugins
+# -------------------------------------------------------------------------------
 
 Plugins.registerPalettePage('BasicControls', _('Basic Controls'))
 
 Plugins.registerComponents('BasicControls',
-      (wx.StaticText, 'wx.StaticText', StaticTextDTC),
-      (wx.TextCtrl, 'wx.TextCtrl', TextCtrlDTC),
-      (wx.Choice, 'wx.Choice', ChoiceDTC),
-      (wx.ComboBox, 'wx.ComboBox', ComboBoxDTC),
-      (wx.CheckBox, 'wx.CheckBox', CheckBoxDTC),
-      (wx.RadioButton, 'wx.RadioButton', RadioButtonDTC),
-      (wx.Slider, 'wx.Slider', SliderDTC),
-      (wx.Gauge, 'wx.Gauge', GaugeDTC),
-      (wx.StaticBitmap, 'wx.StaticBitmap', StaticBitmapDTC),
-      (wx.ScrollBar, 'wx.ScrollBar', ScrollBarDTC),
-      (wx.StaticBox, 'wx.StaticBox', StaticBoxDTC),
-      (wx.StaticLine, 'wx.StaticLine', StaticLineDTC),
-      (wx.html.HtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
-      (wx.stc.StyledTextCtrl, 'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
-      (wx.animate.GIFAnimationCtrl, 'wx.animate.GIFAnimationCtrl', GIFAnimationCtrlDTC),
-    )
+                           (wx.StaticText, 'wx.StaticText', StaticTextDTC),
+                           (wx.TextCtrl, 'wx.TextCtrl', TextCtrlDTC),
+                           (wx.Choice, 'wx.Choice', ChoiceDTC),
+                           (wx.ComboBox, 'wx.ComboBox', ComboBoxDTC),
+                           (wx.CheckBox, 'wx.CheckBox', CheckBoxDTC),
+                           (wx.RadioButton, 'wx.RadioButton', RadioButtonDTC),
+                           (wx.Slider, 'wx.Slider', SliderDTC),
+                           (wx.Gauge, 'wx.Gauge', GaugeDTC),
+                           (wx.StaticBitmap, 'wx.StaticBitmap', StaticBitmapDTC),
+                           (wx.ScrollBar, 'wx.ScrollBar', ScrollBarDTC),
+                           (wx.StaticBox, 'wx.StaticBox', StaticBoxDTC),
+                           (wx.StaticLine, 'wx.StaticLine', StaticLineDTC),
+                           (wx.html.HtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
+                           (wx.stc.StyledTextCtrl,
+                            'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
+                           (wx.animate.GIFAnimationCtrl,
+                               'wx.animate.GIFAnimationCtrl',
+                               GIFAnimationCtrlDTC),
+                           )
 
 try:
     import wx.richtext
-    Plugins.registerComponent('BasicControls', wx.richtext.RichTextCtrl, 'wx.richtext.RichTextCtrl', RichTextCtrlDTC)
+    Plugins.registerComponent(
+        'BasicControls',
+        wx.richtext.RichTextCtrl,
+        'wx.richtext.RichTextCtrl',
+        RichTextCtrlDTC)
 except ImportError:
     pass
 
 try:
     import wx.combo
 #    Plugins.registerComponent('BasicControls', wx.combo.ComboCtrl, 'wx.combo.ComboCtrl', ComboCtrlDTC)
-    Plugins.registerComponent('BasicControls', wx.combo.BitmapComboBox, 'wx.combo.BitmapComboBox', BitmapComboBoxDTC)
+    Plugins.registerComponent(
+        'BasicControls',
+        wx.combo.BitmapComboBox,
+        'wx.combo.BitmapComboBox',
+        BitmapComboBoxDTC)
 except ImportError:
     pass
 
 try:
     import wx.media
-    Plugins.registerComponent('BasicControls', wx.media.MediaCtrl, 'wx.media.MediaCtrl', MediaCtrlDTC)
+    Plugins.registerComponent(
+        'BasicControls',
+        wx.media.MediaCtrl,
+        'wx.media.MediaCtrl',
+        MediaCtrlDTC)
 except ImportError:
     pass
 
 try:
-    Plugins.registerComponent('BasicControls', wx.SearchCtrl, 'wx.SearchCtrl', SearchCtrlDTC)
+    Plugins.registerComponent(
+        'BasicControls',
+        wx.SearchCtrl,
+        'wx.SearchCtrl',
+        SearchCtrlDTC)
 except AttributeError:
     pass

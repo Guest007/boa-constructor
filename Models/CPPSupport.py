@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        CPPSupport.py
 # Purpose:
 #
@@ -8,20 +8,28 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Models.CPPSupport')
-
+# -----------------------------------------------------------------------------
 import os
 
 import wx
 
-import Preferences, Utils, Plugins
+import Plugins
+import Preferences
+import Utils
+from Models.EditorModels import SourceModel
 from Utils import _
+from Views.SourceViews import EditorStyledTextCtrl
+from Views.StyledTextCtrls import (FoldingStyledTextCtrlMix, LanguageSTCMix,
+                                   stcConfigPath)
 
-from . import EditorHelper
+from . import Controllers, EditorHelper
+
+print('importing Models.CPPSupport')
+
+
 EditorHelper.imgCPPModel = EditorHelper.imgIdxRange()
 
-from Models.EditorModels import SourceModel
+
 class CPPModel(SourceModel):
     modelIdentifier = 'CPP'
     defaultName = 'cpp'
@@ -32,10 +40,11 @@ class CPPModel(SourceModel):
     def __init__(self, data, name, editor, saved):
         SourceModel.__init__(self, data, name, editor, saved)
         self.loadHeader()
-        if data: self.update()
+        if data:
+            self.update()
 
     def loadHeader(self):
-        header = os.path.splitext(self.filename)[0]+'.h'
+        header = os.path.splitext(self.filename)[0] + '.h'
         if os.path.exists(header):
             # This should open a BasicFileModel instead of a file directly
             self.headerData = open(header).read()
@@ -46,29 +55,32 @@ class CPPModel(SourceModel):
         SourceModel.load(self, False)
         self.loadHeader()
         self.update()
-        if notify: self.notify()
+        if notify:
+            self.notify()
 
 
-from Views.StyledTextCtrls import LanguageSTCMix, FoldingStyledTextCtrlMix, stcConfigPath
 class CPPStyledTextCtrlMix(LanguageSTCMix):
     def __init__(self, wId):
         LanguageSTCMix.__init__(self, wId,
-              (0, Preferences.STCLineNumMarginWidth), 'cpp', stcConfigPath)
+                                (0, Preferences.STCLineNumMarginWidth), 'cpp', stcConfigPath)
         self.setStyles()
 
 
 wxID_CPPSOURCEVIEW = wx.NewId()
 symbolFolding = 1
-from Views.SourceViews import EditorStyledTextCtrl
-class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix, FoldingStyledTextCtrlMix):
+
+
+class CPPSourceView(EditorStyledTextCtrl, CPPStyledTextCtrlMix,
+                    FoldingStyledTextCtrlMix):
     viewName = 'Source'
     viewTitle = _('Title')
-    
+
     def __init__(self, parent, model):
         EditorStyledTextCtrl.__init__(self, parent, wxID_CPPSOURCEVIEW,
-          model, (), -1)
+                                      model, (), -1)
         CPPStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW)
-        FoldingStyledTextCtrlMix.__init__(self, wxID_CPPSOURCEVIEW, symbolFolding)
+        FoldingStyledTextCtrlMix.__init__(
+            self, wxID_CPPSOURCEVIEW, symbolFolding)
         self.active = True
 
     def OnMarginClick(self, event):
@@ -95,14 +107,18 @@ class HPPSourceView(CPPSourceView):
         self.nonUserModification = False
         self.updatePageName()
 
-from . import Controllers
+
 class CPPController(Controllers.SourceController):
-    Model           = CPPModel
-    DefaultViews    = [CPPSourceView, HPPSourceView]
+    Model = CPPModel
+    DefaultViews = [CPPSourceView, HPPSourceView]
 
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 Plugins.registerFileType(CPPController, newName='Cpp',
-                         aliasExts=('.cpp','.c','.h'))
-Plugins.registerLanguageSTCStyle('CPP', 'cpp', CPPStyledTextCtrlMix, 'stc-styles.rc.cfg')
+                         aliasExts=('.cpp', '.c', '.h'))
+Plugins.registerLanguageSTCStyle(
+    'CPP',
+    'cpp',
+    CPPStyledTextCtrlMix,
+    'stc-styles.rc.cfg')

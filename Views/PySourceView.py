@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        PySourceView.py
 # Purpose:     Python Source code View
 #
@@ -8,33 +8,54 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Views.PySourceView')
+# -----------------------------------------------------------------------------
+import bdb
+import keyword
+import os
+import string
+import sys
+import types
 
-import os, string, bdb, sys, types, keyword
-
+import ProfileView
+import SourceViews
 import wx
 import wx.stc
 
-import ProfileView, Search, Help, Preferences, ShellEditor, Utils, SourceViews
+import Help
+import methodparse
+import moduleparse
+import Preferences
+import Search
+import ShellEditor
+import sourceconst
+import Utils
+import wxNamespace
+from Explorers import ExplorerNodes
+from Preferences import keyDefs
 from Utils import _
 
 from .SourceViews import EditorStyledTextCtrl
-from .StyledTextCtrls import PythonStyledTextCtrlMix, BrowseStyledTextCtrlMix,\
-     FoldingStyledTextCtrlMix, AutoCompleteCodeHelpSTCMix, \
-     CallTipCodeHelpSTCMix, DebuggingViewSTCMix, idWord, word_delim, object_delim
-from Preferences import keyDefs
-import methodparse, moduleparse, sourceconst
-import wxNamespace
+from .StyledTextCtrls import (AutoCompleteCodeHelpSTCMix,
+                              BrowseStyledTextCtrlMix, CallTipCodeHelpSTCMix,
+                              DebuggingViewSTCMix, FoldingStyledTextCtrlMix,
+                              PythonStyledTextCtrlMix, idWord, object_delim,
+                              word_delim)
+
+print('importing Views.PySourceView')
+
 
 mrkCnt = SourceViews.markerCnt
-brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk, stepPosMrk = list(range(mrkCnt+1, mrkCnt+5))
+brkPtMrk, tmpBrkPtMrk, disabledBrkPtMrk, stepPosMrk = list(
+    range(mrkCnt + 1, mrkCnt + 5))
 SourceViews.markerCnt = mrkCnt + 4
 
 brwsIndc, synErrIndc = list(range(0, 2))
 lineNoMrg, symbolMrg, foldMrg = list(range(0, 3))
 
-class ShellNameNotFound(Exception): pass
+
+class ShellNameNotFound(Exception):
+    pass
+
 
 class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        BrowseStyledTextCtrlMix, FoldingStyledTextCtrlMix,
@@ -42,10 +63,11 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                        DebuggingViewSTCMix):
     viewName = 'Source'
     viewTitle = _('Source')
-    
+
     breakBmp = 'Images/Debug/Breakpoints.png'
     runCrsBmp = 'Images/Editor/RunToCursor.png'
     modInfoBmp = 'Images/Modules/InfoBlock.png'
+
     def __init__(self, parent, model):
         a1 = (('-', None, '', ''),
               (_('Comment'), self.OnComment, '-', 'Comment'),
@@ -55,7 +77,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
               ('-', None, '-', ''),
               (_('Run to cursor'), self.OnRunToCursor, self.runCrsBmp, ''),
               # evts defined in DebuggingViewSTCMix
-              (_('Toggle breakpoint'), self.OnSetBreakPoint, self.breakBmp, 'ToggleBrk'),
+              (_('Toggle breakpoint'), self.OnSetBreakPoint,
+               self.breakBmp, 'ToggleBrk'),
               (_('Load breakpoints'), self.OnLoadBreakPoints, '-', ''),
               (_('Save breakpoints'), self.OnSaveBreakPoints, '-', ''),
               ('-', None, '', ''),
@@ -73,15 +96,15 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         wxID_PYTHONSOURCEVIEW = wx.NewId()
 
         EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONSOURCEVIEW,
-          model, a1, -1)
+                                      model, a1, -1)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW,
-              (lineNoMrg, Preferences.STCLineNumMarginWidth))
+                                         (lineNoMrg, Preferences.STCLineNumMarginWidth))
         BrowseStyledTextCtrlMix.__init__(self, brwsIndc)
         FoldingStyledTextCtrlMix.__init__(self, wxID_PYTHONSOURCEVIEW, foldMrg)
         AutoCompleteCodeHelpSTCMix.__init__(self)
         CallTipCodeHelpSTCMix.__init__(self)
         DebuggingViewSTCMix.__init__(self, (brkPtMrk, tmpBrkPtMrk,
-              disabledBrkPtMrk, stepPosMrk))
+                                            disabledBrkPtMrk, stepPosMrk))
 
         self.lsp = 0
         # XXX These could be persisted
@@ -95,14 +118,21 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         # Error indicator
         self.IndicatorSetStyle(synErrIndc, wx.stc.STC_INDIC_SQUIGGLE)
-        self.IndicatorSetForeground(synErrIndc, Preferences.STCSyntaxErrorColour)
+        self.IndicatorSetForeground(
+            synErrIndc, Preferences.STCSyntaxErrorColour)
 
         self.SetIndentationGuides(Preferences.STCIndentationGuides)
 
-        self.Bind(wx.stc.EVT_STC_CHARADDED, self.OnAddChar, id=wxID_PYTHONSOURCEVIEW)
+        self.Bind(
+            wx.stc.EVT_STC_CHARADDED,
+            self.OnAddChar,
+            id=wxID_PYTHONSOURCEVIEW)
 
         # still too buggy
-        self.Bind(wx.stc.EVT_STC_MODIFIED, self.OnModified, id=wxID_PYTHONSOURCEVIEW)
+        self.Bind(
+            wx.stc.EVT_STC_MODIFIED,
+            self.OnModified,
+            id=wxID_PYTHONSOURCEVIEW)
         #self.Bind(wx.EVT_FIX_PASTE, self.OnFixPaste)
 
         self.active = True
@@ -116,7 +146,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.setInitialBreakpoints()
 
     def processComment(self, textLst, idntBlock):
-        return ['##%s'%l for l in textLst]
+        return ['##%s' % l for l in textLst]
 
     def processUncomment(self, textLst, idntBlock):
         for idx in range(len(textLst)):
@@ -125,13 +155,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         return textLst
 
     def processIndent(self, textLst, idntBlock):
-        return ['%s%s'%(idntBlock, t) for t in textLst]
+        return ['%s%s' % (idntBlock, t) for t in textLst]
 
     def processDedent(self, textLst, idntBlock):
-        indentLevel=len(idntBlock)
+        indentLevel = len(idntBlock)
         for idx in range(len(textLst)):
             if len(textLst[idx]) >= indentLevel and \
-              textLst[idx][:indentLevel] == idntBlock:
+                    textLst[idx][:indentLevel] == idntBlock:
                 textLst[idx] = textLst[idx][indentLevel:]
         return textLst
 
@@ -139,7 +169,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if self.CallTipActive():
             pass
 
-#---Call Tips-------------------------------------------------------------------
+# ---Call Tips------------------------------------------------------------
 
     def OnParamTips(self, event):
         if Preferences.autoRefreshOnCodeComplete:
@@ -154,12 +184,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         if (len(objPth) == 2 or len(objPth) == 3) and objPth[0] == 'wx':
             wxPyTip = self.getFirstContinousBlock(
-                       self.checkWxPyTips(module, word))
-            if wxPyTip: return wxPyTip
+                self.checkWxPyTips(module, word))
+            if wxPyTip:
+                return wxPyTip
 
         if len(objPth) == 1:
             res = self.getNameSig(objPth[0], module)
-            if res is not None: return res
+            if res is not None:
+                return res
 
         cls = module.getClassForLineNo(lnNo)
         # inside classes
@@ -167,16 +199,17 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if len(objPth) == 2 and objPth[0] == 'self':
                 if objPth[1] in cls.methods:
                     return self.prepareModSigTip(objPth[1],
-                          cls.methods[objPth[1]].signature)
-                elif cls.super and type(cls.super[0]) is type(''):
+                                                 cls.methods[objPth[1]].signature)
+                elif cls.super and isinstance(cls.super[0], type('')):
                     return self.getFirstContinousBlock(
-                      self.checkWxPyMethodTips(module, cls.super[0], objPth[1]))
+                        self.checkWxPyMethodTips(module, cls.super[0], objPth[1]))
 
             if len(objPth) == 2:
                 methName, codeBlock = cls.getMethodForLineNo(lnNo)
-                res = self.getNameMethodSig(objPth[0], objPth[1], module, codeBlock)
-                if res is not None: return res
-
+                res = self.getNameMethodSig(
+                    objPth[0], objPth[1], module, codeBlock)
+                if res is not None:
+                    return res
 
             if len(objPth) == 3 and objPth[0] == 'self':
                 return self.getFirstContinousBlock(
@@ -185,18 +218,21 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             if len(objPth) == 2:
                 codeBlock = module.getFunctionForLineNo(lnNo)
-                res = self.getNameMethodSig(objPth[0], objPth[1], module, codeBlock)
-                if res is not None: return res
+                res = self.getNameMethodSig(
+                    objPth[0], objPth[1], module, codeBlock)
+                if res is not None:
+                    return res
 
         return self.checkShellTips(word)
 
     def getNameSig(self, name, module):
         if name in module.classes and \
-              '__init__' in module.classes[name].methods:
+                '__init__' in module.classes[name].methods:
             return self.prepareModSigTip(name,
-                module.classes[name].methods['__init__'].signature)
+                                         module.classes[name].methods['__init__'].signature)
         elif name in module.functions:
-            return self.prepareModSigTip(name, module.functions[name].signature)
+            return self.prepareModSigTip(
+                name, module.functions[name].signature)
         elif name in __builtins__:
             return self.getFirstContinousBlock(__builtins__[name].__doc__)
         return None
@@ -227,11 +263,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if name in codeBlock.locals:
                 objType = codeBlock.locals[name].objtype
                 res = self.getTypeSig(objType, method, module)
-                if res is not None: return res
+                if res is not None:
+                    return res
         if name in module.globals:
             objType = module.globals[name].signature
             res = self.getTypeSig(objType, method, module)
-            if res is not None: return res
+            if res is not None:
+                return res
 
         return None
 
@@ -239,12 +277,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if attrib in cls.attributes:
             objtype = cls.attributes[attrib][0].signature
             if objtype in module.classes and \
-                  meth in module.classes[objtype].methods:
+                    meth in module.classes[objtype].methods:
                 return module.classes[objtype].methods[meth].signature
             klass = wxNamespace.getWxClass(objtype)
             if klass:
                 if hasattr(klass, meth):
-                    return self.prepareWxModSigTip(getattr(klass, meth).__doc__)
+                    return self.prepareWxModSigTip(
+                        getattr(klass, meth).__doc__)
         return ''
 
     sigTypeMap = {'dict': dict, 'list': list, 'string': str, 'tuple': tuple,
@@ -259,10 +298,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 pass
 
         if objType in module.classes and \
-              method in module.classes[objType].methods:
+                method in module.classes[objType].methods:
             return self.prepareModSigTip(method,
-                        module.classes[objType].methods[method].signature)
-        meth = wxNamespace.getWxObjPath(objType+'.'+method)
+                                         module.classes[objType].methods[method].signature)
+        meth = wxNamespace.getWxObjPath(objType + '.' + method)
         if meth and meth.__doc__:
             return self.prepareWxModSigTip(meth.__doc__)
 
@@ -276,7 +315,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             paramEnd = tip.rfind(')')
             if paramEnd != -1:
                 return self.prepareModSigTip(tip[:paramStart],
-                                             tip[paramStart+1:paramEnd]).strip()
+                                             tip[paramStart + 1:paramEnd]).strip()
         return tip.strip()
 
     def prepareModSigTip(self, name, paramsStr):
@@ -284,9 +323,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             paramsStr = paramsStr[5:].strip()
         elif paramsStr == 'self':
             paramsStr = ''
-        return '%s(%s)'%(name, paramsStr)
+        return '%s(%s)' % (name, paramsStr)
 
-#---Code Completion-------------------------------------------------------------
+# ---Code Completion------------------------------------------------------
 
     def OnCompleteCode(self, event):
         if Preferences.autoRefreshOnCodeComplete:
@@ -294,7 +333,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.codeCompCheck()
 
     def getCodeCompOptions(self, word, rootWord, matchWord, lnNo):
-        #print 'getCodeCompOptions', word, rootWord, matchWord, lnNo
+        # print 'getCodeCompOptions', word, rootWord, matchWord, lnNo
         """ Overwritten Mixin method, returns list of code completion names """
         objPth = rootWord.split('.')
 
@@ -315,7 +354,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                         # check for def *, add inherited methods
                         if wrds and wrds[0] == 'def':
                             if isinstance(cls.super[0], moduleparse.Class):
-                                return self.getAttribs(cls.super[0], methsOnly=True)
+                                return self.getAttribs(
+                                    cls.super[0], methsOnly=True)
                             elif type(cls.super[0]) in (str,):
                                 super = wxNamespace.getWxClass(cls.super[0])
                                 if super:
@@ -325,7 +365,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 else:
                     methName, codeBlock = cls.getMethodForLineNo(lnNo)
                     res = self.getNameAttribs(objPth[0], module, codeBlock)
-                    if res is not None: return res
+                    if res is not None:
+                        return res
 
             elif len(objPth) == 2:
                 # attributes of attrs with known type
@@ -335,7 +376,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         else:
             # handles, base classes in class declaration statement
-            cls = module.getClassForLineNo(lnNo+1)
+            cls = module.getClassForLineNo(lnNo + 1)
             if cls:
                 return self.getAllClasses(module)
             # handles function and global scope
@@ -345,32 +386,33 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if len(objPth) == 1:
                 codeBlock = module.getFunctionForLineNo(lnNo)
                 res = self.getNameAttribs(objPth[0], module, codeBlock)
-                if res is not None: return res
+                if res is not None:
+                    return res
 
         return self.getShellNames(objPth)
 
     def importInShell(self, name, fromlist=()):
         locs = self.model.editor.shell.getShellLocals()
         try:
-            mod = __import__(name, {}, locs, fromlist) 
+            mod = __import__(name, {}, locs, fromlist)
         except Exception:
-            # just swallow all errors, no way to guess what code could execute 
+            # just swallow all errors, no way to guess what code could execute
             # in the global scope of arbitrary modules
             return None
-        
+
         if fromlist and hasattr(mod, fromlist[0]):
             return getattr(mod, fromlist[0])
 
-        components = name.split('.') 
-        for comp in components[1:]: 
+        components = name.split('.')
+        for comp in components[1:]:
             if hasattr(mod, comp):
-                mod = getattr(mod, comp) 
-        return mod 
+                mod = getattr(mod, comp)
+        return mod
 
     def getImportedShellObj(self, words):
         module = self.model.getModule()
         imports = list(module.imports.keys()) + list(module.from_imports.keys()) +\
-                list(module.from_imports_names.keys())
+            list(module.from_imports_names.keys())
         if self.model.editor.shell:
             shellLocals = self.model.editor.shell.getShellLocals()
             name = words[0]
@@ -380,7 +422,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     if name in module.from_imports_names:
                         fromlist = [name]
                         name = module.from_imports_names[name]
-                    
+
                     m = self.importInShell(name, fromlist)
                     if m is None:
                         raise ShellNameNotFound
@@ -402,8 +444,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         except ShellNameNotFound:
             return []
 
-    def getWxAttribs(self, cls, mems = None, methsOnly=False):
-        if mems is None: mems = []
+    def getWxAttribs(self, cls, mems=None, methsOnly=False):
+        if mems is None:
+            mems = []
 
         for base in getattr(cls, '__bases__', ()):
             self.getWxAttribs(base, mems, methsOnly)
@@ -417,11 +460,13 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if name in codeBlock.locals:
                 objType = codeBlock.locals[name].objtype
                 res = self.getTypeAttribs(objType, module)
-                if res is not None: return res
+                if res is not None:
+                    return res
         if name in module.globals:
             objType = module.globals[name].signature
             res = self.getTypeAttribs(objType, module)
-            if res is not None: return res
+            if res is not None:
+                return res
 
         return None
 
@@ -499,16 +544,16 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         return names
 
-#-------Browsing----------------------------------------------------------------
+# -------Browsing----------------------------------------------------------------
 
     def findNameInModule(self, module, word):
         """ Find either a classname, global function or attribute in module """
         if word in module.classes:
-            return module.classes[word].block.start-1
+            return module.classes[word].block.start - 1
         elif word in module.functions:
-            return module.functions[word].start-1
+            return module.functions[word].start - 1
         elif word in module.globals:
-            return module.globals[word].start-1
+            return module.globals[word].start - 1
         else:
             return None
 
@@ -528,18 +573,18 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             self.doClearBrwsLn()
             gotoLine = -1
             if word in cls.attributes:
-                gotoLine = cls.attributes[word][0].start-1
+                gotoLine = cls.attributes[word][0].start - 1
             elif word in cls.methods:
-                gotoLine = cls.methods[word].start-1
+                gotoLine = cls.methods[word].start - 1
             elif word in cls.class_attributes:
-                gotoLine = cls.class_attributes[word][0].start-1
+                gotoLine = cls.class_attributes[word][0].start - 1
             else:
                 found, cls, block = module.find_declarer(cls, word, None)
                 if found:
-                    if type(block) == type([]):
-                        gotoLine = block[0].start-1
+                    if isinstance(block, type([])):
+                        gotoLine = block[0].start - 1
                     else:
-                        gotoLine = block.start-1
+                        gotoLine = block.start - 1
             if gotoLine != -1:
                 self.model.editor.addBrowseMarker(lineNo)
                 self.GotoLine(gotoLine)
@@ -550,23 +595,24 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         wxObj = wxNamespace.getWxObjPath(word)
         if wxObj is not None:
             if hasattr(wxObj, '__module__'):
-                try: path, impType = self.model.findModule(wxObj.__module__)
-                except ImportError: return False, None
+                try:
+                    path, impType = self.model.findModule(wxObj.__module__)
+                except ImportError:
+                    return False, None
                 else:
                     if impType == 'package':
                         self.model.editor.addBrowseMarker(currLineNo)
                         model, ctrlr = self.model.editor.openOrGotoModule(
-                              os.path.join(path, '__init__.py'))
+                            os.path.join(path, '__init__.py'))
                         return True, model
                     elif impType in ('name', 'module'):
                         self.model.editor.addBrowseMarker(currLineNo)
                         model, ctrlr = self.model.editor.openOrGotoModule(path)
                         if impType == 'name':
-                            model.views['Source'].gotoName(model.getModule(), 
-                                  words[-1], currLineNo)
+                            model.views['Source'].gotoName(model.getModule(),
+                                                           words[-1], currLineNo)
                         return True, model
         return False, None
-                
 
     def handleBrwsImports(self, module, word, currLineNo):
         words = word.split('.')
@@ -575,13 +621,15 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if word in module.imports:
             self.doClearBrwsLn()
 
-            try: path, impType = self.model.findModule(word)
-            except ImportError: return False, None
+            try:
+                path, impType = self.model.findModule(word)
+            except ImportError:
+                return False, None
             else:
                 if impType == 'package':
                     self.model.editor.addBrowseMarker(currLineNo)
                     model, ctrlr = self.model.editor.openOrGotoModule(
-                          os.path.join(path, '__init__.py'))
+                        os.path.join(path, '__init__.py'))
                     return True, model
                 elif impType in ('name', 'module'):
                     self.model.editor.addBrowseMarker(currLineNo)
@@ -590,8 +638,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             return False, None
         # Handle module part of from module import name
         elif word in module.from_imports:
-            try: path, impType = self.model.findModule(word)
-            except ImportError: return False, None
+            try:
+                path, impType = self.model.findModule(word)
+            except ImportError:
+                return False, None
             else:
                 self.doClearBrwsLn()
                 self.model.editor.addBrowseMarker(currLineNo)
@@ -602,32 +652,35 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # Handle name part of from module import name
         elif word in module.from_imports_names:
             modName = module.from_imports_names[word]
-            try: path, impType = self.model.findModule(modName, word)
-            except ImportError: return False, None
+            try:
+                path, impType = self.model.findModule(modName, word)
+            except ImportError:
+                return False, None
             else:
                 self.doClearBrwsLn()
                 self.model.editor.addBrowseMarker(currLineNo)
                 model, ctrlr = self.model.editor.openOrGotoModule(path)
                 if impType == 'name':
                     model.views['Source'].gotoName(model.getModule(), word,
-                          currLineNo)
+                                                   currLineNo)
                 return True, model
         else:
             # Handle [package.]module.name
             if len(words) > 1:
                 testMod = '.'.join(words[:-1])
-                handled, model = self.handleBrwsImports(module, testMod, currLineNo)
+                handled, model = self.handleBrwsImports(
+                    module, testMod, currLineNo)
                 if handled is None:
-                    return None, None # unhandled
+                    return None, None  # unhandled
                 elif handled:
                     if not model.views['Source'].gotoName(model.getModule(),
-                          words[-1], currLineNo):
-                        wx.LogWarning(_('"%s" not found.')%words[-1])
+                                                          words[-1], currLineNo):
+                        wx.LogWarning(_('"%s" not found.') % words[-1])
                     return True, model
                 else:
                     return False, None
             else:
-                return None, None # unhandled
+                return None, None  # unhandled
 
     def handleBrwsLocals(self, module, word, lineNo):
         # Check local names and parameters in methods and functions
@@ -644,9 +697,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 self.doClearBrwsLn()
                 self.model.editor.addBrowseMarker(lineNo)
                 if word in list(codeBlock.locals.keys()):
-                    self.GotoLine(codeBlock.locals[word].lineno-1)
+                    self.GotoLine(codeBlock.locals[word].lineno - 1)
                 else:
-                    self.GotoLine(codeBlock.start-1)
+                    self.GotoLine(codeBlock.start - 1)
                 return True
         return False
 
@@ -660,22 +713,24 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         if word in shellLocals:
             obj = shellLocals[word]
-        #elif hasattr(wxNamespace, word):
+        # elif hasattr(wxNamespace, word):
         #    obj = getattr(wxNamespace, word)
         else:
             return False
 
         self.doClearBrwsLn()
-        if hasattr(obj, '__init__') and type(obj.__init__) == types.MethodType:
+        if hasattr(obj, '__init__') and isinstance(
+                obj.__init__, types.MethodType):
             self.model.editor.addBrowseMarker(currLineNo)
             path = os.path.abspath(obj.__init__.__func__.__code__.co_filename)
             mod, cntrl = self.model.editor.openOrGotoModule(path)
-            mod.views['Source'].GotoLine(obj.__init__.__func__.__code__.co_firstlineno -1)
+            mod.views['Source'].GotoLine(
+                obj.__init__.__func__.__code__.co_firstlineno - 1)
         elif hasattr(obj, 'func_code'):
             self.model.editor.addBrowseMarker(currLineNo)
             path = os.path.abspath(obj.__code__.co_filename)
             mod, cntrl = self.model.editor.openOrGotoModule(path)
-            mod.views['Source'].GotoLine(obj.__code__.co_firstlineno -1)
+            mod.views['Source'].GotoLine(obj.__code__.co_firstlineno - 1)
         else:
             return False
         return True
@@ -688,8 +743,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             for starMod in module.from_imports_star:
                 try:
                     module.from_imports_star_cache[starMod] = \
-                          self.model.findModule(starMod)
-                except ImportError: pass
+                        self.model.findModule(starMod)
+                except ImportError:
+                    pass
         # work thru open * imported modules and try to match name
         for starMod in module.from_imports_star:
             try:
@@ -697,8 +753,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             except KeyError:
                 res = None
                 continue
-            if res and 'file://'+res[0] in self.model.editor.modules:
-                starModPage = self.model.editor.modules['file://'+res[0]]
+            if res and 'file://' + res[0] in self.model.editor.modules:
+                starModPage = self.model.editor.modules['file://' + res[0]]
                 starModule = starModPage.model.getModule()
                 lineNo = self.findNameInModule(starModule, word)
                 if lineNo is not None:
@@ -755,7 +811,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         return False
 
     def underlineWord(self, start, length):
-        start, length = BrowseStyledTextCtrlMix.underlineWord(self, start, length)
+        start, length = BrowseStyledTextCtrlMix.underlineWord(
+            self, start, length)
         debugger = self.model.editor.debugger
         start, length = BrowseStyledTextCtrlMix.underlineWord(
             self, start, length)
@@ -773,20 +830,20 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def getBrowsableText(self, line, piv, lnStPs):
         return idWord(line, piv, lnStPs, object_delim)
 ##        debugger = self.model.editor.debugger
-##        if debugger and debugger.isDebugBrowsing():
-##            return idWord(line, piv, lnStPs, object_delim)
-##        else:
-##            return BrowseStyledTextCtrlMix.getBrowsableText(self, line, piv, lnStPs)
+# if debugger and debugger.isDebugBrowsing():
+# return idWord(line, piv, lnStPs, object_delim)
+# else:
+# return BrowseStyledTextCtrlMix.getBrowsableText(self, line, piv, lnStPs)
 
     def disableSource(self, doDisable):
         self.SetReadOnly(doDisable)
-        #self.grayout(doDisable)
+        # self.grayout(doDisable)
 
     def OnBrowseTo(self, event):
         word, line, lnNo, start, startOffset = self.getWordAtCursor()
         self.BrowseClick(word, line, lnNo, start, None)
 
-#---Syntax checking-------------------------------------------------------------
+# ---Syntax checking------------------------------------------------------
 
     def checkChangesAndSyntax(self, lineNo=None):
         """ Called before moving away from a line """
@@ -795,26 +852,28 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if lineNo is None:
             lineNo = self.GetCurrentLine()
         if not Preferences.onlyCheckIfLineModified or \
-              lineNo == self.damagedLine:
-            slb, sle = ( self.GetStyleAt(self.PositionFromLine(lineNo)),
-                         self.GetStyleAt(self.GetLineEndPosition(lineNo)-1) )
+                lineNo == self.damagedLine:
+            slb, sle = (self.GetStyleAt(self.PositionFromLine(lineNo)),
+                        self.GetStyleAt(self.GetLineEndPosition(lineNo) - 1))
             line = self.GetLine(lineNo)
-            self.checkSyntax( (line,), lineNo +1, self.GetLine,
-                lineStartStyle = slb, lineEndStyle = sle)
+            self.checkSyntax((line,), lineNo + 1, self.GetLine,
+                             lineStartStyle=slb, lineEndStyle=sle)
 
     def indicateError(self, lineNo, errOffset, errorHint):
         """ Underline the point of error at the given line """
         # Display red squigly indicator underneath error
-        errPos = self.PositionFromLine(lineNo-1)
-        lineLen = self.LineLength(lineNo-1)
+        errPos = self.PositionFromLine(lineNo - 1)
+        lineLen = self.LineLength(lineNo - 1)
         nextLineLen = self.LineLength(lineNo)
-        lenAfterErr = lineLen-errOffset+1
+        lenAfterErr = lineLen - errOffset + 1
         styleLen = min(3, lenAfterErr)
 
-        self.StartStyling(errPos+errOffset-2, wx.stc.STC_INDICS_MASK)
+        self.StartStyling(errPos + errOffset - 2, wx.stc.STC_INDICS_MASK)
         self.SetStyling(styleLen, wx.stc.STC_INDIC1_MASK)
         # XXX I have to set the styling past the cursor position, why????
-        self.SetStyling(lenAfterErr+nextLineLen, 0)#wx.stc.STC_INDIC0_MASK)
+        self.SetStyling(
+            lenAfterErr + nextLineLen,
+            0)  # wx.stc.STC_INDIC0_MASK)
 
         if errorHint:
             self.model.editor.statusBar.setHint(errorHint, 'Error')
@@ -822,27 +881,27 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def stripComment(self, line):
         segs = methodparse.safesplitfields(line, '#')
         if len(segs) > 1:
-            line = segs[0] + ' '*(len(line)-len(segs[0])-1)+'\n'
+            line = segs[0] + ' ' * (len(line) - len(segs[0]) - 1) + '\n'
 
         return line
 
-    if_keywords = {'else':    'if 1',
-                   'elif':    'if  ',
-                  }
-    try_keywords = {'except':  'try:pass',
-                    'finally': 'try:pass',
+    if_keywords = {'else': 'if 1',
+                   'elif': 'if  ',
                    }
+    try_keywords = {'except': 'try:pass',
+                    'finally': 'try:pass',
+                    }
 
     line_conts = ('(', '[', '{', '\\', ',')
     line_conts_ends = (')', ']', '}', ':', ',', '%')
 
     # Multiline strings, ignored currently based on scintilla style info
-    ignore_styles = {6 : "'''", 7 : '"""'}
+    ignore_styles = {6: "'''", 7: '"""'}
 
     syntax_errors = ('invalid syntax', 'invalid token')
 
     def checkSyntax(self, prevlines, lineNo, getPrevLine, compprefix='',
-          indent='', contLinesOffset=0, lineStartStyle=0, lineEndStyle=0):
+                    indent='', contLinesOffset=0, lineStartStyle=0, lineEndStyle=0):
         # XXX Should also check syntax before saving.
         # XXX Multiline without brackets not caught
         # XXX Should check indent errors (multilines make this tricky)
@@ -851,7 +910,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         # XXX     ZopeCompanions 278
         # XXX     print a, b,
         # XXX         c, d
-        errstr = 'Line %d valid '%lineNo
+        errstr = 'Line %d valid ' % lineNo
         prevline = prevlines[-1]
         stripprevline = prevline.strip()
 
@@ -862,7 +921,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         # Ignore multiline strings
         if lineStartStyle in list(self.ignore_styles.keys()) or \
-              lineEndStyle in list(self.ignore_styles.keys()):
+                lineEndStyle in list(self.ignore_styles.keys()):
             self.model.editor.statusBar.setHint(errstr)
             return
 
@@ -875,18 +934,22 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
         # note, removes (flattens) indent
         if not compstr:
-            compstr = compprefix+'\n'.join(\
-                  [indent+line.strip() for line in prevlines])+'\n'
+            compstr = compprefix + '\n'.join(
+                [indent + line.strip() for line in prevlines]) + '\n'
 
-        try: import __future__
-        except ImportError: compflags = 0
+        try:
+            import __future__
+        except ImportError:
+            compflags = 0
         else:
             # XXX Should check future imports from parsed module object
             # XXX Too expensive for now
             # mod = self.model.getModule()
             compflags = 0
-            try: compflags = compflags | __future__.generators.compiler_flag
-            except AttributeError: pass
+            try:
+                compflags = compflags | __future__.generators.compiler_flag
+            except AttributeError:
+                pass
 
         try:
             try:
@@ -895,57 +958,59 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 compile(compstr, '<editor>', 'single')
         except SyntaxError as err:
             err.lineno = lineNo
-            errstr = err.__class__.__name__+': '+str(err)
+            errstr = err.__class__.__name__ + ': ' + str(err)
             indentpl = prevline.find(stripprevline)
             if err[0] == 'unexpected EOF while parsing':
-                errstr = 'incomplete (%d)'%lineNo
+                errstr = 'incomplete (%d)' % lineNo
             elif err[0] == "'return' outside function":
                 self.checkSyntax(prevlines, lineNo, getPrevLine,
-                      'def func():\n', ' ')
+                                 'def func():\n', ' ')
                 return
             elif err[0] == "'yield' outside function":
                 self.checkSyntax(prevlines, lineNo, getPrevLine,
-                      'def func():\n', ' ')
+                                 'def func():\n', ' ')
                 return
             elif err[0] == 'expected an indented block':
                 errstr = errstr + ' ignored'
             elif err[0] in ("'break' outside loop",
-                  "'continue' not properly in loop"):
+                            "'continue' not properly in loop"):
                 self.checkSyntax(prevlines, lineNo, getPrevLine,
-                      'while 1:\n', ' ')
+                                 'while 1:\n', ' ')
                 return
             elif err[0] == 'invalid token':
                 self.indicateError(lineNo,
-                      err.offset + indentpl - len(indent) - contLinesOffset,
-                      'SyntaxError: %s'%err[0])
+                                   err.offset + indentpl -
+                                   len(indent) - contLinesOffset,
+                                   'SyntaxError: %s' % err[0])
             #"can't assign to function call"
             # Invalid syntax
             else:
-                if len(prevlines) == 1 and err.offset is not None and not contLinesOffset:
+                if len(
+                        prevlines) == 1 and err.offset is not None and not contLinesOffset:
                     # Check for dedenting keywords
-                    possblkeyword = stripprevline[:err.offset-len(indent)]
+                    possblkeyword = stripprevline[:err.offset - len(indent)]
                     if possblkeyword in list(self.if_keywords.keys()):
-                        self.checkSyntax( (prevline.replace(possblkeyword,
-                              self.if_keywords[possblkeyword], 1),),
-                            lineNo, getPrevLine)
+                        self.checkSyntax((prevline.replace(possblkeyword,
+                                                           self.if_keywords[possblkeyword], 1),),
+                                         lineNo, getPrevLine)
                         return
                     elif possblkeyword in list(self.try_keywords.keys()):
                         if stripprevline[-1] == ':':
-                            prevline = prevline.rstrip()+'pass\n'
+                            prevline = prevline.rstrip() + 'pass\n'
 
-                        self.checkSyntax( (self.try_keywords[possblkeyword],
-                                           prevline), lineNo, getPrevLine)
+                        self.checkSyntax((self.try_keywords[possblkeyword],
+                                          prevline), lineNo, getPrevLine)
                         return
 
                     # Check for line continueations
                     # XXX Lines ending on line_conts should be ignored
-                    errpos = err.offset-len(indent)-1
+                    errpos = err.offset - len(indent) - 1
                     if errpos < len(stripprevline) and \
-                          stripprevline[errpos] in self.line_conts_ends:
+                            stripprevline[errpos] in self.line_conts_ends:
                         ln = lineNo - 2
 
                         if stripprevline[-1] == '\\':
-                            lines = prevline.rstrip()[:-1]+' '
+                            lines = prevline.rstrip()[:-1] + ' '
                         else:
                             lines = prevline.rstrip()
 
@@ -959,27 +1024,29 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                                 lstripline = line.lstrip()
                                 if len(lstripline) >= 4:
                                     possblifkeyword = lstripline[:4]
-                                    if possblifkeyword in list(self.if_keywords.keys()):
-                                        ##print 'replace if kw'
+                                    if possblifkeyword in list(
+                                            self.if_keywords.keys()):
+                                        # print 'replace if kw'
                                         rstripline = rstripline.replace(
-                                              possblifkeyword,
-                                              self.if_keywords[possblifkeyword], 1)
+                                            possblifkeyword,
+                                            self.if_keywords[possblifkeyword], 1)
 
                                 if rstripline[-1] == '\\':
-                                    lines = rstripline[:-1] +' '+ lines
+                                    lines = rstripline[:-1] + ' ' + lines
                                 else:
                                     lines = rstripline + lines
-                                errOffsetOffset = errOffsetOffset + len(rstripline)
-                                ln = ln -1
+                                errOffsetOffset = errOffsetOffset + \
+                                    len(rstripline)
+                                ln = ln - 1
                             # ignore blank or entirely commented lines
                             elif not rstripline:
-                                ln = ln -1
+                                ln = ln - 1
                             else:
                                 break
 
                         if errOffsetOffset:
                             self.checkSyntax((lines,), lineNo, getPrevLine,
-                                  contLinesOffset = errOffsetOffset)
+                                             contLinesOffset=errOffsetOffset)
                             return
 
                 if not err.offset:
@@ -988,20 +1055,21 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                     erroffset = err.offset
 
                 self.indicateError(lineNo,
-                    erroffset + indentpl - len(indent) - contLinesOffset,
-                    errstr)
+                                   erroffset + indentpl -
+                                   len(indent) - contLinesOffset,
+                                   errstr)
                 self.damagedLine = -1
                 return
 
         except Exception as err:
-            errstr = err.__class__.__name__+': '+str(err)
+            errstr = err.__class__.__name__ + ': ' + str(err)
 
         if errstr:
             self.model.editor.statusBar.setHint(errstr)
 
         self.damagedLine = -1
 
-#-------Events------------------------------------------------------------------
+# -------Events------------------------------------------------------------------
     def OnMarginClick(self, event):
         if event.GetMargin() == symbolMrg:
             DebuggingViewSTCMix.OnMarginClick(self, event)
@@ -1019,7 +1087,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         else:
             model = self.model
         model.debug(cont_if_running=1, cont_always=1,
-                         temp_breakpoint=temp_breakpoint)
+                    temp_breakpoint=temp_breakpoint)
 
     def getWordAtCursor(self, delim=word_delim):
         pos = self.GetCurrentPos()
@@ -1028,8 +1096,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         line = self.GetCurLine()[0]
         piv = pos - lnStPs
         start, length = idWord(line, piv, lnStPs, delim)
-        startOffset = start-lnStPs
-        word = line[startOffset:startOffset+length]
+        startOffset = start - lnStPs
+        word = line[startOffset:startOffset + length]
         return word, line, lnNo, start, startOffset
 
     def OnContextHelp(self, event):
@@ -1040,7 +1108,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processComment)
         else:
-            self.GotoPos(self.PositionFromLine(self.LineFromPosition(selStartPos)))
+            self.GotoPos(
+                self.PositionFromLine(
+                    self.LineFromPosition(selStartPos)))
             self.AddText('##')
             self.SetSelection(selStartPos, selStartPos)
 
@@ -1050,8 +1120,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             self.processSelectionBlock(self.processUncomment)
         else:
             linePos = self.PositionFromLine(self.LineFromPosition(selStartPos))
-            if self.GetTextRange(linePos, linePos+2) == '##':
-                self.SetSelection(linePos, linePos+2)
+            if self.GetTextRange(linePos, linePos + 2) == '##':
+                self.SetSelection(linePos, linePos + 2)
                 self.ReplaceSelection('')
                 self.SetSelection(selStartPos, selStartPos)
 
@@ -1060,7 +1130,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if selStartPos != selEndPos:
             self.processSelectionBlock(self.processIndent)
         else:
-            self.GotoPos(self.PositionFromLine(self.LineFromPosition(selStartPos)))
+            self.GotoPos(
+                self.PositionFromLine(
+                    self.LineFromPosition(selStartPos)))
             self.AddText(Utils.getIndentBlock())
             self.SetSelection(selStartPos, selStartPos)
 
@@ -1072,7 +1144,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             self.processSelectionBlock(self.processDedent)
         else:
             linePos = self.PositionFromLine(self.LineFromPosition(selStartPos))
-            if self.GetTextRange(linePos, linePos + indentLevel) == indentBlock:
+            if self.GetTextRange(linePos, linePos +
+                                 indentLevel) == indentBlock:
                 self.SetSelection(linePos, linePos + indentLevel)
                 self.ReplaceSelection('')
                 self.SetSelection(selStartPos, selStartPos)
@@ -1080,7 +1153,9 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
     def OnAddSimpleApp(self, event):
         self.BeginUndoAction()
         try:
-            self.InsertText(self.GetTextLength(), self.model.getSimpleRunnerSrc())
+            self.InsertText(
+                self.GetTextLength(),
+                self.model.getSimpleRunnerSrc())
         finally:
             self.EndUndoAction()
 
@@ -1107,12 +1182,12 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         self.damagedLine = lineNo
         if char == 10:
             pos = self.GetCurrentPos()
-            prevline = self.GetLine(lineNo -1)
+            prevline = self.GetLine(lineNo - 1)
 
             self.doAutoIndent(prevline, pos)
 
-            self.damagedLine = lineNo-1
-            self.checkChangesAndSyntax(lineNo-1)
+            self.damagedLine = lineNo - 1
+            self.checkChangesAndSyntax(lineNo - 1)
         elif char == 40 and Preferences.callTipsOnOpenParen:
             self.callTipCheck()
 
@@ -1129,10 +1204,10 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         if key in (wx.WXK_UP, wx.WXK_DOWN):
             self.checkChangesAndSyntax()
         # Tabbed indent
-##        elif key == 9:
+# elif key == 9:
 ##            self.AddText(indentLevel*' ')
 ##            self.damagedLine = self.GetCurrentLine()
-##            if not self.AutoCompActive(): return
+# if not self.AutoCompActive(): return
         # Smart delete
         elif key == 8:
             selStartPos, selEndPos = self.GetSelection()
@@ -1142,32 +1217,34 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 else:
                     indtSze = self.GetTabWidth()
                 line = self.GetCurLine()
-                if len(line): line = line[0]
-                else: line = ''
+                if len(line):
+                    line = line[0]
+                else:
+                    line = ''
                 pos = self.GetCurrentPos()
                 self.damagedLine = self.LineFromPosition(pos)
-                #ignore indenting when at start of line
+                # ignore indenting when at start of line
                 if self.PositionFromLine(self.LineFromPosition(pos)) != pos:
-                    pos = pos -1
+                    pos = pos - 1
                     ln = self.LineFromPosition(pos)
                     ls = self.PositionFromLine(ln)
                     st = pos - ls
                     if not line[:st].strip():
-                        self.SetSelection(ls + st/indtSze*indtSze, pos+1)
+                        self.SetSelection(ls + st / indtSze * indtSze, pos + 1)
                         self.ReplaceSelection('')
                         return
-        #event.Skip()
+        # event.Skip()
         BrowseStyledTextCtrlMix.OnKeyDown(self, event)
 
-#---Meta comment----------------------------------------------------------------
+# ---Meta comment---------------------------------------------------------
     def OnAddCommentLine(self, event):
         pos = self.GetCurrentPos()
         ln = self.LineFromPosition(pos)
         ls = self.PositionFromLine(ln)
         self.InsertText(ls, '#-------------------------------------------'
-                            '------------------------------------'+self.eol)
-        self.SetCurrentPos(ls+4)
-        self.SetAnchor(ls+4)
+                            '------------------------------------' + self.eol)
+        self.SetCurrentPos(ls + 4)
+        self.SetAnchor(ls + 4)
 
     def OnViewWhitespace(self, event):
         miid = self.menu.FindItem(_('View whitespace'))
@@ -1189,7 +1266,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 
     # XXX 1st Xform, should maybe add beneath current method
     def OnCodeTransform(self, event):
-        word, line, lnNo, start, startOffset = self.getWordAtCursor(object_delim)
+        word, line, lnNo, start, startOffset = self.getWordAtCursor(
+            object_delim)
         self.model.editor.addBrowseMarker(lnNo)
         # 1st Xform; Add method at cursor to the class
         if word.startswith('self.'):
@@ -1201,20 +1279,22 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             if cls and methName not in cls.methods:
                 # Check if it looks like an event
                 if len(methName) > 2 and methName[:2] == 'On' and (methName[2]
-                                                       in string.uppercase+'_'):
+                                                                   in string.uppercase + '_'):
                     parms = 'self, event'
                 else:
                     parms = 'self, '
 
-                module.addMethod(cls.name, methName, parms, [sourceconst.bodyIndent+'pass'], True)
+                module.addMethod(
+                    cls.name, methName, parms, [
+                        sourceconst.bodyIndent + 'pass'], True)
                 if methName in cls.methods:
-                    lnNo = cls.methods[methName].start+1
+                    lnNo = cls.methods[methName].start + 1
                     self.model.refreshFromModule()
                     self.model.modified = True
                     self.model.editor.updateModulePage(self.model)
                     line2pos = self.PositionFromLine(lnNo)
-                    self.SetCurrentPos(line2pos+8)
-                    self.SetSelection(line2pos+8, line2pos+12)
+                    self.SetCurrentPos(line2pos + 8)
+                    self.SetSelection(line2pos + 8, line2pos + 12)
                 else:
                     print('Method was not added')
         else:
@@ -1226,15 +1306,15 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
                 cls = module.getClassForLineNo(lnNo)
                 if cls and cls.super:
                     base1 = cls.super[0]
-                    if type(base1) is type(''):
+                    if isinstance(base1, type('')):
                         baseName = base1
                     else:
                         baseName = base1.name
-                    methName, meth = cls.getMethodForLineNo(lnNo+1)
+                    methName, meth = cls.getMethodForLineNo(lnNo + 1)
                     if meth:
                         # XXX Not tab aware
-                        module.addLine('%s%s.%s(%s)'%(' '*startOffset, baseName,
-                              word, meth.signature), lnNo+1)
+                        module.addLine('%s%s.%s(%s)' % (' ' * startOffset, baseName,
+                                                        word, meth.signature), lnNo + 1)
                         self.model.refreshFromModule()
                         self.model.modified = True
                         self.model.editor.updateModulePage(self.model)
@@ -1248,7 +1328,8 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
         modType = event.GetModificationType()
         linesAdded = event.GetLinesAdded()
 
-        if self._blockUpdate: return
+        if self._blockUpdate:
+            return
 
         # repair breakpoints
         if linesAdded:
@@ -1265,7 +1346,7 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
             module = self.model.getModule()
             module.renumber(linesAdded, lineNo)
 
-            #if linesAdded == 1:
+            # if linesAdded == 1:
             #    module.parseLineIsolated(self.GetLine(lineNo), lineNo)
 
             #self.model.editor.statusBar.setHint('update ren %d %d'%(linesAdded, lineNo))
@@ -1274,13 +1355,14 @@ class PythonSourceView(EditorStyledTextCtrl, PythonStyledTextCtrlMix,
 class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     viewName = 'Disassemble'
     viewTitle = _('Disassemble')
-    
+
     breakBmp = 'Images/Debug/Breakpoints.png'
+
     def __init__(self, parent, model):
         wxID_PYTHONDISVIEW = wx.NewId()
 
         EditorStyledTextCtrl.__init__(self, parent, wxID_PYTHONDISVIEW,
-          model, (), -1)
+                                      model, (), -1)
         PythonStyledTextCtrlMix.__init__(self, wxID_PYTHONDISVIEW, ())
 
         self.active = True
@@ -1298,8 +1380,8 @@ class PythonDisView(EditorStyledTextCtrl, PythonStyledTextCtrlMix):
     def updateFromAttrs(self):
         self.SetReadOnly(True)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-from Explorers import ExplorerNodes
+
 ExplorerNodes.langStyleInfoReg.insert(0, ('Python', 'python',
-      PythonStyledTextCtrlMix, 'stc-styles.rc.cfg') )
+                                          PythonStyledTextCtrlMix, 'stc-styles.rc.cfg'))

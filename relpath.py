@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        relpath.py
 # Purpose:
 #
@@ -8,7 +8,7 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2003 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 ##b = 'c:\\a\\b\\f\\d'
 ##d = 'c:\\a\\b\\f\\h.txt'
@@ -17,12 +17,13 @@
 
 import os
 
+
 def splitpath(apath):
     """ Splits a path into a list of directory names """
     path_list = []
     drive, apath = os.path.splitdrive(apath)
     head, tail = os.path.split(apath)
-    while 1:
+    while True:
         if tail:
             path_list.insert(0, tail)
         newhead, tail = os.path.split(head)
@@ -45,17 +46,17 @@ def relpath(base, comp):
     elif len(protsplitbase) == 3:
         baseprot, nbase, zipentry = protsplitbase
     else:
-        raise Exception('Unhandled path %s'%repr(protsplitbase))
+        raise Exception('Unhandled path %s' % repr(protsplitbase))
 
     protsplitcomp = comp.split('://')
     if len(protsplitcomp) == 1:
-        compprot, ncomp  = 'file', protsplitcomp[0]
+        compprot, ncomp = 'file', protsplitcomp[0]
     elif len(protsplitcomp) == 2:
         compprot, ncomp = protsplitcomp
     elif len(protsplitcomp) == 3:
         compprot, ncomp, zipentry = protsplitcomp
     else:
-        raise Exception('Unhandled path %s'%repr(protsplitcomp))
+        raise Exception('Unhandled path %s' % repr(protsplitcomp))
 
     if baseprot != compprot:
         return comp
@@ -84,4 +85,4 @@ def relpath(base, comp):
 
     return os.path.join(*rel_path)
 
-#print relpath(b, d)
+# print relpath(b, d)

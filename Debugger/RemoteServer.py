@@ -1,11 +1,11 @@
-import sys, os
-import threading
 import base64
+import os
+import sys
+import threading
 from socketserver import TCPServer
 
-from .IsolatedDebugger import DebugServer, DebuggerConnection
+from .IsolatedDebugger import DebuggerConnection, DebugServer
 from .Tasks import ThreadedTaskHandler
-
 
 try:
     from ExternalLib.xmlrpcserver import RequestHandler
@@ -28,7 +28,8 @@ class DebugRequestHandler (RequestHandler):
         if auth_str:
             s = h.get('authentication')
             if not s or s.split()[-1] != auth_str:
-                raise Exception('Unauthorized: Authentication header missing or incorrect')
+                raise Exception(
+                    'Unauthorized: Authentication header missing or incorrect')
 
     def call(self, method, params):
         # Override of xmlrpcserver.RequestHandler.call()
@@ -50,6 +51,7 @@ class TaskingMixIn:
         """Start a task to process the request."""
         task_handler.addTask(self.finish_request,
                              args=(request, client_address))
+
 
 class TaskingTCPServer(TaskingMixIn, TCPServer):
     allow_reuse_address = 1
@@ -97,7 +99,7 @@ def start(username, password, host='127.0.0.1', port=26200,
         t.start()
 
     startDaemon(serve_forever, (server,))
-    #startDaemon(debug_server.servicerThread)
+    # startDaemon(debug_server.servicerThread)
 
     print("Debug server listening on %s:%s" % tuple(
         server.socket.getsockname()[:2]), file=sys.stderr)
@@ -108,6 +110,7 @@ def start(username, password, host='127.0.0.1', port=26200,
         pass
     else:
         atexit.register(server.socket.close)
+
 
 def stop():
     global debug_server, connection

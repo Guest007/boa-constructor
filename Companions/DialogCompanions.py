@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        DialogCompanions.py
 # Purpose:
 #
@@ -8,21 +8,26 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
-print('importing Companions.DialogCompanions')
-
+# ----------------------------------------------------------------------
 import wx
 
+import Plugins
+
 from .BaseCompanions import CodeCompanion
+
+print('importing Companions.DialogCompanions')
+
 
 class CommonDialogCompanion(CodeCompanion):
     def __init__(self, name, parent):
         CodeCompanion.__init__(self, name)
         self.parent = parent
 
+
 class DataCDC(CommonDialogCompanion):
     def constructor(self):
         return '    dlg = %(dlgclass)s(%(parent)s, data = None)'
+
 
 class ColourDialogCDC(DataCDC):
     def body(self):
@@ -38,6 +43,7 @@ finally:
 
 '''
 
+
 class FontDialogCDC(DataCDC):
     def body(self):
         return '''data = wx.FontData()
@@ -51,6 +57,7 @@ finally:
     dlg.Destroy()
 
 '''
+
 
 class PrintDialogCDC(DataCDC):
     def body(self):
@@ -67,6 +74,7 @@ finally:
 
 '''
 
+
 class PageSetupDialogCDC(DataCDC):
     def body(self):
         return '''data = wx.PageSetupDialogData()
@@ -82,8 +90,10 @@ finally:
 
 '''
 
+
 class MessagedCDC(CommonDialogCompanion):
     pass
+
 
 class DirDialogCDC(MessagedCDC):
     def body(self):
@@ -96,6 +106,7 @@ finally:
     dlg.Destroy()
 '''
 
+
 class FileDialogCDC(MessagedCDC):
     def body(self):
         return '''dlg = wx.FileDialog(self, "Choose a file", ".", "", "*.*", wx.OPEN)
@@ -106,6 +117,7 @@ try:
 finally:
     dlg.Destroy()
 '''
+
 
 class SingleChoiceDialogCDC(MessagedCDC):
     def body(self):
@@ -119,6 +131,7 @@ finally:
 
 '''
 
+
 class TextEntryDialogCDC(MessagedCDC):
     def body(self):
         return '''dlg = wx.TextEntryDialog(self, 'Question', 'Caption', 'Default answer')
@@ -131,6 +144,7 @@ finally:
 
 '''
 
+
 class MessageDialogCDC(MessagedCDC):
     def body(self):
         return '''dlg = wx.MessageDialog(self, 'Message',
@@ -142,17 +156,20 @@ finally:
 
 '''
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
-import Plugins
 
 Plugins.registerComponents('Dialogs',
-      (wx.FontDialog, 'wx.FontDialog', FontDialogCDC),
-      (wx.FileDialog, 'wx.FileDialog', FileDialogCDC),
-      (wx.PrintDialog, 'wx.PrintDialog', PrintDialogCDC),
-      (wx.PageSetupDialog, 'wx.PageSetupDialog', PageSetupDialogCDC),
-      (wx.DirDialog, 'wx.DirDialog', DirDialogCDC),
-      (wx.SingleChoiceDialog, 'wx.SingleChoiceDialog', SingleChoiceDialogCDC),
-      (wx.TextEntryDialog, 'wx.TextEntryDialog', TextEntryDialogCDC),
-      (wx.MessageDialog, 'wx.MessageDialog', MessageDialogCDC),
-    )
+                           (wx.FontDialog, 'wx.FontDialog', FontDialogCDC),
+                           (wx.FileDialog, 'wx.FileDialog', FileDialogCDC),
+                           (wx.PrintDialog, 'wx.PrintDialog', PrintDialogCDC),
+                           (wx.PageSetupDialog, 'wx.PageSetupDialog',
+                            PageSetupDialogCDC),
+                           (wx.DirDialog, 'wx.DirDialog', DirDialogCDC),
+                           (wx.SingleChoiceDialog,
+                            'wx.SingleChoiceDialog',
+                            SingleChoiceDialogCDC),
+                           (wx.TextEntryDialog, 'wx.TextEntryDialog',
+                            TextEntryDialogCDC),
+                           (wx.MessageDialog, 'wx.MessageDialog', MessageDialogCDC),
+                           )

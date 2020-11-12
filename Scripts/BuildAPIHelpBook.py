@@ -1,4 +1,10 @@
-import htmllib, formatter, string, os, pprint, types
+import formatter
+import os
+import pprint
+import string
+import types
+
+import htmllib
 
 api_path = '../Docs/wxpython/api'
 api_name = 'wxpyapi'
@@ -33,35 +39,37 @@ Title=wxPython API Documentation
 wxHelp=,"%(n)s.hhc","%(n)s.hhk","index.html",,,,,,0x2420,,0x380e,,,,,0,,,
 '''
 
+
 def read_segment(fn, start, end):
     data = open(fn).read()
-    begin = data.find(start)+len(start)
+    begin = data.find(start) + len(start)
     return data[begin:data.find(end, begin)]
-    
 
-#-------------------------------------------------------------------------------
 
-def build_project():    
-    hhp = file_hhp%{'n':api_name}
-    open(os.path.join(api_path, api_name+'.hhp'), 'w').write(hhp)
+# -------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
+def build_project():
+    hhp = file_hhp % {'n': api_name}
+    open(os.path.join(api_path, api_name + '.hhp'), 'w').write(hhp)
+
+# -------------------------------------------------------------------------------
+
 
 def build_contents():
     def traverse(l, r):
         for i in l:
-            if type(i) is list:
-                r.append('<UL>'+os.linesep)
+            if isinstance(i, list):
+                r.append('<UL>' + os.linesep)
                 traverse(i, r)
-                r.append('</UL>'+os.linesep)
-            elif type(i) is tuple:
-                r.append(entry_hhx%i)
+                r.append('</UL>' + os.linesep)
+            elif isinstance(i, tuple):
+                r.append(entry_hhx % i)
             else:
-                raise Exception('Unhandled type: %s'%type(i))
+                raise Exception('Unhandled type: %s' % type(i))
 
     data = read_segment(os.path.join(api_path, 'trees.html'),
-          '<!-- =========== START OF CLASS HIERARCHY =========== -->',
-          '<!-- =========== START OF NAVBAR =========== -->')
+                        '<!-- =========== START OF CLASS HIERARCHY =========== -->',
+                        '<!-- =========== START OF NAVBAR =========== -->')
     p = APIContentsParser(formatter.NullFormatter(formatter.NullWriter()))
     p.feed(data)
 
@@ -69,26 +77,26 @@ def build_contents():
     traverse(p.current, class_hierarchy)
 
     data = read_segment(os.path.join(api_path, 'wx-module.html'),
-          '<!-- =========== START OF SUBMODULES =========== -->',
-          '<!-- =========== START OF CLASSES =========== -->')
+                        '<!-- =========== START OF SUBMODULES =========== -->',
+                        '<!-- =========== START OF CLASSES =========== -->')
     p = APIContentsParser(formatter.NullFormatter(formatter.NullWriter()))
     p.feed(data)
     submodules = []
     traverse(p.current, submodules)
-    
-    hhc = header_hhx+\
-          '<UL>'+os.linesep+entry_hhx%('wx-module.html', 'Submodules')+\
-          ''.join(submodules)+'</UL>'+os.linesep+\
-          '<UL>'+os.linesep+entry_hhx%('trees.html', 'Class Hierarchy')+\
-          ''.join(class_hierarchy)+'</UL>'+os.linesep 
 
-    open(os.path.join(api_path, api_name+'.hhc'), 'w').write(hhc)
+    hhc = header_hhx +\
+        '<UL>' + os.linesep + entry_hhx % ('wx-module.html', 'Submodules') +\
+        ''.join(submodules) + '</UL>' + os.linesep +\
+        '<UL>' + os.linesep + entry_hhx % ('trees.html', 'Class Hierarchy') +\
+        ''.join(class_hierarchy) + '</UL>' + os.linesep
+
+    open(os.path.join(api_path, api_name + '.hhc'), 'w').write(hhc)
 
 
 class APIContentsParser(htmllib.HTMLParser):
     def __init__(self, formatter, verbose=0):
         htmllib.HTMLParser.__init__(self, formatter, verbose)
-        
+
         self.contents = []
         self.history = []
         self.current = self.contents
@@ -107,52 +115,54 @@ class APIContentsParser(htmllib.HTMLParser):
 
     def end_a(self):
         self.cur_href = None
-    
+
     def start_code(self, attrs):
         self.save_bgn()
 
     def end_code(self):
         text = string.strip(self.save_end())
         if self.cur_href and text:
-            self.current.append( (self.cur_href, text) )
-                
+            self.current.append((self.cur_href, text))
+
     def start_ul(self, attrs):
         self.history.append(self.current)
         self.current = []
-        
+
     def end_ul(self):
         c = self.history.pop()
         c.append(self.current)
         self.current = c
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 def build_keywords():
     data = read_segment(os.path.join(api_path, 'indices.html'),
-          '<!-- =========== START OF IDENTIFIER INDEX =========== -->',
-          '<!-- =========== START OF NAVBAR =========== -->')
+                        '<!-- =========== START OF IDENTIFIER INDEX =========== -->',
+                        '<!-- =========== START OF NAVBAR =========== -->')
     p = APIIndicesParser(formatter.NullFormatter(formatter.NullWriter()))
     p.feed(data)
-    
-    hhk = header_hhx+ '<UL>'+os.linesep+\
-          ''.join([entry_hhx%(u, k) for u, k in p.indices])+os.linesep+'</UL>'
-    open(os.path.join(api_path, api_name+'.hhk'), 'w').write(hhk)
+
+    hhk = header_hhx + '<UL>' + os.linesep +\
+        ''.join([entry_hhx % (u, k)
+                 for u, k in p.indices]) + os.linesep + '</UL>'
+    open(os.path.join(api_path, api_name + '.hhk'), 'w').write(hhk)
 
 
 class APIIndicesParser(htmllib.HTMLParser):
     def __init__(self, formatter, verbose=0):
         htmllib.HTMLParser.__init__(self, formatter, verbose)
-        
+
         self.indices = []
         self.cur_href = None
         self.tr_a_cnt = 0
-    
+
     def start_tr(self, attrs):
         self.tr_a_cnt = 0
 
     def end_tr(self):
         self.tr_a_cnt = 0
-        
+
     def start_a(self, attrs):
         self.tr_a_cnt += 1
         if self.tr_a_cnt == 1:
@@ -161,20 +171,21 @@ class APIIndicesParser(htmllib.HTMLParser):
 
     def end_a(self):
         self.cur_href = None
-    
+
     def start_code(self, attrs):
         self.save_bgn()
 
     def end_code(self):
         text = string.strip(self.save_end())
         if self.cur_href and text:
-            self.indices.append( (self.cur_href, text) )
+            self.indices.append((self.cur_href, text))
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 if __name__ == '__main__':
     print('Building project...')
-    build_project()    
+    build_project()
     print('Building contents...')
     build_contents()
     print('Building keywords...')

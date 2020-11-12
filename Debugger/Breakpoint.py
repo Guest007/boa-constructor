@@ -5,13 +5,16 @@ getBreakpointList()).
 
 import os
 
-try: from pickle import Pickler, Unpickler
-except: from pickle import Pickler, Unpickler
+try:
+    from pickle import Pickler, Unpickler
+except BaseException:
+    from pickle import Pickler, Unpickler
 
 
 class FileBreakpointList:
     def __init__(self):
-        self.lines = {}  # lineno -> [{'temporary', 'cond', 'enabled', 'ignore'}]
+        # lineno -> [{'temporary', 'cond', 'enabled', 'ignore'}]
+        self.lines = {}
 
     def loadBreakpoints(self, fn):
         try:
@@ -26,7 +29,7 @@ class FileBreakpointList:
                 return 1
             else:
                 return 0
-        except:
+        except BaseException:
             self.lines = {}
             return 0
 
@@ -45,11 +48,15 @@ class FileBreakpointList:
                 p.dump(savelines)
             else:
                 os.remove(fn)
-        except:
+        except BaseException:
             pass
 
     def addBreakpoint(self, lineno, temp=0, cond='', ignore=0):
-        newbrk = {'temporary':temp, 'cond':cond, 'enabled':1, 'ignore':ignore}
+        newbrk = {
+            'temporary': temp,
+            'cond': cond,
+            'enabled': 1,
+            'ignore': ignore}
         if lineno in self.lines:
             linebreaks = self.lines[lineno]
             for brk in linebreaks:
@@ -75,9 +82,9 @@ class FileBreakpointList:
         # traverse list twice, first deleting then re-adding to avoid stepping
         # on our own toes
         for brklineno, breaks in list(self.lines.items()):
-            if lineno < brklineno-1:
+            if lineno < brklineno - 1:
                 del self.lines[brklineno]
-                set_breaks.append( (brklineno+delta, breaks) )
+                set_breaks.append((brklineno + delta, breaks))
         for brklineno, breaks in set_breaks:
             self.lines[brklineno] = breaks
 
@@ -103,7 +110,7 @@ class FileBreakpointList:
         rval = []
         for lineno, linebreaks in list(self.lines.items()):
             for brk in linebreaks:
-                brkinfo = {'lineno':lineno}
+                brkinfo = {'lineno': lineno}
                 brkinfo.update(brk)
                 rval.append(brkinfo)
         return rval

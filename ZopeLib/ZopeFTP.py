@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ZopeFTP.py
 # Purpose:     FTP interface into Zope
 #
@@ -8,14 +8,16 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
+import ftplib
+import os
 import socket
-import ftplib, os
 
 
 class ZopeFTPItem:
-    def __init__(self, path = '', name = '', perms = '----------', id = 0, size = 0, date = ''):
+    def __init__(self, path='', name='',
+                 perms='----------', id=0, size=0, date=''):
         self.path = path
         self.name = name
         self.perms = perms
@@ -25,7 +27,8 @@ class ZopeFTPItem:
         self.lines = []
 
     def __repr__(self):
-        return '<%s %s, %s>' % (repr(self.__class__), self.whole_name(), self.date)
+        return '<%s %s, %s>' % (repr(self.__class__),
+                                self.whole_name(), self.date)
 
     def read(self, line):
         # dos:
@@ -38,7 +41,7 @@ class ZopeFTPItem:
                 self.date = ' '.join((items[0], items[1]))
                 if items[2] == '<DIR>':
                     self.size = '0'
-                    self.perms = 'd'+self.perms[1:]
+                    self.perms = 'd' + self.perms[1:]
                 else:
                     self.size = items[2]
                 self.name = items[3]
@@ -60,8 +63,10 @@ class ZopeFTPItem:
         self.lines.reverse()
 
     def readline(self):
-        try: return self.lines.pop()+'\n'
-        except IndexError: return ''
+        try:
+            return self.lines.pop() + '\n'
+        except IndexError:
+            return ''
 
     def isFolder(self):
         return self.perms[0] == 'd'
@@ -70,14 +75,17 @@ class ZopeFTPItem:
         return (self.size == 0) and (self.perms == '----------')
 
     def whole_name(self):
-        if self.path == '/': return '/%s' % self.name
-        else: return '%s/%s' % (self.path, self.name)
+        if self.path == '/':
+            return '/%s' % self.name
+        else:
+            return '%s/%s' % (self.path, self.name)
 
     def obj_path(self):
         return '.'.join(self.path.split('/') + [self.name])
 
     def cmd(self, cmd):
         return '%s %s' % (cmd, self.whole_name())
+
 
 class ZopeFTP:
     def __init__(self):
@@ -92,7 +100,7 @@ class ZopeFTP:
     def __del__(self):
         self.disconnect()
 
-    def connect(self, username, password, host, port = 21, passive = 0):
+    def connect(self, username, password, host, port=21, passive=0):
         self.ftp = ftplib.FTP('')
 
         self.host = host
@@ -113,9 +121,9 @@ class ZopeFTP:
 
         return '\n'.join(res)
 
-
     def disconnect(self):
-        if self.ftp: self.ftp.quit()
+        if self.ftp:
+            self.ftp.quit()
         self.ftp = None
         self.connected = False
 
@@ -157,9 +165,13 @@ class ZopeFTP:
         except socket.error as err:
             # reconnect and retry if connection has failed
             if err[0] == 10054:
-                self.connect(self.username, self.password, self.host, self.port, self.passive)
+                self.connect(
+                    self.username,
+                    self.password,
+                    self.host,
+                    self.port,
+                    self.passive)
                 self.ftp.storlines(item.cmd('STOR'), item)
-
 
     def upload(self, filename, dest_path, data=None):
         if data is None:
@@ -176,5 +188,5 @@ class ZopeFTP:
 
     def rename(self, item, new_name):
         old_path = item.whole_name()
-        new_path = os.path.dirname(old_path)+'/'+new_name
+        new_path = os.path.dirname(old_path) + '/' + new_name
         self.ftp.rename(old_path, new_path)

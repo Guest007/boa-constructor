@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-#Boa:App:BoaApp
+# Boa:App:BoaApp
 
 import wx
-
 import wxFrame1
 
-modules ={'wxFrame1': [1, 'Main frame of Application', 'wxFrame1.py'],
- 'wxPanel1': [0, '', 'wxPanel1.py'],
- 'wxPanel2': [0, '', 'wxPanel2.py'],
- 'wxPanel3': [0, '', 'wxPanel3.py']}
+modules = {'wxFrame1': [1, 'Main frame of Application', 'wxFrame1.py'],
+           'wxPanel1': [0, '', 'wxPanel1.py'],
+           'wxPanel2': [0, '', 'wxPanel2.py'],
+           'wxPanel3': [0, '', 'wxPanel3.py']}
+
 
 class BoaApp(wx.App):
     def OnInit(self):
@@ -18,9 +18,11 @@ class BoaApp(wx.App):
         self.SetTopWindow(self.main)
         return True
 
+
 def main():
     application = BoaApp(0)
     application.MainLoop()
+
 
 if __name__ == '__main__':
     main()

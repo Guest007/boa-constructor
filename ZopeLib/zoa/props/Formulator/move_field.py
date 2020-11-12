@@ -1,11 +1,11 @@
-## Script (Python) "move_field"
-##bind container=container
-##bind context=context
-##bind namespace=
-##bind script=script
-##bind subpath=traverse_subpath
+# Script (Python) "move_field"
+# bind container=container
+# bind context=context
+# bind namespace=
+# bind script=script
+# bind subpath=traverse_subpath
 ##parameters=dir, group, field, togroup=''
-##title=move_field
+# title=move_field
 ##
 ctx = context.aq_parent.aq_parent.aq_parent
 REQ = ctx.REQUEST

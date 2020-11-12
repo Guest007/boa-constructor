@@ -1,19 +1,26 @@
-import os, sys
-sys.path[0:0] = [os.pardir]
+import os
+import sys
+import threading
+from time import sleep
+
+import wx
 
 from .ChildProcessClient import spawnChild
-import wx
-from time import sleep
-import threading
+
+sys.path[0:0] = [os.pardir]
+
 
 class Monitor:
     def isAlive(self):
         return 1
+
+
 monitor = Monitor()
 
 
 process = wx.Process()
 process.Redirect()
+
 
 def pollStreams():
     stream = process.GetInputStream()
@@ -23,12 +30,15 @@ def pollStreams():
     if not stream.eof():
         print(('<<<' + stream.read() + '>>>'))
 
+
 poll_streams = 1
+
 
 def streamPollThread():
     while poll_streams:
         pollStreams()
         sleep(0.15)
+
 
 print('spawning...')
 s, input, output, processId = spawnChild(monitor, process)
@@ -39,11 +49,11 @@ t.start()
 
 print(('starting... (via %s)' % s))
 status = s.runFileAndRequestStatus('test.py', (), 0, (),
-                                   ({'filename':'test.py',
-                                     'lineno':15,
-                                     'cond':'',
-                                     'enabled':1,
-                                     'temporary':0},
+                                   ({'filename': 'test.py',
+                                     'lineno': 15,
+                                     'cond': '',
+                                     'enabled': 1,
+                                     'temporary': 0},
                                     ))
 print(status)
 print('running...')

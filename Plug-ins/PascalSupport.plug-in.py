@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        PascalSupport.py
 # Purpose:     Example plugin module showing how to add new filetypes to the ide
 #
@@ -8,21 +8,21 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 
 import wx
 import wx.stc
 
-import Preferences, Utils, Plugins
-from Utils import _
-
 import PaletteStore
-
-from Models import Controllers, EditorHelper, EditorModels
-from Views import SourceViews, StyledTextCtrls
+import Plugins
+import Preferences
+import Utils
 from Explorers import ExplorerNodes
+from Models import Controllers, EditorHelper, EditorModels
+from Utils import _
+from Views import SourceViews, StyledTextCtrls
 
 # Allocate an image index for Pascal files
 EditorHelper.imgPascalModel = EditorHelper.imgIdxRange()
@@ -31,38 +31,53 @@ EditorHelper.imgPascalModel = EditorHelper.imgIdxRange()
 Plugins.registerPreference('PascalSupport', 'psPascalCompilerPath', "''",
                            ['Path to the compiler'], 'type: filepath')
 
+
 class PascalModel(EditorModels.SourceModel):
     modelIdentifier = 'Pascal'
     defaultName = 'pascal'  # default name given to newly created files
-    bitmap = 'Pascal.png' # this image must exist in Images/Modules
+    bitmap = 'Pascal.png'  # this image must exist in Images/Modules
     ext = '.pas'
     imgIdx = EditorHelper.imgPascalModel
 
+
 # get the style definitions file in either the prefs directory or the Boa root
-pascal_cfgfile = Preferences.rcPath +'/stc-pascal.rc.cfg'
+pascal_cfgfile = Preferences.rcPath + '/stc-pascal.rc.cfg'
+
 
 class PascalStyledTextCtrlMix(StyledTextCtrls.LanguageSTCMix):
     def __init__(self, wId):
         StyledTextCtrls.LanguageSTCMix.__init__(self, wId,
-              (0, Preferences.STCLineNumMarginWidth), 'pascal', pascal_cfgfile)
+                                                (0, Preferences.STCLineNumMarginWidth), 'pascal', pascal_cfgfile)
         self.setStyles()
 
+
 wxID_PASSOURCEVIEW = wx.NewId()
-class PascalSourceView(SourceViews.EditorStyledTextCtrl, PascalStyledTextCtrlMix):
+
+
+class PascalSourceView(SourceViews.EditorStyledTextCtrl,
+                       PascalStyledTextCtrlMix):
     viewName = 'Source'
     viewTitle = _('Source')
+
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, wxID_PASSOURCEVIEW,
-          model, (), -1)
+                                                  model, (), -1)
         PascalStyledTextCtrlMix.__init__(self, wxID_PASSOURCEVIEW)
         self.active = True
 
+
 # Register a Pascal STC style editor under Preferences
-Plugins.registerLanguageSTCStyle('Pascal', 'pascal', PascalStyledTextCtrlMix, pascal_cfgfile)
+Plugins.registerLanguageSTCStyle(
+    'Pascal',
+    'pascal',
+    PascalStyledTextCtrlMix,
+    pascal_cfgfile)
 
 # The compile action is just added as an example of how to add an action to
 # a controller and is not implemented
 wxID_PASCALCOMPILE = wx.NewId()
+
+
 class PascalController(Controllers.SourceController):
     Model = PascalModel
     DefaultViews = [PascalSourceView]
@@ -71,16 +86,17 @@ class PascalController(Controllers.SourceController):
 
     def actions(self, model):
         return Controllers.SourceController.actions(self, model) + [
-              (_('Compile'), self.OnCompile, '-', 'CheckSource')]
+            (_('Compile'), self.OnCompile, '-', 'CheckSource')]
 
     def OnCompile(self, event):
         wx.LogWarning(_('Not implemented'))
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 # Registers the filetype in the IDE framework
 Plugins.registerFileType(PascalController, aliasExts=('.dpr',))
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Config file embedded in plug-in
 
 pascalSource = '''unit Unit1;
@@ -150,7 +166,7 @@ style.pascal.037=
 [style.pascal.default]
 
 [pascal]
-displaysrc='''+repr(pascalSource)[1:-1]+'''
+displaysrc = ''' + repr(pascalSource)[1:-1] + '''
 braces={}
 keywords=and array as asm begin case class const constructor destructor dispinterface div do downto else end except exports file finalization finally for function goto if implementation in inherited initialization inline interface is label library mod nil not object of or out packed procedure program property raise record repeat resourcestring set shl shr string then threadvar to try type unit until uses var while with xor private protected public published automated at on
 lexer=wx.stc.STC_LEX_PASCAL
@@ -159,11 +175,12 @@ styleidnames={wx.stc.STC_C_DEFAULT: 'Default', wx.stc.STC_C_COMMENT: 'Comment',w
 
 Plugins.assureConfigFile(pascal_cfgfile, pascalStyleEditorConfig)
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 def getPascalPaletteData():
     return \
-'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
+        '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x18\x08\x06\
 \x00\x00\x00\xe0w=\xf8\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\x00\
 \x01!IDATx\x9c\xe5\x95\xbfJ\x03A\x10\x87\xbf\x13\x0b\xaf\x9b\xbc\x81W\x08ny\
 \x01!\xed\x1d\xf8\x08\xbe\x88\xa49\x02V\x82p\xc4GH%\xd8%>\x80\x10\xbbX\xda\n\
@@ -179,9 +196,10 @@ J\x9b!\xfbM\xc1\xc9\xc5\x04\xb0\xc4\x071\xc3\xb3!\xf6\xc5\x02`\xd7 \'\x02\
 \xebP\xf3\xba\xc9]\xec\xef\xb7\xa8w\xc0\x1b@\xbfT\xe9_od\x9f\x00\x00\x00\x00\
 IEND\xaeB`\x82'
 
+
 def getPascalModuleData():
     return \
-'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
+        '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x10\x00\x00\x00\x10\x08\x06\
 \x00\x00\x00\x1f\xf3\xffa\x00\x00\x00\x04sBIT\x08\x08\x08\x08|\x08d\x88\x00\
 \x00\x01\x0eIDATx\x9c\xa5\x93\xbfJ\xc4@\x10\x87\xbf\x88\x85\xe9&o`\n\xc1\x94\
 9\x10\xae\xdd\x80\x8f\xe0\x8b\xc85\xe1\xc0J\x10\xc2\xf9\x08V\x82\xdd\x9d\x0f\
@@ -196,5 +214,10 @@ ogg\xd8@D\xe8\x8aD\xd5\xbf\x88\x04\xbf\xd5\xf7\xfa\xcc\xabN|\x07`\xae\xeaW90\
 \xd7\xd8\tp=\x1f\xac\x170$\xfe\r\xf8\x00P\xd5U\xa2\xb4=\x18n\x00\x00\x00\x00\
 IEND\xaeB`\x82'
 
-Preferences.IS.registerImage('Images/Modules/Pascal.png', getPascalModuleData())
-Preferences.IS.registerImage('Images/Palette/Pascal.png', getPascalPaletteData())
+
+Preferences.IS.registerImage(
+    'Images/Modules/Pascal.png',
+    getPascalModuleData())
+Preferences.IS.registerImage(
+    'Images/Palette/Pascal.png',
+    getPascalPaletteData())

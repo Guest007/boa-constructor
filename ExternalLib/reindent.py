@@ -28,13 +28,14 @@ tabnanny.py, reindent should do a good job.
 
 __version__ = "1"
 
-import tokenize
 import os
 import sys
+import tokenize
 
 verbose = 0
 recurse = 0
-dryrun  = 0
+dryrun = 0
+
 
 def errprint(*args):
     sep = ""
@@ -42,6 +43,7 @@ def errprint(*args):
         sys.stderr.write(sep + str(arg))
         sep = " "
     sys.stderr.write("\n")
+
 
 def main():
     import getopt
@@ -64,6 +66,7 @@ def main():
     for arg in args:
         check(arg)
 
+
 def check(file):
     if os.path.isdir(file) and not os.path.islink(file):
         if verbose:
@@ -73,7 +76,7 @@ def check(file):
             fullname = os.path.join(file, name)
             if ((recurse and os.path.isdir(fullname) and
                  not os.path.islink(fullname))
-                or name.lower().endswith(".py")):
+                    or name.lower().endswith(".py")):
                 check(fullname)
         return
 
@@ -108,13 +111,14 @@ def check(file):
         if verbose:
             print("unchanged.")
 
+
 class Reindenter:
 
     def __init__(self, f, eol="\n"):
         self.find_stmt = 1  # next token begins a fresh stmt?
         self.level = 0      # current indent level
         self.eol = eol
-        
+
         # Raw file lines.
         self.raw = f.readlines()
 
@@ -145,9 +149,9 @@ class Reindenter:
         have2want = {}
         # Program after transformation.
         after = self.after = []
-        for i in range(len(stats)-1):
+        for i in range(len(stats) - 1):
             thisstmt, thislevel = stats[i]
-            nextstmt = stats[i+1][0]
+            nextstmt = stats[i + 1][0]
             have = getlspace(lines[thisstmt])
             want = thislevel * 4
             if want < 0:
@@ -159,21 +163,21 @@ class Reindenter:
                     want = have2want.get(have, -1)
                     if want < 0:
                         # Then it probably belongs to the next real stmt.
-                        for j in range(i+1, len(stats)-1):
+                        for j in range(i + 1, len(stats) - 1):
                             jline, jlevel = stats[j]
                             if jlevel >= 0:
                                 if have == getlspace(lines[jline]):
                                     want = jlevel * 4
                                 break
                     if want < 0:           # Maybe it's a hanging
-                                           # comment like this one,
+                        # comment like this one,
                         # in which case we should shift it like its base
                         # line got shifted.
-                        for j in range(i-1, -1, -1):
+                        for j in range(i - 1, -1, -1):
                             jline, jlevel = stats[j]
                             if jlevel >= 0:
-                                want = have + getlspace(after[jline-1]) - \
-                                       getlspace(lines[jline])
+                                want = have + getlspace(after[jline - 1]) - \
+                                    getlspace(lines[jline])
                                 break
                     if want < 0:
                         # Still no luck -- leave it alone.
@@ -250,11 +254,14 @@ class Reindenter:
                 self.stats.append((sline, self.level))
 
 # Count number of leading blanks.
+
+
 def getlspace(line):
     i, n = 0, len(line)
     while i < n and line[i] == " ":
         i += 1
     return i
+
 
 if __name__ == '__main__':
     main()

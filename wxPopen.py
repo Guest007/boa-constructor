@@ -3,6 +3,7 @@ from io import StringIO
 
 import wx
 
+
 class ProcessRunnerMix:
     def __init__(self, input, handler=None):
         if handler is None:
@@ -11,7 +12,7 @@ class ProcessRunnerMix:
         handler.Bind(wx.EVT_IDLE, self.OnIdle)
         handler.Bind(wx.EVT_END_PROCESS, self.OnProcessEnded)
 
-        input.reverse() # so we can pop
+        input.reverse()  # so we can pop
         self.input = input
 
         self.reset()
@@ -40,7 +41,7 @@ class ProcessRunnerMix:
         self.errorStream = self.process.GetErrorStream()
         self.outputStream = self.process.GetInputStream()
 
-        #self.OnIdle()
+        # self.OnIdle()
         wx.WakeUpIdle()
 
     def setCallbacks(self, output, errors, finished):
@@ -92,8 +93,8 @@ class ProcessRunnerMix:
             if o is not None and self.outputFunc is not None:
                 wx.CallAfter(self.outputFunc, o)
 
-            #wxWakeUpIdle()
-            #time.sleep(0.001)
+            # wxWakeUpIdle()
+            # time.sleep(0.001)
 
     def OnProcessEnded(self, event):
         self.OnIdle()
@@ -110,10 +111,12 @@ class ProcessRunnerMix:
         if self.finishedFunc:
             wx.CallAfter(self.finishedFunc)
 
+
 class ProcessRunner(wx.EvtHandler, ProcessRunnerMix):
     def __init__(self, input):
         wx.EvtHandler.__init__(self)
         ProcessRunnerMix.__init__(self, input)
+
 
 def wxPopen3(cmd, input, output, errors, finish, handler=None):
     p = ProcessRunnerMix(input, handler)
@@ -121,21 +124,24 @@ def wxPopen3(cmd, input, output, errors, finish, handler=None):
     p.execute(cmd)
     return p
 
+
 def _test():
     app = wx.PySimpleApp()
-    f = wx.Frame(None, -1, 'asd')#, style=0)
+    f = wx.Frame(None, -1, 'asd')  # , style=0)
     f.Show()
 
     def output(v):
         print(('OUTPUT:', v))
+
     def errors(v):
         print(('ERRORS:', v))
+
     def fin():
         p = locals().get('p')
-        if p: p.Close()
+        if p:
+            p.Close()
         f.Close()
         print('FINISHED')
-
 
     def spin(p):
         while not p.finished:
@@ -145,10 +151,11 @@ def _test():
     def evt(self, event):
         input = []
         p = wxPopen3('''c:\\python23\\python.exe -c "print '*'*5000"''',
-                 input, output, errors, fin, f)
+                     input, output, errors, fin, f)
         print((p.pid))
 
     app.MainLoop()
+
 
 if __name__ == '__main__':
     _test()

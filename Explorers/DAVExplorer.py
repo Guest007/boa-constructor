@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        DAVExplorer.py
 # Purpose:     Classes for exploring DAV servers
 #
@@ -8,22 +8,33 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2001 - 2007 Riaan Booysen
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Explorers.DAVExplorer')
-
-import os, sys
+# -----------------------------------------------------------------------------
+import os
+import sys
+import types
 from xml.parsers import expat
 
 import wx
 
-#sys.path.append('..')
-from . import ExplorerNodes
-from Models import Controllers, EditorHelper
+import RTTI
+import Utils
+from Companions.BaseCompanions import HelperDTC
 from ExternalLib.WebDAV import client
-import RTTI, Utils
+from Models import Controllers, EditorHelper
+from PropEdit import PropertyEditors
 from Utils import _
 
-# XXX Zope properties may contain invalid XML content strings (should be encoded)
+from . import ExplorerNodes
+from .ExplorerNodes import ExplorerCompanion
+
+print('importing Explorers.DAVExplorer')
+
+
+# sys.path.append('..')
+
+# XXX Zope properties may contain invalid XML content strings (should be
+# encoded)
+
 
 class XMLListBuilder:
     def __init__(self, data):
@@ -40,19 +51,19 @@ class XMLListBuilder:
         try:
             xmlStart = data.find('<')
             if xmlStart == -1:
-                raise Exception(_('Invalid XML response: %s') %str(data))
+                raise Exception(_('Invalid XML response: %s') % str(data))
             xmlEnd = data.rfind('>')
             if xmlEnd == -1:
-                raise Exception(_('Invalid XML response: %s') %str(data))
-            self.status = parser.Parse(data[xmlStart:xmlEnd+1], 1)
-        except:
+                raise Exception(_('Invalid XML response: %s') % str(data))
+            self.status = parser.Parse(data[xmlStart:xmlEnd + 1], 1)
+        except BaseException:
             wx.MessageBox(Utils.html2txt(data), _('Error'), wx.ICON_ERROR)
             raise
 
     def startElement(self, name, attrs):
         #name = name.encode()
         id = []
-        self.nodeStack[-1].append( (name, id) )
+        self.nodeStack[-1].append((name, id))
         self.nodeStack.append(id)
 
     def endElement(self, name):
@@ -63,11 +74,14 @@ class XMLListBuilder:
             #data = data.encode()
             self.nodeStack[-1].append(data)
 
-#---Explorer classes------------------------------------------------------------
+# ---Explorer classes-----------------------------------------------------
+
 
 wxID_DAVOPEN, wxID_DAVINSPECT = Utils.wxNewIds(2)
 
-class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerMix):
+
+class DAVController(ExplorerNodes.Controller,
+                    ExplorerNodes.ClipboardControllerMix):
     def __init__(self, editor, list, inspector, controllers):
         ExplorerNodes.ClipboardControllerMix.__init__(self)
         ExplorerNodes.Controller.__init__(self, editor)
@@ -77,9 +91,9 @@ class DAVController(ExplorerNodes.Controller, ExplorerNodes.ClipboardControllerM
         self.inspector = inspector
 
         self.setupMenu(self.menu, self.list,
-              [ (wxID_DAVOPEN, _('Open'), self.OnOpenItems, '-'),
-                (wxID_DAVINSPECT, _('Inspect'), self.OnInspectItem, '-'),
-                (-1, '-', None, '') ] + self.clipMenuDef)
+                       [(wxID_DAVOPEN, _('Open'), self.OnOpenItems, '-'),
+                        (wxID_DAVINSPECT, _('Inspect'), self.OnInspectItem, '-'),
+                           (-1, '-', None, '')] + self.clipMenuDef)
         self.toolbarMenus = [self.clipMenuDef]
 
     def destroy(self):
@@ -106,9 +120,10 @@ class DAVCatNode(ExplorerNodes.CategoryNode):
                      'host': 'localhost',
                      'port': '80',
                      'path': '/'}
+
     def __init__(self, clipboard, config, parent, bookmarks):
         ExplorerNodes.CategoryNode.__init__(self, 'DAV', ('explorer', 'dav'),
-              clipboard, config, parent)
+                                            clipboard, config, parent)
         self.bookmarks = bookmarks
 
     def createParentNode(self):
@@ -116,7 +131,7 @@ class DAVCatNode(ExplorerNodes.CategoryNode):
 
     def createChildNode(self, name, props):
         itm = DAVItemNode(name, props, props['path'], self.clipboard,
-              EditorHelper.imgNetDrive, self)
+                          EditorHelper.imgNetDrive, self)
         itm.category = name
         itm.bookmarks = self.bookmarks
         return itm
@@ -125,28 +140,35 @@ class DAVCatNode(ExplorerNodes.CategoryNode):
         comp = DAVCatDictCompanion(catNode.treename, self)
         return comp
 
+
 class DAVCatDictCompanion(ExplorerNodes.CategoryDictCompanion):
     """ Prop validator for 'path' prop """
-    def setPropHook(self, name, value, oldProp = None):
-        ExplorerNodes.CategoryDictCompanion.setPropHook(self, name, value, oldProp)
+
+    def setPropHook(self, name, value, oldProp=None):
+        ExplorerNodes.CategoryDictCompanion.setPropHook(
+            self, name, value, oldProp)
         if name == 'path' and value and value != '/':
-            if value[-1] != '/': raise Exception('DAV paths must end in "/"')
-            if value[0] == '/': raise Exception('DAV paths shouldn\'t start with "/"')
+            if value[-1] != '/':
+                raise Exception('DAV paths must end in "/"')
+            if value[0] == '/':
+                raise Exception('DAV paths shouldn\'t start with "/"')
+
 
 class DAVItemNode(ExplorerNodes.ExplorerNode):
     protocol = 'dav'
     connection = False
+
     def __init__(self, name, props, resourcepath, clipboard, imgIdx, parent):
         if not resourcepath:
             resourcepath = '/'
         ExplorerNodes.ExplorerNode.__init__(self, name, resourcepath, clipboard,
-              imgIdx, parent, props)
+                                            imgIdx, parent, props)
         self.initResource()
 
     def initResource(self):
         props = self.properties
-        self.resource = client.Resource(('http://%(host)s:%(port)s/'%props)+\
-              self.resourcepath, props['username'], props['passwd'])
+        self.resource = client.Resource(('http://%(host)s:%(port)s/' % props) +
+                                        self.resourcepath, props['username'], props['passwd'])
 
     def getURI(self):
         return '%s://%s/%s' % (self.protocol, self.category, self.getTitle())
@@ -155,7 +177,8 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         return self.resourcepath[-1] == '/'
 
     def createChildNode(self, name, props):
-        if not name: name = '/'
+        if not name:
+            name = '/'
 
         if name[-1] == '/':
             basename = os.path.basename(name[:-1])
@@ -164,10 +187,10 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
             basename = os.path.basename(name)
             isFolder = False
         item = DAVItemNode(basename, props, name, self.clipboard,
-              isFolder and EditorHelper.imgFolder or EditorHelper.imgTextModel, self)
+                           isFolder and EditorHelper.imgFolder or EditorHelper.imgTextModel, self)
         if not isFolder:
             item.imgIdx = \
-                  Controllers.identifyFile(name, localfs=False)[0].imgIdx
+                Controllers.identifyFile(name, localfs=False)[0].imgIdx
         item.category = self.category
         item.bookmarks = self.bookmarks
         return item
@@ -180,7 +203,7 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         if len(responses) > 0:
             for resp in l[0][1]:
                 assert resp[1][0][0].strip().lower() == 'd:href',\
-                      'Unexpected xml format'
+                    'Unexpected xml format'
                 name = str(resp[1][0][1][0].strip())
                 if len(name) > 1:
                     name = name[1:]
@@ -197,7 +220,8 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         else:
             if not fn:
                 fn = os.path.basename(fsNode.resourcepath)
-            newNode = self.createChildNode(self.resourcepath+fn, self.properties)
+            newNode = self.createChildNode(
+                self.resourcepath + fn, self.properties)
             self.checkResp(newNode.resource.put(fsNode.load()))
 
     def copyToFS(self, fsFolderNode, fn=''):
@@ -208,7 +232,12 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
         else:
             if not fn:
                 fn = os.path.basename(self.resourcepath[:-1])
-            open(os.path.join(fsFolderNode.resourcepath, fn), 'wb').write(self.load())
+            open(
+                os.path.join(
+                    fsFolderNode.resourcepath,
+                    fn),
+                'wb').write(
+                self.load())
 
     def moveFileFrom(self, other):
         fn = os.path.basename(other.resourcepath)
@@ -221,12 +250,12 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
     def deleteItems(self, names):
         absNames = []
         for name in names:
-            self.checkResp(self.createChildNode(self.resourcepath+name,
-                  self.properties).resource.delete())
+            self.checkResp(self.createChildNode(self.resourcepath + name,
+                                                self.properties).resource.delete())
 
     def renameItem(self, name, newName):
-        self.checkResp(self.createChildNode(self.resourcepath+name,
-            self.properties).resource.move(self.resourcepath+newName))
+        self.checkResp(self.createChildNode(self.resourcepath + name,
+                                            self.properties).resource.move(self.resourcepath + newName))
 
     def load(self, mode='rb'):
         try:
@@ -245,18 +274,19 @@ class DAVItemNode(ExplorerNodes.ExplorerNode):
             raise ExplorerNodes.TransportSaveError(error, self.resourcepath)
 
     def newFolder(self, name):
-        self.checkResp(self.createChildNode(self.resourcepath+name+'/',
-              self.properties).resource.mkcol())
+        self.checkResp(self.createChildNode(self.resourcepath + name + '/',
+                                            self.properties).resource.mkcol())
 
     def newBlankDocument(self, name):
-        self.checkResp(self.createChildNode(self.resourcepath+name,
-              self.properties).resource.put(' '))
+        self.checkResp(self.createChildNode(self.resourcepath + name,
+                                            self.properties).resource.put(' '))
 
     def getNodeFromPath(self, respath):
         return self.createChildNode(respath, self.properties)
 
     def checkResp(self, resp):
-        assert resp.code < 300, '%s %d %s' %(resp.version, resp.code, resp.msg)
+        assert resp.code < 300, '%s %d %s' % (
+            resp.version, resp.code, resp.msg)
         return resp
 
 
@@ -277,41 +307,43 @@ class DAVExpClipboard(ExplorerNodes.ExplorerClipboard):
             elif mode == 'copy':
                 node.copyFileFrom(davNode)
 
-#---Companion classes-----------------------------------------------------------
+# ---Companion classes----------------------------------------------------
 
-from Companions.BaseCompanions import HelperDTC
-from .ExplorerNodes import ExplorerCompanion
-from PropEdit import PropertyEditors
-import RTTI
-import types
 
 class DAVContConfPropEdit(PropertyEditors.ContainerConfPropEdit):
     def getSubCompanion(self):
         return DAVSubCompanion
 
+
 StringTypes = [bytes]
-try: StringTypes.append(str)
-except: pass
+try:
+    StringTypes.append(str)
+except BaseException:
+    pass
+
 
 class DAVPropReaderMixin:
-    propMapping = {type(()) : DAVContConfPropEdit,
-                   type([]) : DAVContConfPropEdit,
-                   type('') : PropertyEditors.StrConfPropEdit,
-                   'password' : PropertyEditors.PasswdStrConfPropEdit,
+    propMapping = {type(()): DAVContConfPropEdit,
+                   type([]): DAVContConfPropEdit,
+                   type(''): PropertyEditors.StrConfPropEdit,
+                   'password': PropertyEditors.PasswdStrConfPropEdit,
                    'default': PropertyEditors.EvalConfPropEdit}
+
     def getPropEditor(self, prop):
         return self.propMapping.get(type(self.GetProp(prop)),
-              self.propMapping['default'])
+                                    self.propMapping['default'])
 
     def buildItems(self, items, propList):
-        #print propList
+        # print propList
         for name, value in propList:
-            if not value: value = ''
+            if not value:
+                value = ''
             elif type(value[0]) in StringTypes:
                 value = str(value[0])
 
-            items.append( (name.split(':')[1], value) )
+            items.append((name.split(':')[1], value))
         return items
+
 
 class DAVCompanion(DAVPropReaderMixin, ExplorerCompanion):
     def __init__(self, name, davNode):
@@ -332,33 +364,37 @@ class DAVCompanion(DAVPropReaderMixin, ExplorerCompanion):
         raise Exception(_('Property editing not supported yet'))
 
 # XXX Helper is already slightly contaminated by the Designer
+
+
 class DAVSubCompanion(DAVPropReaderMixin, HelperDTC):
     def __init__(self, name, designer, ownerCompanion, obj, ownerPropWrap):
         HelperDTC.__init__(self, name, designer, ownerCompanion, obj,
-              ownerPropWrap)
+                           ownerPropWrap)
         self.propItems = []
 
     def getPropList(self):
         propLst = []
-        if type(self.obj) is list:
+        if isinstance(self.obj, list):
             props = self.obj
         else:
             props = [self.obj]
         subProps = self.buildItems([], props)
         for prop in subProps:
             propLst.append(RTTI.PropertyWrapper(prop[0], 'NameRoute',
-                  self.GetProp, self.SetProp))
+                                                self.GetProp, self.SetProp))
         self.propItems = subProps
         return {'constructor': [], 'properties': propLst}
 
     def GetProp(self, name):
         for prop in self.propItems:
-            if prop[0] == name: return prop[1]
+            if prop[0] == name:
+                return prop[1]
 
     def SetProp(self, name, value):
         raise Exception(_('Property editing not supported yet'))
 
-#-------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
 ExplorerNodes.register(DAVItemNode, clipboard=DAVExpClipboard,
-      confdef=('explorer', 'dav'), controller=DAVController, category=DAVCatNode)
+                       confdef=('explorer', 'dav'), controller=DAVController, category=DAVCatNode)
 ExplorerNodes.fileOpenDlgProtReg.append('dav')

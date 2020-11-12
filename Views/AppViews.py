@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        AppViews.py
 # Purpose:     Views for application management
 #
@@ -8,27 +8,32 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+import os
+import time
+
+import wx
+import wx.stc
+
+import Search
+import Utils
+from Utils import _
+
+from . import SourceViews
+from .EditorViews import (CloseableViewMix, FindResultsAdderMixin,
+                          ListCtrlView, ModuleDocView, ToDoView,
+                          wxwAppModuleTemplate)
+
 print('importing Views.AppViews')
 
 """ View classes for the AppModel """
 
-import os
-import time
 
 try:
     from cmp import cmp
 except ImportError:
     from filecmp import cmp
 
-import wx
-import wx.stc
-
-from .EditorViews import ListCtrlView, ModuleDocView, wxwAppModuleTemplate, \
-                        ToDoView, CloseableViewMix, FindResultsAdderMixin
-from . import SourceViews
-import Search, Utils
-from Utils import _
 
 class AppFindResults(ListCtrlView, CloseableViewMix):
     viewName = 'Application Find Results'
@@ -39,15 +44,15 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, _('find results'))
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          ( (_('Goto match'), self.OnGoto, self.gotoLineBmp, ''),
-            (_('Rerun query'), self.OnRerun, '-', ''),
-          ) +
-            self.closingActionItems, 0)
+                              ((_('Goto match'), self.OnGoto, self.gotoLineBmp, ''),
+                               (_('Rerun query'), self.OnRerun, '-', ''),
+                               ) +
+                              self.closingActionItems, 0)
 
-        self.InsertColumn(0, _('Module'), width = 100)
+        self.InsertColumn(0, _('Module'), width=100)
         self.InsertColumn(1, _('Line no'), wx.LIST_FORMAT_CENTRE, 40)
         self.InsertColumn(2, _('Col'), wx.LIST_FORMAT_CENTRE, 40)
-        self.InsertColumn(3, _('Text'), width = 550)
+        self.InsertColumn(3, _('Text'), width=550)
 
         self.results = {}
         self.listResultIdxs = []
@@ -64,9 +69,11 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
             for result in self.results[mod]:
                 self.listResultIdxs.append((mod, result))
                 i = self.addReportItems(i, (os.path.basename(mod), repr(result[0]),
-                  repr(result[1]), result[2].strip()) )
+                                            repr(result[1]), result[2].strip()))
 
-        self.model.editor.statusBar.setHint(_('%d matches of "%s".')%(i, self.findPattern))
+        self.model.editor.statusBar.setHint(
+            _('%d matches of "%s".') %
+            (i, self.findPattern))
 
         self.pastelise()
 
@@ -80,10 +87,11 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
             srcView.lastSearchPattern = self.findPattern
             srcView.lastSearchResults = self.results[modName]
             try:
-                srcView.lastMatchPosition = self.results[modName].index(foundInfo)
-            except:
+                srcView.lastMatchPosition = self.results[modName].index(
+                    foundInfo)
+            except BaseException:
                 srcView.lastMatchPosition = 0
-                #print 'foundInfo not found'
+                # print 'foundInfo not found'
 
             srcView.selectSection(foundInfo[0], foundInfo[1], self.findPattern)
 
@@ -91,6 +99,8 @@ class AppFindResults(ListCtrlView, CloseableViewMix):
         self.rerun(None)
 
 # XXX Add 'Get description from module info' option
+
+
 class AppView(ListCtrlView, FindResultsAdderMixin):
     viewName = 'Application'
     viewTitle = _('Application')
@@ -102,21 +112,23 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          ((_('Open'), self.OnOpen, self.openBmp, ''),
-           ('-', None, '', ''),
-           (_('Add'), self.OnAdd, self.addModBmp, 'Insert'),
-           (_('Edit'), self.OnEdit, '-', ''),
-           (_('Remove'), self.OnRemove, self.remModBmp, 'Delete'),
-           ('-', None, '', ''),
-           (_('Find'), self.OnFind, self.findBmp, 'Find'),
-           ('-', None, '-', ''),
-           (_('Make module main module'), self.OnMakeMain, '-', ''),
-           ), 0)
+                              ((_('Open'), self.OnOpen, self.openBmp, ''),
+                               ('-', None, '', ''),
+                                  (_('Add'), self.OnAdd, self.addModBmp, 'Insert'),
+                                  (_('Edit'), self.OnEdit, '-', ''),
+                                  (_('Remove'), self.OnRemove,
+                                   self.remModBmp, 'Delete'),
+                                  ('-', None, '', ''),
+                                  (_('Find'), self.OnFind, self.findBmp, 'Find'),
+                                  ('-', None, '-', ''),
+                                  (_('Make module main module'),
+                                   self.OnMakeMain, '-', ''),
+                               ), 0)
 
-        self.InsertColumn(0, _('Module'), width = 150)
-        self.InsertColumn(1, _('Type'), width = 50)
-        self.InsertColumn(2, _('Description'), width = 150)
-        self.InsertColumn(3, _('Relative path'), width = 220)
+        self.InsertColumn(0, _('Module'), width=150)
+        self.InsertColumn(1, _('Type'), width=50)
+        self.InsertColumn(2, _('Description'), width=150)
+        self.InsertColumn(3, _('Relative path'), width=220)
 
         self.sortOnColumns = [0, 1, 3]
 
@@ -134,15 +146,13 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
 #        print 'drag', dir(event.__class__.__bases__[0])
 
     def explore(self):
-        modSort = list(self.model.modules.keys())
-        modSort.sort()
+        modSort = sorted(self.model.modules.keys())
         return modSort
 
     def refreshCtrl(self):
         ListCtrlView.refreshCtrl(self)
         i = 0
-        modSort = list(self.model.modules.keys())
-        modSort.sort()
+        modSort = sorted(self.model.modules.keys())
         for mod in modSort:
             # XXX Show a broken icon as default
             imgIdx = -1
@@ -159,9 +169,10 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
             appMod = self.model.modules[mod]
 
             if appMod[0]:
-                modTpe = '*%s*'%modTpe
+                modTpe = '*%s*' % modTpe
 
-            i = self.addReportItems(i, (mod, modTpe, appMod[1], appMod[2]), imgIdx)
+            i = self.addReportItems(
+                i, (mod, modTpe, appMod[1], appMod[2]), imgIdx)
 
         self.pastelise()
 
@@ -171,19 +182,18 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
             self.model.openModule(self.GetItemText(self.selected))
             self.model.prevSwitch = self
 
-
     def OnAdd(self, event):
         self.model.viewAddModule()
 
     def OnEdit(self, event):
         name = self.GetItemText(self.selected)
         dlg = wx.TextEntryDialog(self, _('Set the description of the module'),
-            _('Edit item'), self.model.modules[name][1])
+                                 _('Edit item'), self.model.modules[name][1])
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 answer = dlg.GetValue()
                 self.model.editModule(name, name, self.model.modules[name][0],
-                      answer)
+                                      answer)
                 self.model.update()
                 self.model.notify()
         finally:
@@ -195,7 +205,7 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
                 self.model.removeModule(self.GetItemText(self.selected))
             else:
                 wx.MessageBox(_('Cannot remove the main frame of an application'),
-                    _('Module remove error'))
+                              _('Module remove error'))
 
     def OnImports(self, events):
         wx.BeginBusyCursor()
@@ -210,13 +220,13 @@ class AppView(ListCtrlView, FindResultsAdderMixin):
         self.model.notify()
 
     def OnOpenAll(self, event):
-        modules = list(self.model.modules.keys())
-        modules.sort()
+        modules = sorted(self.model.modules.keys())
         for mod in modules:
             try:
-                self.model.editor.openOrGotoModule(\
-                  self.model.modules[mod][2])
-            except: pass
+                self.model.editor.openOrGotoModule(
+                    self.model.modules[mod][2])
+            except BaseException:
+                pass
 
     def OnFind(self, event):
         import FindReplaceDlg
@@ -239,36 +249,40 @@ class AppModuleDocView(ModuleDocView):
         else:
             mod = os.path.splitext(url)[0]
             newMod, cntrl = self.model.openModule(mod)
-            view  = newMod.editor.addNewView(ModuleDocView.viewName, ModuleDocView)
+            view = newMod.editor.addNewView(
+                ModuleDocView.viewName, ModuleDocView)
             view.refreshCtrl()
             view.focus()
 
     def genModuleListSect(self):
         modLst = []
-        modNames = list(self.model.modules.keys())
-        modNames.sort()
+        modNames = sorted(self.model.modules.keys())
         for amod in modNames:
             desc = self.model.modules[amod][1].strip()
-            modLst.append('<tr><td width="25%%"><a href="%s.html">%s</a></td><td>%s</td></tr>' %(amod, amod, desc))
+            modLst.append(
+                '<tr><td width="25%%"><a href="%s.html">%s</a></td><td>%s</td></tr>' %
+                (amod, amod, desc))
 
-        return '<table BORDER=0 CELLSPACING=0 CELLPADDING=0>'+'<BR>'.join(modLst)+'</table>', modNames
+        return '<table BORDER=0 CELLSPACING=0 CELLPADDING=0>' + \
+            '<BR>'.join(modLst) + '</table>', modNames
 
     def genModuleSect(self, page):
         classList, classNames = self.genClassListSect()
         funcList, funcNames = self.genFuncListSect()
         module = self.model.getModule()
-        modBody = wxwAppModuleTemplate % { \
-          'ModuleSynopsis': module.getModuleDoc(),
-          'Module': self.model.moduleName,
-          'ModuleList': self.genModuleListSect()[0],
-          'ClassList': classList,
-          'FunctionList': funcList,
-       }
+        modBody = wxwAppModuleTemplate % {
+            'ModuleSynopsis': module.getModuleDoc(),
+            'Module': self.model.moduleName,
+            'ModuleList': self.genModuleListSect()[0],
+            'ClassList': classList,
+            'FunctionList': funcList,
+        }
 
-        return self.genFunctionsSect(\
+        return self.genFunctionsSect(
             self.genClassesSect(page + modBody, classNames), funcNames)
 
 #        return self.genClassesSect(page + modBody, classNames)
+
 
 class AppCompareView(ListCtrlView, CloseableViewMix):
     viewName = 'App. Compare'
@@ -279,12 +293,12 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
     def __init__(self, parent, model):
         CloseableViewMix.__init__(self, _('compare results'))
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          ( ('Do diff', self.OnGoto, self.gotoLineBmp, ''), ) +\
-           self.closingActionItems, 0)
+                              (('Do diff', self.OnGoto, self.gotoLineBmp, ''), ) +
+                              self.closingActionItems, 0)
 
-        self.InsertColumn(0, _('Module'), width = 100)
-        self.InsertColumn(1, _('Differs from'), width = 450)
-        self.InsertColumn(2, _('Result'), width = 75)
+        self.InsertColumn(0, _('Module'), width=100)
+        self.InsertColumn(1, _('Differs from'), width=450)
+        self.InsertColumn(2, _('Result'), width=75)
 
         self.results = {}
         self.listResultIdxs = []
@@ -297,7 +311,13 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
         ListCtrlView.refreshCtrl(self)
 
         from Models.PythonEditorModels import BaseAppModel
-        otherApp = BaseAppModel('', self.compareTo, '', self.model.editor, True, {})
+        otherApp = BaseAppModel(
+            '',
+            self.compareTo,
+            '',
+            self.model.editor,
+            True,
+            {})
 
         from Explorers.Explorer import openEx
         otherApp.transport = openEx(self.compareTo)
@@ -311,27 +331,30 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
         # Compare apps
         if not cmp(filename, otherFilename):
             i = self.addReportItems(i,
-                  (os.path.splitext(os.path.basename(filename))[0], otherFilename,
-                   _('changed')))
+                                    (os.path.splitext(os.path.basename(filename))[0], otherFilename,
+                                     _('changed')))
 
         # Find changed modules and modules not occuring in other module
         for module in list(self.model.modules.keys()):
             if module in otherApp.modules:
-                otherFile = otherApp.assertLocalFile(otherApp.moduleFilename(module))
-                filename = self.model.assertLocalFile(self.model.moduleFilename(module))
+                otherFile = otherApp.assertLocalFile(
+                    otherApp.moduleFilename(module))
+                filename = self.model.assertLocalFile(
+                    self.model.moduleFilename(module))
                 try:
                     if not cmp(filename, otherFile):
-                        i = self.addReportItems(i, (module, otherFile, _('changed')) )
+                        i = self.addReportItems(
+                            i, (module, otherFile, _('changed')))
                 except OSError:
                     pass
             else:
-                i = self.addReportItems(i, (module, '', _('deleted')) )
+                i = self.addReportItems(i, (module, '', _('deleted')))
 
         # Find modules only occuring in other module
         for module in list(otherApp.modules.keys()):
             if module not in self.model.modules:
                 #otherFile = otherApp.moduleFilename(module)
-                i = self.addReportItems(i, (module, '', _('added')) )
+                i = self.addReportItems(i, (module, '', _('added')))
 
         self.pastelise()
 
@@ -343,6 +366,7 @@ class AppCompareView(ListCtrlView, CloseableViewMix):
             if otherModule:
                 controller.OnDiffModules(filename=otherModule)
 
+
 class AppToDoView(ListCtrlView):
     viewName = 'Application Todo'
     viewTitle = _('Application Todo')
@@ -351,7 +375,7 @@ class AppToDoView(ListCtrlView):
 
     def __init__(self, parent, model):
         ListCtrlView.__init__(self, parent, model, wx.LC_REPORT,
-          ((_('Goto file'), self.OnGoto, self.gotoLineBmp, ''),), 0)
+                              ((_('Goto file'), self.OnGoto, self.gotoLineBmp, ''),), 0)
 
         self.sortOnColumns = [0, 1]
 
@@ -372,12 +396,12 @@ class AppToDoView(ListCtrlView):
         prog = 0
         from Models.PythonEditorModels import ModuleModel
         absModPaths = self.model.absModulesPaths()
-        progStep = 100.0/len(absModPaths)
+        progStep = 100.0 / len(absModPaths)
         for module in absModPaths:
             #module = 'file://'+absModPath
-            self.model.editor.statusBar.progress.SetValue(int(prog*progStep))
+            self.model.editor.statusBar.progress.SetValue(int(prog * progStep))
             prog += 1
-            self.model.editor.setStatus(_('Parsing %s...')%module)
+            self.model.editor.setStatus(_('Parsing %s...') % module)
             #module = self.modules[moduleName]
             #filename = self.normaliseModuleRelativeToApp(module[2])
             if module[:7] != 'file://':
@@ -385,7 +409,8 @@ class AppToDoView(ListCtrlView):
                 continue
             else:
                 fn = module[7:]
-            try: f = open(fn)
+            try:
+                f = open(fn)
             except IOError:
                 print(_("couldn't load %s") % module)
                 continue
@@ -394,23 +419,22 @@ class AppToDoView(ListCtrlView):
                 f.close()
                 name = os.path.splitext(os.path.basename(module))[0]
                 model = ModuleModel(data, name, self.model.editor, 1)
-                
+
                 m = model.getModule()
                 if m.todos:
-                    todos.append( (name, len(m.todos), module) )
-        
+                    todos.append((name, len(m.todos), module))
+
         self.model.editor.statusBar.progress.SetValue(0)
         self.model.editor.setStatus(_('Finished parsing'))
-            
+
         i = 0
         for name, numTodos, path in todos:
             self.addReportItems(i, (name, numTodos, path))
             i += 1
 
         self.pastelise()
-        
-        self.todos = todos
 
+        self.todos = todos
 
     def OnGoto(self, event):
         if self.selected >= 0:
@@ -419,13 +443,13 @@ class AppToDoView(ListCtrlView):
             if 'Todo' in mod.views:
                 view = mod.views['Todo']
             else:
-                view  = mod.editor.addNewView(ToDoView.viewName, ToDoView)
+                view = mod.editor.addNewView(ToDoView.viewName, ToDoView)
             view.refreshCtrl()
             view.focus()
-            
+
 ##            srcView = self.model.views['Source']
-##            # XXX Implement an interface for views to talk
-##            srcView.focus()
+# XXX Implement an interface for views to talk
+# srcView.focus()
 ##            module = self.model.getModule()
 ##            srcView.gotoLine(int(module.todos[self.selected][0]) -1)
 
@@ -436,7 +460,7 @@ class TextInfoFileView(SourceViews.EditorStyledTextCtrl):
 
     def __init__(self, parent, model):
         SourceViews.EditorStyledTextCtrl.__init__(self, parent, -1,
-          model, (), 0)
+                                                  model, (), 0)
         self.active = True
         wx.stc.EVT_STC_UPDATEUI(self, self.GetId(), self.OnUpdateUI)
         self.model.loadTextInfo(self.viewName)
@@ -454,17 +478,21 @@ class TextInfoFileView(SourceViews.EditorStyledTextCtrl):
         if self.viewName not in self.model.unsavedTextInfos:
             self.model.unsavedTextInfos.append(self.viewName)
 
+
 class AppREADME_TIFView(TextInfoFileView):
     viewName = 'Readme.txt'
     viewTitle = 'Readme.txt'
-    
+
+
 class AppTODO_TIFView(TextInfoFileView):
     viewName = 'Todo.txt'
     viewTitle = 'Todo.txt'
-    
+
+
 class AppBUGS_TIFView(TextInfoFileView):
     viewName = 'Bugs.txt'
     viewTitle = 'Bugs.txt'
+
 
 class AppCHANGES_TIFView(TextInfoFileView):
     viewName = 'Changes.txt'

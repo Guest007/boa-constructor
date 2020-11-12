@@ -1,8 +1,8 @@
 import sys
 
-from .Tasks import ThreadedTaskHandler
-
 import wx
+
+from .Tasks import ThreadedTaskHandler
 
 '''wxPython debugging client code.  This runs in the IDE.
 A debug client connects to a debug server, generally in a different
@@ -71,6 +71,7 @@ class DebuggerCommEvent(wx.PyCommandEvent):
 class DebugClient:
     """The base class expected to be used by all DebugClients.
     """
+
     def __init__(self, win):
         self.win_id = win.GetId()
         self.event_handler = win.GetEventHandler()
@@ -105,6 +106,7 @@ class DebugClient:
 class DebuggerTask:
     """Calls invoke() on a debug client then posts an event on return.
     """
+
     def __init__(self, client, m_name, m_args=(), r_name='', r_args=()):
         self.client = client
         self.m_name = m_name
@@ -113,14 +115,14 @@ class DebuggerTask:
         self.r_args = r_args
 
     def __repr__(self):
-        return '<DebuggerTask: %s:%s:%s:%s>'%(self.m_name, self.m_args,
-                                              self.r_name, self.r_args)
+        return '<DebuggerTask: %s:%s:%s:%s>' % (self.m_name, self.m_args,
+                                                self.r_name, self.r_args)
 
     def __call__(self):
         evt = None
         try:
             result = self.client.invoke(self.m_name, self.m_args)
-        except:
+        except BaseException:
             t, v = sys.exc_info()[:2]
             evt = self.client.createEvent(wxEVT_DEBUGGER_EXC)
             evt.SetExc(t, v)

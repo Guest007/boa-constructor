@@ -1,6 +1,6 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ObjCollection.py
-# Purpose:     
+# Purpose:
 #
 # Author:      Riaan Booysen
 #
@@ -8,11 +8,13 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2000 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import sourceconst
 
+
 class ObjectCollection:
-    def __init__(self):#, creators = [], properties = [], events = [], collections = []):
+    # , creators = [], properties = [], events = [], collections = []):
+    def __init__(self):
         self.creators = []
         self.properties = []
         self.events = []
@@ -26,12 +28,15 @@ class ObjectCollection:
         self.collectionsByName = {}
 
     def __repr__(self):
-        return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\nBy name:\n %s,\n %s,\n %s,\n %s,>'% (repr(self.creators), repr(self.properties),
-           repr(self.collections), repr(self.events),
-           repr(self.creatorByName), repr(self.propertiesByName),
-           repr(self.collectionsByName), repr(self.eventsByName))
+        return '<ObjectCollection instance: %s,\n %s,\n %s,\n %s,\nBy name:\n %s,\n %s,\n %s,\n %s,>' % (repr(self.creators), repr(self.properties),
+                                                                                                         repr(self.collections), repr(
+                                                                                                             self.events),
+                                                                                                         repr(self.creatorByName), repr(
+                                                                                                             self.propertiesByName),
+                                                                                                         repr(self.collectionsByName), repr(self.eventsByName))
 
-    def setup(self, creators, properties, events, collections, initialisers, finalisers):
+    def setup(self, creators, properties, events,
+              collections, initialisers, finalisers):
         self.creators = creators
         self.properties = properties
         self.events = events
@@ -57,8 +62,8 @@ class ObjectCollection:
 
     def getCtrlNames(self):
         """ Return a list of (name, class) tuples """
-        return [ (self.creatorByName[n][0].comp_name, 
-                  self.creatorByName[n][0].class_name )
+        return [(self.creatorByName[n][0].comp_name,
+                 self.creatorByName[n][0].class_name)
                 for n in self.creatorByName]
 
     def removeReference(self, name, method):
@@ -82,7 +87,8 @@ class ObjectCollection:
         i = 0
         while i < len(self.properties):
             prop = self.properties[i]
-            if len(prop.params) and prop.params[0][5:len(method) +5] == method:
+            if len(prop.params) and prop.params[0][5:len(
+                    method) + 5] == method:
                 del self.properties[i]
             else:
                 i = i + 1
@@ -92,7 +98,8 @@ class ObjectCollection:
             props = self.propertiesByName[name]
             while i < len(props):
                 prop = props[i]
-                if len(prop.params) and prop.params[0][5:len(method) +5] == method:
+                if len(prop.params) and prop.params[0][5:len(
+                        method) + 5] == method:
                     del props[i]
                 else:
                     i = i + 1
@@ -114,7 +121,11 @@ class ObjectCollection:
         self.renameList(self.creators, self.creatorByName, name, new_name)
         self.renameList(self.properties, self.propertiesByName, name, new_name)
         self.renameList(self.events, self.eventsByName, name, new_name)
-        self.renameList(self.collections, self.collectionsByName, name, new_name)
+        self.renameList(
+            self.collections,
+            self.collectionsByName,
+            name,
+            new_name)
 
     def renameFrame(self, name, new_name):
         self.renameFrameList(self.creators, name, new_name)
@@ -129,9 +140,9 @@ class ObjectCollection:
                 else:
                     i = i + 1
 
-##    def findRootParent(self):
-##        for crt in self.creators:
-##            if crt.params.has_key('parent'):
+# def findRootParent(self):
+# for crt in self.creators:
+# if crt.params.has_key('parent'):
 
     def reparent(self, oldParent, newParent):
         for crt in self.creators:
@@ -152,8 +163,10 @@ class ObjectCollection:
         self.eventsByName = self.setupList(self.events)
         self.collectionsByName = self.setupList(self.collections)
 
+
 def isInitCollMeth(meth):
     return meth.startswith(sourceconst.init_coll)
 
+
 def getCollName(collInitMethod, name):
-    return collInitMethod[len(sourceconst.init_coll+name)+1:]
+    return collInitMethod[len(sourceconst.init_coll + name) + 1:]

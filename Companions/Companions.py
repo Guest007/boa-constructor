@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # Name:        Companions.py
 # Purpose:     Classes defining and implementing the design time
 #              behaviour of controls
@@ -9,29 +9,31 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 1999 - 2007 Riaan Booysen
 # Licence:     GPL
-#----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 
 """ Classes defining and implementing the design time behaviour of controls """
 
 import wx
-
 from wx.lib.anchors import LayoutAnchors
 
+import PaletteStore
+import RTTI
 from PropEdit import PropertyEditors
 from PropEdit.Enumerations import *
-from .BaseCompanions import HelperDTC
-import PaletteStore, RTTI
 
-#---Helpers---------------------------------------------------------------------
+from .BaseCompanions import HelperDTC
+
+# ---Helpers---------------------------------------------------------------------
+
 
 class FontDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
-        self.editors = {'FaceName'  : PropertyEditors.EnumPropEdit,
-                        'Family'    : PropertyEditors.EnumPropEdit,
-                        'Style'     : PropertyEditors.EnumPropEdit,
-                        'Weight'    : PropertyEditors.EnumPropEdit,
-                        'Underlined': PropertyEditors.BoolPropEdit,}
+        self.editors = {'FaceName': PropertyEditors.EnumPropEdit,
+                        'Family': PropertyEditors.EnumPropEdit,
+                        'Style': PropertyEditors.EnumPropEdit,
+                        'Weight': PropertyEditors.EnumPropEdit,
+                        'Underlined': PropertyEditors.BoolPropEdit, }
 
         fontEnum = wx.FontEnumerator()
         fontEnum.EnumerateFacenames()
@@ -43,50 +45,57 @@ class FontDTC(HelperDTC):
             fontFaceNameNames[fnt] = fnt
         fontFaceName.sort()
 
-        self.options = {'FaceName' : fontFaceName,
-                        'Family'   : fontFamily,
-                        'Style'    : fontStyle,
-                        'Weight'   : fontWeight,}
-        self.names = {'FaceName' : fontFaceNameNames,
-                      'Family'   : fontFamilyNames,
-                      'Style'    : fontStyleNames,
-                      'Weight'   : fontWeightNames,}
+        self.options = {'FaceName': fontFaceName,
+                        'Family': fontFamily,
+                        'Style': fontStyle,
+                        'Weight': fontWeight, }
+        self.names = {'FaceName': fontFaceNameNames,
+                      'Family': fontFamilyNames,
+                      'Style': fontStyleNames,
+                      'Weight': fontWeightNames, }
 
     def hideDesignTime(self):
         return HelperDTC.hideDesignTime(self) + ['Encoding', 'NativeFontInfo',
-               'NativeFontInfoUserDesc', 'NoAntiAliasing']
+                                                 'NativeFontInfoUserDesc', 'NoAntiAliasing']
+
 
 class ColourDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
-        self.editors = {'Red'    : PropertyEditors.IntPropEdit,
-                        'Green'  : PropertyEditors.IntPropEdit,
-                        'Blue'   : PropertyEditors.IntPropEdit,}
+        self.editors = {'Red': PropertyEditors.IntPropEdit,
+                        'Green': PropertyEditors.IntPropEdit,
+                        'Blue': PropertyEditors.IntPropEdit, }
+
     def properties(self):
-        return {'Red'  : ('CompnRoute', self.GetRed, self.SetRed),
+        return {'Red': ('CompnRoute', self.GetRed, self.SetRed),
                 'Green': ('CompnRoute', self.GetGreen, self.SetGreen),
-                'Blue' : ('CompnRoute', self.GetBlue, self.SetBlue),}
+                'Blue': ('CompnRoute', self.GetBlue, self.SetBlue), }
 
     def GetRed(self, cmpn):
         return self.obj.Red()
+
     def SetRed(self, value):
-        self.obj.Set(max(min(value, 255), 0), self.obj.Green(), self.obj.Blue())
+        self.obj.Set(max(min(value, 255), 0),
+                     self.obj.Green(), self.obj.Blue())
 
     def GetGreen(self, cmpn):
         return self.obj.Green()
+
     def SetGreen(self, value):
         self.obj.Set(self.obj.Red(), max(min(value, 255), 0), self.obj.Blue())
 
     def GetBlue(self, cmpn):
         return self.obj.Blue()
+
     def SetBlue(self, value):
         self.obj.Set(self.obj.Red(), self.obj.Green(), max(min(value, 255), 0))
+
 
 class PosDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
-        self.editors = {'X' : PropertyEditors.IntPropEdit,
-                        'Y' : PropertyEditors.IntPropEdit}
+        self.editors = {'X': PropertyEditors.IntPropEdit,
+                        'Y': PropertyEditors.IntPropEdit}
 
     def properties(self):
         return {'X': ('CompnRoute', self.GetX, self.SetX),
@@ -94,19 +103,22 @@ class PosDTC(HelperDTC):
 
     def GetX(self, comp):
         return self.obj.x
+
     def SetX(self, value):
         self.obj.Set(value, self.obj.y)
 
     def GetY(self, comp):
         return self.obj.y
+
     def SetY(self, value):
         self.obj.Set(self.obj.x, value)
+
 
 class SizeDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
-        self.editors = {'Width' : PropertyEditors.IntPropEdit,
-                        'Height' : PropertyEditors.IntPropEdit}
+        self.editors = {'Width': PropertyEditors.IntPropEdit,
+                        'Height': PropertyEditors.IntPropEdit}
 
     def properties(self):
         return {'Width': ('CompnRoute', self.GetWidth, self.SetWidth),
@@ -114,22 +126,24 @@ class SizeDTC(HelperDTC):
 
     def GetWidth(self, comp):
         return self.obj.width
+
     def SetWidth(self, value):
         self.obj.width = value
 
     def GetHeight(self, comp):
         return self.obj.height
+
     def SetHeight(self, value):
         self.obj.height = value
-        
-        
+
+
 class AnchorsDTC(HelperDTC):
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
-        self.editors = {'Left'   : PropertyEditors.BoolPropEdit,
-                        'Top'    : PropertyEditors.BoolPropEdit,
-                        'Right'  : PropertyEditors.BoolPropEdit,
-                        'Bottom' : PropertyEditors.BoolPropEdit}
+        self.editors = {'Left': PropertyEditors.BoolPropEdit,
+                        'Top': PropertyEditors.BoolPropEdit,
+                        'Right': PropertyEditors.BoolPropEdit,
+                        'Bottom': PropertyEditors.BoolPropEdit}
         self.anchCtrl = cmpn.control
         self.assureAnchors()
         self.GetLeftAnchor('')
@@ -138,23 +152,30 @@ class AnchorsDTC(HelperDTC):
         self.GetBottomAnchor('')
 
     def properties(self):
-        return {'Left'    : ('CompnRoute', self.GetLeftAnchor, self.SetLeftAnchor),
-                'Top'     : ('CompnRoute', self.GetTopAnchor, self.SetTopAnchor),
-                'Right'   : ('CompnRoute', self.GetRightAnchor, self.SetRightAnchor),
-                'Bottom'  : ('CompnRoute', self.GetBottomAnchor, self.SetBottomAnchor),}
+        return {'Left': ('CompnRoute', self.GetLeftAnchor, self.SetLeftAnchor),
+                'Top': ('CompnRoute', self.GetTopAnchor, self.SetTopAnchor),
+                'Right': ('CompnRoute', self.GetRightAnchor, self.SetRightAnchor),
+                'Bottom': ('CompnRoute', self.GetBottomAnchor, self.SetBottomAnchor), }
 
     def assureAnchors(self):
         if not self.ownerCompn.anchorSettings:
             self.ownerCompn.defaultAnchors()
 
     def updateAnchors(self):
-        self.ownerCompn.anchorSettings = [self.left, self.top, self.right, self.bottom]
-        self.obj = LayoutAnchors(self.anchCtrl, self.left, self.top, self.right, self.bottom)
+        self.ownerCompn.anchorSettings = [
+            self.left, self.top, self.right, self.bottom]
+        self.obj = LayoutAnchors(
+            self.anchCtrl,
+            self.left,
+            self.top,
+            self.right,
+            self.bottom)
 
     def GetLeftAnchor(self, name):
         self.assureAnchors()
         self.left = self.ownerCompn.anchorSettings[0]
         return self.left
+
     def SetLeftAnchor(self, value):
         self.assureAnchors()
         self.left = value
@@ -164,6 +185,7 @@ class AnchorsDTC(HelperDTC):
         self.assureAnchors()
         self.top = self.ownerCompn.anchorSettings[1]
         return self.top
+
     def SetTopAnchor(self, value):
         self.assureAnchors()
         self.top = value
@@ -173,6 +195,7 @@ class AnchorsDTC(HelperDTC):
         self.assureAnchors()
         self.right = self.ownerCompn.anchorSettings[2]
         return self.right
+
     def SetRightAnchor(self, value):
         self.assureAnchors()
         self.right = value
@@ -182,6 +205,7 @@ class AnchorsDTC(HelperDTC):
         self.assureAnchors()
         self.bottom = self.ownerCompn.anchorSettings[3]
         return self.bottom
+
     def SetBottomAnchor(self, value):
         self.assureAnchors()
         self.bottom = value
@@ -191,6 +215,7 @@ class AnchorsDTC(HelperDTC):
 class BaseConstrFlagsDTC(HelperDTC):
     paramName = 'param'
     propName = 'Prop'
+
     def __init__(self, name, designer, cmpn, obj, ownerPW):
         HelperDTC.__init__(self, name, designer, cmpn, obj, ownerPW)
         self.editors = {}
@@ -205,7 +230,8 @@ class BaseConstrFlagsDTC(HelperDTC):
         return props
 
     def GetStyle(self, name):
-        return name in self.ownerCompn.textConstr.params[self.paramName].split(' | ')
+        return name in self.ownerCompn.textConstr.params[self.paramName].split(
+            ' | ')
 
     def SetStyle(self, name, value):
         flags = self.ownerCompn.textConstr.params[self.paramName].split(' | ')
@@ -227,9 +253,11 @@ class BaseConstrFlagsDTC(HelperDTC):
         if hasattr(ctrl, 'SetWindowStyleFlag'):
             ctrl.SetWindowStyleFlag(flagsVal)
 
+
 class WindowStyleDTC(BaseConstrFlagsDTC):
     paramName = 'style'
     propName = 'Style'
+
 
 class FlagsDTC(BaseConstrFlagsDTC):
     paramName = 'flags'

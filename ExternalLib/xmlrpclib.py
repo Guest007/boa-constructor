@@ -130,7 +130,11 @@ Exported functions:
                  name (None if not present).
 """
 
-import re, string, time, operator, sys
+import re
+import string
+import time
+import operator
+import sys
 
 from types import *
 
@@ -140,12 +144,13 @@ from types import *
 try:
     str
 except NameError:
-    str = None # unicode support not available
+    str = None  # unicode support not available
 
 try:
     _bool_is_builtin = False.__class__.__name__ == "bool"
 except NameError:
     _bool_is_builtin = 0
+
 
 def _decode(data, encoding, is8bit=re.compile("[\x80-\xff]").search):
     # decode non-ascii string (if possible)
@@ -153,10 +158,12 @@ def _decode(data, encoding, is8bit=re.compile("[\x80-\xff]").search):
         data = str(data, encoding)
     return data
 
+
 def escape(s, replace=string.replace):
     s = replace(s, "&", "&amp;")
     s = replace(s, "<", "&lt;")
     return replace(s, ">", "&gt;",)
+
 
 if str:
     def _stringify(string):
@@ -172,7 +179,7 @@ else:
 __version__ = "1.0.1"
 
 # xmlrpc integer limits
-MAXINT =  2**31-1
+MAXINT = 2**31 - 1
 MININT = -2**31
 
 # --------------------------------------------------------------------
@@ -180,20 +187,20 @@ MININT = -2**31
 # http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php)
 
 # Ranges of errors
-PARSE_ERROR       = -32700
-SERVER_ERROR      = -32600
+PARSE_ERROR = -32700
+SERVER_ERROR = -32600
 APPLICATION_ERROR = -32500
-SYSTEM_ERROR      = -32400
-TRANSPORT_ERROR   = -32300
+SYSTEM_ERROR = -32400
+TRANSPORT_ERROR = -32300
 
 # Specific errors
-NOT_WELLFORMED_ERROR  = -32700
-UNSUPPORTED_ENCODING  = -32701
+NOT_WELLFORMED_ERROR = -32700
+UNSUPPORTED_ENCODING = -32701
 INVALID_ENCODING_CHAR = -32702
-INVALID_XMLRPC        = -32600
-METHOD_NOT_FOUND      = -32601
+INVALID_XMLRPC = -32600
+METHOD_NOT_FOUND = -32601
 INVALID_METHOD_PARAMS = -32602
-INTERNAL_ERROR        = -32603
+INTERNAL_ERROR = -32603
 
 # --------------------------------------------------------------------
 # Exceptions
@@ -201,8 +208,10 @@ INTERNAL_ERROR        = -32603
 ##
 # Base class for all kinds of client-side errors.
 
+
 class Error(Exception):
     """Base class for client errors."""
+
     def __str__(self):
         return repr(self)
 
@@ -216,24 +225,28 @@ class Error(Exception):
 # @param errmsg The HTTP error message.
 # @param headers The HTTP header dictionary.
 
+
 class ProtocolError(Error):
     """Indicates an HTTP protocol error."""
+
     def __init__(self, url, errcode, errmsg, headers):
         Error.__init__(self)
         self.url = url
         self.errcode = errcode
         self.errmsg = errmsg
         self.headers = headers
+
     def __repr__(self):
         return (
             "<ProtocolError for %s: %s %s>" %
             (self.url, self.errcode, self.errmsg)
-            )
+        )
 
 ##
 # Indicates a broken XML-RPC response package.  This exception is
 # raised by the unmarshalling layer, if the XML-RPC response is
 # malformed.
+
 
 class ResponseError(Error):
     """Indicates a broken response package."""
@@ -248,17 +261,20 @@ class ResponseError(Error):
 # @param faultCode The XML-RPC fault code.
 # @param faultString The XML-RPC fault string.
 
+
 class Fault(Error):
     """Indicates an XML-RPC fault package."""
+
     def __init__(self, faultCode, faultString, **extra):
         Error.__init__(self)
         self.faultCode = faultCode
         self.faultString = faultString
+
     def __repr__(self):
         return (
             "<Fault %s: %s>" %
             (self.faultCode, repr(self.faultString))
-            )
+        )
 
 # --------------------------------------------------------------------
 # Special values
@@ -271,6 +287,7 @@ class Fault(Error):
 # @param value A boolean value.  Any true value is interpreted as True,
 #              all other values are interpreted as False.
 
+
 if _bool_is_builtin:
     boolean = Boolean = bool
     # to avoid breaking code which references xmlrpclib.{True,False}
@@ -282,7 +299,7 @@ else:
         Use True or False to generate a "boolean" XML-RPC value.
         """
 
-        def __init__(self, value = 0):
+        def __init__(self, value=0):
             self.value = operator.truth(value)
 
         def encode(self, out):
@@ -335,6 +352,7 @@ else:
 # @param value The time, given as an ISO 8601 string, a time
 #              tuple, or a integer time value.
 
+
 class DateTime:
     """DateTime wrapper for an ISO 8601 string or time tuple or
     localtime integer value to generate 'dateTime.iso8601' XML-RPC
@@ -374,6 +392,7 @@ class DateTime:
         out.write(self.value)
         out.write("</dateTime.iso8601></value>\n")
 
+
 def _datetime(data):
     # decode xml element contents into a DateTime structure.
     value = DateTime()
@@ -385,6 +404,7 @@ def _datetime(data):
 # of binary data over XML-RPC, using BASE64 encoding.
 #
 # @param data An 8-bit string containing arbitrary data.
+
 
 class Binary:
     """Wrapper for binary data."""
@@ -410,16 +430,19 @@ class Binary:
         self.data = base64.decodestring(data)
 
     def encode(self, out):
-        import base64, io
+        import base64
+        import io
         out.write("<value><base64>\n")
         base64.encode(io.StringIO(self.data), out)
         out.write("</base64></value>\n")
+
 
 def _binary(data):
     # decode xml element contents into a Binary structure
     value = Binary()
     value.decode(data)
     return value
+
 
 WRAPPERS = (DateTime, Binary)
 if not _bool_is_builtin:
@@ -455,7 +478,7 @@ try:
     if not hasattr(sgmlop, "XMLParser"):
         raise ImportError
 except ImportError:
-    SgmlopParser = None # sgmlop accelerator not available
+    SgmlopParser = None  # sgmlop accelerator not available
 else:
     class SgmlopParser:
         def __init__(self, target):
@@ -473,16 +496,16 @@ else:
             self.entity = {
                 "amp": "&", "gt": ">", "lt": "<",
                 "apos": "'", "quot": '"'
-                }
+            }
 
         def close(self):
             try:
                 self.parser.close()
             finally:
-                self.parser = self.feed = None # nuke circular reference
+                self.parser = self.feed = None  # nuke circular reference
 
         def handle_proc(self, tag, attr):
-            m = re.search("encoding\s*=\s*['\"]([^\"']+)[\"']", attr)
+            m = re.search(r"encoding\s*=\s*['\"]([^\"']+)[\"']", attr)
             if m:
                 self.handle_xml(m.group(1), 1)
 
@@ -499,7 +522,7 @@ try:
     if not hasattr(expat, "ParserCreate"):
         raise ImportError
 except ImportError:
-    ExpatParser = None # expat not available
+    ExpatParser = None  # expat not available
 else:
     class ExpatParser:
         # fast expat parser for Python 2.0 and later.  this is about
@@ -525,15 +548,17 @@ else:
             self._parser.Parse(data, 0)
 
         def close(self):
-            self._parser.Parse("", 1) # end of data
-            del self._target, self._parser # get rid of circular references
+            self._parser.Parse("", 1)  # end of data
+            del self._target, self._parser  # get rid of circular references
+
 
 class SlowParser:
     """Default XML parser (based on xmllib.XMLParser)."""
     # this is about 10 times slower than sgmlop, on roundtrip
     # testing.
+
     def __init__(self, target):
-        import xmllib # lazy subclassing (!)
+        import xmllib  # lazy subclassing (!)
         if xmllib.XMLParser not in SlowParser.__bases__:
             SlowParser.__bases__ = (xmllib.XMLParser,)
         self.handle_xml = target.xml
@@ -544,7 +569,7 @@ class SlowParser:
         try:
             xmllib.XMLParser.__init__(self, accept_utf8=1)
         except TypeError:
-            xmllib.XMLParser.__init__(self) # pre-2.0
+            xmllib.XMLParser.__init__(self)  # pre-2.0
 
 # --------------------------------------------------------------------
 # XML-RPC marshalling and unmarshalling code
@@ -555,6 +580,7 @@ class SlowParser:
 # @param encoding Default encoding for 8-bit strings.  The default
 #     value is None (interpreted as UTF-8).
 # @see dumps
+
 
 class Marshaller:
     """Generate an XML-RPC params chunk from a Python data structure.
@@ -676,7 +702,7 @@ class Marshaller:
         write("<value><struct>\n")
         for k in list(value.keys()):
             write("<member>\n")
-            if type(k) is not StringType:
+            if not isinstance(k, StringType):
                 raise TypeError("dictionary key must be string")
             write("<name>%s</name>\n" % escape(k))
             dump(value[k], write)
@@ -700,6 +726,7 @@ class Marshaller:
 # XML-RPC unmarshaller.
 #
 # @see loads
+
 
 class Unmarshaller:
     """Unmarshal an XML-RPC response, based on incoming XML event
@@ -755,7 +782,7 @@ class Unmarshaller:
         try:
             f = self.dispatch[tag]
         except KeyError:
-            pass # unknown tag ?
+            pass  # unknown tag ?
         else:
             return f(self, join(self._data, ""))
 
@@ -767,7 +794,7 @@ class Unmarshaller:
         try:
             f = self.dispatch[tag]
         except KeyError:
-            pass # unknown tag ?
+            pass  # unknown tag ?
         else:
             return f(self, data)
 
@@ -803,7 +830,7 @@ class Unmarshaller:
         self.append(_stringify(data))
         self._value = 0
     dispatch["string"] = end_string
-    dispatch["name"] = end_string # struct keys are always strings
+    dispatch["name"] = end_string  # struct keys are always strings
 
     def end_array(self, data):
         mark = self._marks.pop()
@@ -818,7 +845,7 @@ class Unmarshaller:
         dict = {}
         items = self._stack[mark:]
         for i in range(0, len(items), 2):
-            dict[_stringify(items[i])] = items[i+1]
+            dict[_stringify(items[i])] = items[i + 1]
         self._stack[mark:] = [dict]
         self._value = 0
     dispatch["struct"] = end_struct
@@ -855,7 +882,7 @@ class Unmarshaller:
         if self._encoding:
             data = _decode(data, self._encoding)
         self._methodname = data
-        self._type = "methodName" # no params
+        self._type = "methodName"  # no params
     dispatch["methodName"] = end_methodName
 
 
@@ -902,6 +929,7 @@ def getparser():
 # @keyparam encoding The packet encoding.
 # @return A string containing marshalled data.
 
+
 def dumps(params, methodname=None, methodresponse=None, encoding=None):
     """data [,options] -> marshalled data
 
@@ -925,7 +953,7 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None):
     """
 
     assert isinstance(params, TupleType) or isinstance(params, Fault),\
-           "argument must be tuple or Fault instance"
+        "argument must be tuple or Fault instance"
 
     if isinstance(params, Fault):
         methodresponse = 1
@@ -945,7 +973,7 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None):
     if encoding != "utf-8":
         xmlheader = "<?xml version='1.0' encoding='%s'?>\n" % str(encoding)
     else:
-        xmlheader = "<?xml version='1.0'?>\n" # utf-8 is default
+        xmlheader = "<?xml version='1.0'?>\n"  # utf-8 is default
 
     # standard XML-RPC wrappings
     if methodname:
@@ -958,7 +986,7 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None):
             "<methodName>", methodname, "</methodName>\n",
             data,
             "</methodCall>\n"
-            )
+        )
     elif methodresponse:
         # a method response, or a fault structure
         data = (
@@ -966,9 +994,9 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None):
             "<methodResponse>\n",
             data,
             "</methodResponse>\n"
-            )
+        )
     else:
-        return data # return as is
+        return data  # return as is
     return string.join(data, "")
 
 ##
@@ -979,6 +1007,7 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None):
 # @return A tuple containing the the unpacked data, and the method name
 #     (None if not present).
 # @see Fault
+
 
 def loads(data):
     """data -> unmarshalled data, method name
@@ -1005,8 +1034,10 @@ class _Method:
     def __init__(self, send, name):
         self.__send = send
         self.__name = name
+
     def __getattr__(self, name):
         return _Method(self.__send, "%s.%s" % (self.__name, name))
+
     def __call__(self, *args):
         return self.__send(self.__name, args)
 
@@ -1015,6 +1046,7 @@ class _Method:
 # <p>
 # You can create custom transports by subclassing this method, and
 # overriding selected methods.
+
 
 class Transport:
     """Handles an HTTP transaction to an XML-RPC server."""
@@ -1050,7 +1082,7 @@ class Transport:
                 host + handler,
                 errcode, errmsg,
                 headers
-                )
+            )
 
         self.verbose = verbose
 
@@ -1086,16 +1118,18 @@ class Transport:
         if isinstance(host, TupleType):
             host, x509 = host
 
-        import urllib.request, urllib.parse, urllib.error
+        import urllib.request
+        import urllib.parse
+        import urllib.error
         auth, host = urllib.parse.splituser(host)
 
         if auth:
             import base64
             auth = base64.encodestring(urllib.parse.unquote(auth))
-            auth = string.join(string.split(auth), "") # get rid of whitespace
+            auth = string.join(string.split(auth), "")  # get rid of whitespace
             extra_headers = [
                 ("Authorization", "Basic " + auth)
-                ]
+            ]
         else:
             extra_headers = None
 
@@ -1184,7 +1218,7 @@ class Transport:
 
         p, u = self.getparser()
 
-        while 1:
+        while True:
             if sock:
                 response = sock.recv(1024)
             else:
@@ -1203,6 +1237,7 @@ class Transport:
 ##
 # Standard transport class for XML-RPC over HTTPS.
 
+
 class SafeTransport(Transport):
     """Handles an HTTPS transaction to an XML-RPC server."""
 
@@ -1218,7 +1253,7 @@ class SafeTransport(Transport):
         except AttributeError:
             raise NotImplementedError(
                 "your version of httplib doesn't support HTTPS"
-                )
+            )
         else:
             return HTTPS(*(host, None), **x509 or {})
 
@@ -1238,6 +1273,7 @@ class SafeTransport(Transport):
 # @keyparam verbose Use a true value to enable debugging output.
 #    (printed to standard output).
 # @see Transport
+
 
 class ServerProxy:
     """uri [,options] -> a logical connection to an XML-RPC server
@@ -1265,7 +1301,9 @@ class ServerProxy:
         # establish a "logical" server connection
 
         # get the url
-        import urllib.request, urllib.parse, urllib.error
+        import urllib.request
+        import urllib.parse
+        import urllib.error
         type, uri = urllib.parse.splittype(uri)
         if type not in ("http", "https"):
             raise IOError("unsupported XML-RPC protocol")
@@ -1293,7 +1331,7 @@ class ServerProxy:
             self.__handler,
             request,
             verbose=self.__verbose
-            )
+        )
 
         if len(response) == 1:
             response = response[0]
@@ -1304,7 +1342,7 @@ class ServerProxy:
         return (
             "<ServerProxy for %s%s>" %
             (self.__host, self.__handler)
-            )
+        )
 
     __str__ = __repr__
 
@@ -1316,6 +1354,7 @@ class ServerProxy:
     # result getattr(server, "strange-python-name")(args)
 
 # compatibility
+
 
 Server = ServerProxy
 

@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        WizardCompanions.py
 # Purpose:
 #
@@ -8,32 +8,35 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2003 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-
-print('importing Companions.WizardCompanions')
+# -----------------------------------------------------------------------------
 
 import wx
 import wx.wizard
 
-from Preferences import wxDefaultFrameSize, wxDefaultFramePos
-from .FrameCompanions import DialogDTC, FramePanelDTC
+import Plugins
+import sourceconst
+from Preferences import wxDefaultFramePos, wxDefaultFrameSize
 from PropEdit.PropertyEditors import BitmapConstrPropEdit, StrConstrPropEdit
 
 from . import EventCollections
-import sourceconst
+from .FrameCompanions import DialogDTC, FramePanelDTC
+
+print('importing Companions.WizardCompanions')
+
 
 ##defWizardImport = 'import wx.wizard'
 
 wizardSize = (400, 370)
 wizardPageSize = (270, 300)
-wizardFrameStyle = wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.CAPTION #wx.MAXIMIZE_BOX
+wizardFrameStyle = wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.CAPTION  # wx.MAXIMIZE_BOX
 
 EventCollections.EventCategories['WizardEvent'] = (
-      'wx.wizard.EVT_WIZARD_PAGE_CHANGED', 'wx.wizard.EVT_WIZARD_PAGE_CHANGING',
-      'wx.wizard.EVT_WIZARD_CANCEL', 'wx.wizard.EVT_WIZARD_HELP',
-      'wx.wizard.EVT_WIZARD_FINISHED')
+    'wx.wizard.EVT_WIZARD_PAGE_CHANGED', 'wx.wizard.EVT_WIZARD_PAGE_CHANGING',
+    'wx.wizard.EVT_WIZARD_CANCEL', 'wx.wizard.EVT_WIZARD_HELP',
+    'wx.wizard.EVT_WIZARD_FINISHED')
 
 EventCollections.commandCategories.append('WizardEvent')
+
 
 class WizardDTC(DialogDTC):
     defFrameSize = wx.Size(*wizardSize)
@@ -49,7 +52,7 @@ class WizardDTC(DialogDTC):
 
     def designTimeSource(self):
         return {'title': repr(self.name),
-                'pos':   repr(wxDefaultFramePos),
+                'pos': repr(wxDefaultFramePos),
                 'bitmap': 'wx.NullBitmap'}
 
     def hideDesignTime(self):
@@ -63,6 +66,7 @@ class PyWizardPageDTC(FramePanelDTC):
     defFrameSize = wx.Size(*wizardPageSize)
     defFrameStyle = wizardFrameStyle
     suppressWindowId = True
+
     def __init__(self, name, designer, frameCtrl):
         FramePanelDTC.__init__(self, name, designer, frameCtrl)
         self.editors['Bitmap'] = BitmapConstrPropEdit
@@ -76,13 +80,15 @@ class PyWizardPageDTC(FramePanelDTC):
         return {'bitmap': 'wx.NullBitmap', 'resource': "''"}
 
     def hideDesignTime(self):
-        return FramePanelDTC.hideDesignTime(self) + ['Position', 'Size', 'ClientSize']
+        return FramePanelDTC.hideDesignTime(
+            self) + ['Position', 'Size', 'ClientSize']
 
 
 class WizardPageSimpleDTC(FramePanelDTC):
     defFrameSize = wx.Size(*wizardPageSize)
     defFrameStyle = wizardFrameStyle
     suppressWindowId = True
+
     def __init__(self, name, designer, frameCtrl):
         FramePanelDTC.__init__(self, name, designer, frameCtrl)
 
@@ -93,14 +99,16 @@ class WizardPageSimpleDTC(FramePanelDTC):
         return {'prev': 'None', 'next': 'None'}
 
     def hideDesignTime(self):
-        return FramePanelDTC.hideDesignTime(self) + ['Position', 'Size', 'ClientSize']
+        return FramePanelDTC.hideDesignTime(
+            self) + ['Position', 'Size', 'ClientSize']
 
 
-#-------------------------------------------------------------------------------
-import Plugins
+# -------------------------------------------------------------------------------
 
 Plugins.registerComponents(None,
-      (wx.wizard.Wizard, 'wx.wizard.Wizard', WizardDTC),
-      (wx.wizard.PyWizardPage, 'wx.wizard.PyWizardPage', PyWizardPageDTC),
-      (wx.wizard.WizardPageSimple, 'wx.wizard.WizardPageSimple', WizardPageSimpleDTC),
-    )
+                           (wx.wizard.Wizard, 'wx.wizard.Wizard', WizardDTC),
+                           (wx.wizard.PyWizardPage,
+                            'wx.wizard.PyWizardPage', PyWizardPageDTC),
+                           (wx.wizard.WizardPageSimple,
+                            'wx.wizard.WizardPageSimple', WizardPageSimpleDTC),
+                           )

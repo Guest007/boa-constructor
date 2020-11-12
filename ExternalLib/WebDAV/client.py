@@ -2,8 +2,15 @@
 
 __version__ = '$Revision$'[11:-2]
 
-import sys, os, string, time, types, re
-import socket, http.client, mimetools
+import sys
+import os
+import string
+import time
+import types
+import re
+import socket
+import http.client
+import mimetools
 from types import FileType
 from mimetypes import guess_type
 from base64 import encodestring
@@ -11,8 +18,6 @@ from .common import rfc1123_date
 from io import StringIO
 from random import random
 from urllib.parse import quote
-
-
 
 
 class HTTP(http.client.HTTP):
@@ -64,7 +69,8 @@ class Resource:
             self.host = host
             self.port = port and string.atoi(port[1:]) or 80
             self.uri = uri or '/'
-        else: raise ValueError(url)
+        else:
+            raise ValueError(url)
 
     def __getattr__(self, name):
         url = os.path.join(self.url, name)
@@ -103,7 +109,8 @@ class Resource:
             if n > 0:
                 tag = key[n + 2:]
                 key = key[:n]
-            else: tag = 'string'
+            else:
+                tag = 'string'
             func = varfuncs.get(tag, marshal_string)
             formdata.append(func(key, val))
         return string.join(formdata, '&')
@@ -118,12 +125,14 @@ class Resource:
             h.putrequest(method, uri)
             for n, v in list(headers.items()):
                 h.putheader(n, v)
-            if eh: h.endheaders()
-            if body: h.send(body)
+            if eh:
+                h.endheaders()
+            if body:
+                h.send(body)
             ver, code, msg, hdrs = h.getreply()
             data = h.getfile().read()
             h.close()
-        except:
+        except BaseException:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             raise 'NotAvailable', exc_value
         return http_response(ver, code, msg, hdrs, data)
@@ -163,7 +172,7 @@ class Resource:
             **kw):
         headers = self.__get_headers(kw)
         filetype = type(file)
-        if filetype is type('') and (isbin(file) is None) and \
+        if isinstance('', filetype) and (isbin(file) is None) and \
            os.path.exists(file):
             ob = open(file, 'rb')
             body = ob.read()
@@ -172,15 +181,17 @@ class Resource:
         elif filetype is FileType:
             body = file.read()
             c_type, c_enc = guess_type(file.name)
-        elif filetype is type(''):
+        elif isinstance('', filetype):
             body = file
             c_type, c_enc = guess_type(self.url)
         else:
             raise ValueError('File must be a filename, file or string.')
         content_type = content_type or c_type
         content_enc = content_enc or c_enc
-        if content_type: headers['Content-Type'] = content_type
-        if content_enc:  headers['Content-Encoding'] = content_enc
+        if content_type:
+            headers['Content-Type'] = content_type
+        if content_enc:
+            headers['Content-Encoding'] = content_enc
         headers['Content-Length'] = str(len(body))
         return self.__snd_request('PUT', self.uri, headers, body)
 
@@ -205,7 +216,8 @@ class Resource:
 
     def proppatch(self, body, **kw):
         headers = self.__get_headers(kw)
-        if body: headers['Content-Type'] = 'text/xml; charset="utf-8"'
+        if body:
+            headers['Content-Type'] = 'text/xml; charset="utf-8"'
         headers['Content-Length'] = str(len(body))
         return self.__snd_request('PROPPATCH', self.uri, headers, body)
 
@@ -245,14 +257,14 @@ class Resource:
             raise ValueError('Invalid depth.')
         headers = self.__get_headers(kw)
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
-             '<d:lockinfo xmlns:d="DAV:">\n' \
-             '  <d:lockscope><d:%s/></d:lockscope>\n' \
-             '  <d:locktype><d:%s/></d:locktype>\n' \
-             '  <d:depth>%s</d:depth>\n' \
-             '  <d:owner>\n' \
-             '  <d:href>%s</d:href>\n' \
-             '  </d:owner>\n' \
-             '</d:lockinfo>' % (scope, type, depth, owner)
+            '<d:lockinfo xmlns:d="DAV:">\n' \
+            '  <d:lockscope><d:%s/></d:lockscope>\n' \
+            '  <d:locktype><d:%s/></d:locktype>\n' \
+            '  <d:depth>%s</d:depth>\n' \
+            '  <d:owner>\n' \
+            '  <d:href>%s</d:href>\n' \
+            '  </d:owner>\n' \
+            '</d:lockinfo>' % (scope, type, depth, owner)
         headers['Content-Type'] = 'text/xml; charset="utf-8"'
         headers['Content-Length'] = str(len(body))
         headers['Timeout'] = timeout
@@ -274,20 +286,21 @@ class Resource:
 
     def propnames(self, depth=0):
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
-              '<d:propfind xmlns:d="DAV:">\n' \
-              '  <d:propname/>\n' \
-              '</d:propfind>'
+            '<d:propfind xmlns:d="DAV:">\n' \
+            '  <d:propname/>\n' \
+            '</d:propfind>'
         return self.propfind(body, depth)
 
     def getprops(self, *names):
-        if not names: return self.propfind()
+        if not names:
+            return self.propfind()
         tags = string.join(names, '/>\n  <')
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
-              '<d:propfind xmlns:d="DAV:">\n' \
-              '  <d:prop>\n' \
-              '  <%s>\n' \
-              '  </d:prop>\n' \
-              '</d:propfind>' % tags
+            '<d:propfind xmlns:d="DAV:">\n' \
+            '  <d:prop>\n' \
+            '  <%s>\n' \
+            '  </d:prop>\n' \
+            '</d:propfind>' % tags
         return self.propfind(body, 0)
 
     def setprops(self, **props):
@@ -298,13 +311,13 @@ class Resource:
             tags.append('  <%s>%s</%s>' % (key, val, key))
         tags = string.join(tags, '\n')
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
-              '<d:propertyupdate xmlns:d="DAV:">\n' \
-              '<d:set>\n' \
-              '  <d:prop>\n' \
-              '  %s\n' \
-              '  </d:prop>\n' \
-              '</d:set>\n' \
-              '</d:propertyupdate>' % tags
+            '<d:propertyupdate xmlns:d="DAV:">\n' \
+            '<d:set>\n' \
+            '  <d:prop>\n' \
+            '  %s\n' \
+            '  </d:prop>\n' \
+            '</d:set>\n' \
+            '</d:propertyupdate>' % tags
         return self.proppatch(body)
 
     def delprops(self, *names):
@@ -312,25 +325,19 @@ class Resource:
             raise ValueError('No property names specified.')
         tags = string.join(names, '/>\n  <')
         body = '<?xml version="1.0" encoding="utf-8"?>\n' \
-              '<d:propertyupdate xmlns:d="DAV:">\n' \
-              '<d:remove>\n' \
-              '  <d:prop>\n' \
-              '  <%s>\n' \
-              '  </d:prop>\n' \
-              '</d:remove>\n' \
-              '</d:propfind>' % tags
+            '<d:propertyupdate xmlns:d="DAV:">\n' \
+            '<d:remove>\n' \
+            '  <d:prop>\n' \
+            '  <%s>\n' \
+            '  </d:prop>\n' \
+            '</d:remove>\n' \
+            '</d:propfind>' % tags
         return self.proppatch(body)
 
     def __str__(self):
         return '<HTTP resource %s>' % self.url
 
     __repr__ = __str__
-
-
-
-
-
-
 
 
 class http_response:
@@ -422,27 +429,31 @@ find_xml = """<?xml version="1.0" encoding="utf-8" ?>
 """
 
 
-
 ##############################################################################
 # Implementation details below here
 
 
 urlreg = re.compile(r'http://([^:/]+)(:[0-9]+)?(/.+)?', re.I)
 
+
 def marshal_string(name, val):
     return '%s=%s' % (name, quote(str(val)))
+
 
 def marshal_float(name, val):
     return '%s:float=%s' % (name, val)
 
+
 def marshal_int(name, val):
     return '%s:int=%s' % (name, val)
+
 
 def marshal_long(name, val):
     value = '%s:long=%s' % (name, val)
     if value[-1] == 'L':
         value = value[:-1]
     return value
+
 
 def marshal_list(name, seq, tname='list', lt=type([]), tt=type(())):
     result = []
@@ -453,38 +464,43 @@ def marshal_list(name, seq, tname='list', lt=type([]), tt=type(())):
         result.append(marshal_var("%s:%s" % (name, tname), v))
     return string.join(result, '&')
 
+
 def marshal_tuple(name, seq):
     return marshal_list(name, seq, 'tuple')
 
+
 varfuncs = {}
 vartypes = (('int', type(1), marshal_int),
-          ('float', type(1.0), marshal_float),
-          ('long', type(1), marshal_long),
-          ('list', type([]), marshal_list),
-          ('tuple', type(()), marshal_tuple),
-          ('string', type(''), marshal_string),
-          ('file', types.FileType, None),
-          )
+            ('float', type(1.0), marshal_float),
+            ('long', type(1), marshal_long),
+            ('list', type([]), marshal_list),
+            ('tuple', type(()), marshal_tuple),
+            ('string', type(''), marshal_string),
+            ('file', types.FileType, None),
+            )
 for name, tp, func in vartypes:
     varfuncs[name] = func
     varfuncs[tp] = func
+
 
 def marshal_var(name, val):
     return varfuncs.get(type(val), marshal_string)(name, val)
 
 
-
 class MultiPart:
     def __init__(self, *args):
         c = len(args)
-        if c == 1:    name, val = None, args[0]
-        elif c == 2:  name, val = args[0], args[1]
-        else:       raise ValueError('Invalid arguments')
+        if c == 1:
+            name, val = None, args[0]
+        elif c == 2:
+            name, val = args[0], args[1]
+        else:
+            raise ValueError('Invalid arguments')
 
-        h = {'Content-Type':              {'_v':''},
-           'Content-Transfer-Encoding': {'_v':''},
-           'Content-Disposition':       {'_v':''},
-           }
+        h = {'Content-Type': {'_v': ''},
+             'Content-Transfer-Encoding': {'_v': ''},
+             'Content-Disposition': {'_v': ''},
+             }
         dt = type(val)
         b = t = None
 
@@ -502,7 +518,8 @@ class MultiPart:
         elif dt == types.FileType or hasattr(val, 'read'):
             if hasattr(val, 'name'):
                 ct, enc = guess_type(val.name)
-                if not ct: ct = 'application/octet-stream'
+                if not ct:
+                    ct = 'application/octet-stream'
                 fn = string.replace(val.name, '\\', '/')
                 fn = fn[(string.rfind(fn, '/') + 1):]
             else:
@@ -524,7 +541,8 @@ class MultiPart:
                 l = val.read(8192)
         else:
             n = string.rfind(name, '__')
-            if n > 0: name = '%s:%s' % (name[:n], name[n + 2:])
+            if n > 0:
+                name = '%s:%s' % (name[:n], name[n + 2:])
             h['Content-Disposition']['_v'] = 'form-data'
             h['Content-Disposition']['name'] = '"%s"' % name
             d = [str(val)]
@@ -533,7 +551,6 @@ class MultiPart:
         self._data = d
         self._boundary = b
         self._top = t
-
 
     def boundary(self):
         return '%s_%s_%s' % (int(time.time()), os.getpid(), random())
@@ -548,7 +565,8 @@ class MultiPart:
                 if v['_v']:
                     s.append('%s: %s' % (n, v['_v']))
                     for k in list(v.keys()):
-                        if k != '_v': s.append('; %s=%s' % (k, v[k]))
+                        if k != '_v':
+                            s.append('; %s=%s' % (k, v[k]))
                     s.append('\n')
             p = []
             t = []
@@ -568,7 +586,8 @@ class MultiPart:
                 if v['_v']:
                     s.append('%s: %s' % (n, v['_v']))
                     for k in list(v.keys()):
-                        if k != '_v': s.append('; %s=%s' % (k, v[k]))
+                        if k != '_v':
+                            s.append('; %s=%s' % (k, v[k]))
                     s.append('\n')
             s.append('\n')
 
@@ -584,31 +603,30 @@ class MultiPart:
             else:
                 return join(s + self._data, '')
 
-
-    _extmap = {'':     'text/plain',
-             'rdb':  'text/plain',
-             'html': 'text/html',
-             'dtml': 'text/html',
-             'htm':  'text/html',
-             'dtm':  'text/html',
-             'gif':  'image/gif',
-             'jpg':  'image/jpeg',
-             'exe':  'application/octet-stream',
-             None :  'application/octet-stream',
-             }
+    _extmap = {'': 'text/plain',
+               'rdb': 'text/plain',
+               'html': 'text/html',
+               'dtml': 'text/html',
+               'htm': 'text/html',
+               'dtm': 'text/html',
+               'gif': 'image/gif',
+               'jpg': 'image/jpeg',
+               'exe': 'application/octet-stream',
+               None: 'application/octet-stream',
+               }
 
     _encmap = {'image/gif': 'binary',
-             'image/jpg': 'binary',
-             'application/octet-stream': 'binary',
-             }
+               'image/jpg': 'binary',
+               'application/octet-stream': 'binary',
+               }
 
 
 bri = Resource('http://tarzan.digicool.com/dev/brian3/',
-              username='brian',
-              password='123')
+               username='brian',
+               password='123')
 abri = Resource('http://tarzan.digicool.com/dev/brian3/')
 
 dav = Resource('http://tarzan.digicool.com/dev/dav/',
-              username='brian',
-              password='123')
+               username='brian',
+               password='123')
 adav = Resource('http://tarzan.digicool.com/dev/dav/')

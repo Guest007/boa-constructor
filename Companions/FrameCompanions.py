@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        FrameCompanions.py
 # Purpose:
 #
@@ -8,24 +8,23 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-print('importing Companions.FrameCompanions')
-
+# -----------------------------------------------------------------------------
 import wx
+
+import Plugins
+import sourceconst
+from Preferences import wxDefaultFramePos, wxDefaultFrameSize
+from PropEdit.Enumerations import *
+from PropEdit.PropertyEditors import *
+from Utils import _
 from wxCompat import wxDIALOG_MODAL, wxDIALOG_MODELESS  # wxNO_3D,
 
-from .BaseCompanions import ContainerDTC
-
 from . import Constructors
+from .BaseCompanions import ContainerDTC
 from .EventCollections import *
 
-from PropEdit.PropertyEditors import *
-from PropEdit.Enumerations import *
+print('importing Companions.FrameCompanions')
 
-from Preferences import wxDefaultFrameSize, wxDefaultFramePos
-from Utils import _
-
-import sourceconst
 
 class BaseFrameDTC(ContainerDTC):
     defFramePos = wx.DefaultPosition
@@ -56,14 +55,16 @@ class BaseFrameDTC(ContainerDTC):
         return props
 
     def hideDesignTime(self):
-        hdt = ContainerDTC.hideDesignTime(self) + ['Label', 'Constraints', 'TmpDefaultItem']
+        hdt = ContainerDTC.hideDesignTime(
+            self) + ['Label', 'Constraints', 'TmpDefaultItem']
         hdt.remove('Title')
         return hdt
 
     def generateWindowId(self):
         if self.designer:
             self.id = Utils.windowIdentifier(self.designer.GetName(), '')
-        else: self.id = repr(wx.NewId())
+        else:
+            self.id = repr(wx.NewId())
 
     def events(self):
         return ContainerDTC.events(self) + ['FrameEvent']
@@ -82,19 +83,22 @@ class BaseFrameDTC(ContainerDTC):
                     prop.params = ['wx.Size(%d, %d)' % (size.x, size.y)]
 
     def writeConstructor(self, output, collectionMethod, stripFrmId=''):
-        ContainerDTC.writeConstructor(self, output, collectionMethod, stripFrmId='')
+        ContainerDTC.writeConstructor(
+            self, output, collectionMethod, stripFrmId='')
         if self.textConstr:
             # Add call to init utils after frame constructor
             if self.textConstr.comp_name == '' and \
-              collectionMethod == sourceconst.init_ctrls:
+                    collectionMethod == sourceconst.init_ctrls:
                 if self.designer.dataView.objects:
-                    output.append('%sself.%s()'%(sourceconst.bodyIndent,
-                                                 sourceconst.init_utils))
+                    output.append('%sself.%s()' % (sourceconst.bodyIndent,
+                                                   sourceconst.init_utils))
+
 
 class FramesConstr(Constructors.PropertyKeywordConstructor):
     def constructor(self):
         return {'Title': 'title', 'Position': 'pos', 'Size': 'size',
                 'Style': 'style', 'Name': 'name'}
+
 
 class FrameDTC(FramesConstr, BaseFrameDTC):
     def __init__(self, name, designer, frameCtrl):
@@ -102,31 +106,34 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
 
         self.editors.update({'StatusBar': StatusBarClassLinkPropEdit,
                              'MenuBar': MenuBarClassLinkPropEdit,
-                             'ToolBar': ToolBarClassLinkPropEdit })
+                             'ToolBar': ToolBarClassLinkPropEdit})
         self.triggers.update({'ToolBar': self.ChangeToolBar})
         self.windowStyles = ['wx.DEFAULT_FRAME_STYLE', 'wx.ICONIZE',
-              'wx.MINIMIZE', 'wx.MAXIMIZE', 'wx.CLOSE_BOX', 'wx.STAY_ON_TOP', 
-              'wx.SYSTEM_MENU', 'wx.RESIZE_BORDER', 'wx.FRAME_FLOAT_ON_PARENT',
-              'wx.FRAME_TOOL_WINDOW', 'wx.FRAME_NO_TASKBAR', 'wx.FRAME_SHAPED',
-              ] + self.windowStyles
+                             'wx.MINIMIZE', 'wx.MAXIMIZE', 'wx.CLOSE_BOX', 'wx.STAY_ON_TOP',
+                             'wx.SYSTEM_MENU', 'wx.RESIZE_BORDER', 'wx.FRAME_FLOAT_ON_PARENT',
+                             'wx.FRAME_TOOL_WINDOW', 'wx.FRAME_NO_TASKBAR', 'wx.FRAME_SHAPED',
+                             ] + self.windowStyles
 
     def designTimeSource(self):
         return {'title': repr(self.name),
-                'pos':   repr(wxDefaultFramePos),
-                'size':  repr(wxDefaultFrameSize),
-                'name':  repr(self.name),
+                'pos': repr(wxDefaultFramePos),
+                'size': repr(wxDefaultFrameSize),
+                'name': repr(self.name),
                 'style': 'wx.DEFAULT_FRAME_STYLE'}
 
     def dependentProps(self):
         return BaseFrameDTC.dependentProps(self) + \
-          ['ToolBar', 'MenuBar', 'StatusBar']
+            ['ToolBar', 'MenuBar', 'StatusBar']
 
     def hideDesignTime(self):
         return BaseFrameDTC.hideDesignTime(self) + ['StatusBar']
 
     def properties(self):
         props = BaseFrameDTC.properties(self)
-        props['StatusBar'] = ('CompnRoute', self.GetStatusBar, self.SetStatusBar)
+        props['StatusBar'] = (
+            'CompnRoute',
+            self.GetStatusBar,
+            self.SetStatusBar)
         return props
 
     def notification(self, compn, action):
@@ -145,10 +152,11 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
             mb = self.control.GetMenuBar()
             if mb and repr(mb) == repr(compn.control):
                 if wx.Platform == '__WXGTK__':
-                    raise Exception(_('May not delete a wx.MenuBar, it would cause a segfault on wxGTK'))
+                    raise Exception(
+                        _('May not delete a wx.MenuBar, it would cause a segfault on wxGTK'))
                 self.propRevertToDefault('MenuBar', 'SetMenuBar')
                 self.control.SetMenuBar(None)
-                #if wx.Platform == '__WXGTK__':
+                # if wx.Platform == '__WXGTK__':
                 #    wx.LogWarning('GTK only allows connecting the wxMenuBar once to the wxFrame')
 
             # ToolBar
@@ -182,14 +190,16 @@ class FrameDTC(FramesConstr, BaseFrameDTC):
 
 
 EventCategories['DialogEvent'] = ('wx.EVT_INIT_DIALOG',)
+
+
 class DialogDTC(FramesConstr, BaseFrameDTC):
     dialogLayout = True
 
     def __init__(self, name, designer, frameCtrl):
         BaseFrameDTC.__init__(self, name, designer, frameCtrl)
         self.windowStyles += ['wx.CAPTION', 'wx.DEFAULT_DIALOG_STYLE',
-              'wx.RESIZE_BORDER', 'wx.THICK_FRAME', 'wx.STAY_ON_TOP',
-              'wx.DIALOG_NO_PARENT', 'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']
+                              'wx.RESIZE_BORDER', 'wx.THICK_FRAME', 'wx.STAY_ON_TOP',
+                              'wx.DIALOG_NO_PARENT', 'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']
 
         # wx.DIALOG_MODAL compat
         if hasattr(wx, 'DIALOG_MODAL'):
@@ -209,37 +219,42 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         # elif hasattr(wx, 'wxNO_3D'):
         #     self.windowStyles += ['wx.wxNO_3D']
 
-
     def hideDesignTime(self):
         # Because the Designer is actually a wxFrame pretending to be a
         # wxDialog, introspection will pick up wxFrame specific properties
         # which must be supressed
         return BaseFrameDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
-              'StatusBar', 'StatusBarPane']
+                                                    'StatusBar', 'StatusBarPane']
 
     def designTimeSource(self):
         return {'title': repr(self.name),
-                'pos':   repr(wxDefaultFramePos),
-                'size':  repr(wxDefaultFrameSize),
-                'name':  repr(self.name),
+                'pos': repr(wxDefaultFramePos),
+                'size': repr(wxDefaultFrameSize),
+                'name': repr(self.name),
                 'style': 'wx.DEFAULT_DIALOG_STYLE'}
 
     def events(self):
         return BaseFrameDTC.events(self) + ['DialogEvent']
 
+
 class MiniFrameDTC(FramesConstr, FrameDTC):
     def __init__(self, name, designer, frameCtrl):
         FrameDTC.__init__(self, name, designer, frameCtrl)
-        self.windowStyles.extend(['wx.TINY_CAPTION_HORIZ', 'wx.TINY_CAPTION_VERT'])
+        self.windowStyles.extend(
+            ['wx.TINY_CAPTION_HORIZ', 'wx.TINY_CAPTION_VERT'])
+
 
 class MDIParentFrameDTC(FramesConstr, FrameDTC):
     def designTimeSource(self):
         dts = FrameDTC.designTimeSource(self)
-        dts.update({'style': 'wx.DEFAULT_FRAME_STYLE | wx.VSCROLL | wx.HSCROLL'})
+        dts.update(
+            {'style': 'wx.DEFAULT_FRAME_STYLE | wx.VSCROLL | wx.HSCROLL'})
         return dts
+
 
 class MDIChildFrameDTC(FramesConstr, FrameDTC):
     pass
+
 
 class PopupWindowDTC(ContainerDTC):
     defFramePos = wx.DefaultPosition
@@ -257,6 +272,7 @@ class PopupWindowDTC(ContainerDTC):
         self.windowStyles = ['wx.SIMPLE_BORDER', 'wx.DOUBLE_BORDER',
                              'wx.SUNKEN_BORDER', 'wx.RAISED_BORDER',
                              'wx.STATIC_BORDER', 'wx.NO_BORDER']
+
     def properties(self):
         props = ContainerDTC.properties(self)
         del props['Anchors']
@@ -270,13 +286,15 @@ class PopupWindowDTC(ContainerDTC):
 
     def hideDesignTime(self):
         return ContainerDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
-              'StatusBar', 'Icon', 'Anchors', 'Constraints', 'Label']
+                                                    'StatusBar', 'Icon', 'Anchors', 'Constraints', 'Label']
 
     def SetName(self, oldValue, newValue):
         self.name = newValue
         self.designer.renameFrame(oldValue, newValue)
 
+
 EventCategories['PanelEvent'] = ('wx.EVT_SYS_COLOUR_CHANGED',)
+
 
 class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
     dialogLayout = True
@@ -290,13 +308,14 @@ class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
 
     def hideDesignTime(self):
         return BaseFrameDTC.hideDesignTime(self) + ['ToolBar', 'MenuBar',
-              'StatusBar', 'StatusBarPane', 'Icon', 'Title', 'Anchors']
+                                                    'StatusBar', 'StatusBarPane', 'Icon', 'Title', 'Anchors']
 
-    def designTimeSource(self, position = 'wx.DefaultPosition', size = 'wx.DefaultSize'):
-        return {'pos':   position,
+    def designTimeSource(self, position='wx.DefaultPosition',
+                         size='wx.DefaultSize'):
+        return {'pos': position,
                 'size': self.getDefCtrlSize(),
                 'style': 'wx.TAB_TRAVERSAL',
-                'name':  repr(self.name)}
+                'name': repr(self.name)}
 
     def events(self):
         # skip frame events
@@ -305,25 +324,28 @@ class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
     def dependentProps(self):
         return BaseFrameDTC.dependentProps(self) + ['DefaultItem']
 
-class wxFramePanel(wx.Panel): pass
 
-#-------------------------------------------------------------------------------
-import Plugins
+class wxFramePanel(wx.Panel):
+    pass
+
+
+# -------------------------------------------------------------------------------
 
 Plugins.registerComponents(None,
-      (wx.Frame, 'wx.Frame', FrameDTC),
-      (wx.Dialog, 'wx.Dialog', DialogDTC),
-      (wx.MiniFrame, 'wx.MiniFrame', MiniFrameDTC),
-      (wx.MDIParentFrame, 'wx.MDIParentFrame', MDIParentFrameDTC),
-      (wx.MDIChildFrame, 'wx.MDIChildFrame', MDIChildFrameDTC),
-      (wxFramePanel, 'wx.FramePanel', FramePanelDTC),
-    )
+                           (wx.Frame, 'wx.Frame', FrameDTC),
+                           (wx.Dialog, 'wx.Dialog', DialogDTC),
+                           (wx.MiniFrame, 'wx.MiniFrame', MiniFrameDTC),
+                           (wx.MDIParentFrame, 'wx.MDIParentFrame', MDIParentFrameDTC),
+                           (wx.MDIChildFrame, 'wx.MDIChildFrame', MDIChildFrameDTC),
+                           (wxFramePanel, 'wx.FramePanel', FramePanelDTC),
+                           )
 
 try:
     Plugins.registerComponents(None,
-          (wx.PopupWindow, 'wx.PopupWindow', PopupWindowDTC),
-          (wx.PopupTransientWindow, 'wx.PopupTransientWindow', PopupWindowDTC),
-        )
+                               (wx.PopupWindow, 'wx.PopupWindow', PopupWindowDTC),
+                               (wx.PopupTransientWindow,
+                                'wx.PopupTransientWindow', PopupWindowDTC),
+                               )
 except NameError:
     # wxMAC
     pass

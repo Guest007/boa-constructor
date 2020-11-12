@@ -328,6 +328,8 @@ hidez()
 # 0,9,0    24-Jun-1999
 #    first version I put under source control
 
+import reprlib
+
 __version__ = 0, 9, 4
 
 #########################################################################
@@ -343,38 +345,52 @@ __version__ = 0, 9, 4
 # computed unless a cycle is found and so something needs to be
 # printed.
 
+
 def _dict_refs(x):
     return list(x.keys()) + list(x.values())
+
+
 def _dict_tag(x, i):
     n = len(x)
     if i < n:
         return ".keys()[%d]" % i
     else:
-        return "[%s]" % _quickrepr(list(x.keys())[i-n])
+        return "[%s]" % _quickrepr(list(x.keys())[i - n])
+
 
 def _list_refs(x):
     return x
+
+
 def _list_tag(x, i):
     return "[%d]" % i
+
 
 _tuple_refs = _list_refs
 _tuple_tag = _list_tag
 
+
 def _instance_refs(x):
     # the keys are strings, so not interesting to return
     return list(x.__dict__.values())
+
+
 def _instance_tag(x, i):
     return "." + list(x.__dict__.keys())[i]
+
 
 _class_refs = _instance_refs
 _class_tag = _instance_tag
 
+
 def _instance_method_refs(x):
     return (x.__self__, x.__self__.__class__)
+
+
 def _instance_method_tag(x, i):
     return (".im_self", ".im_class")[i]
 
-import types
+
 _default_refs_dispatcher = {
     dict: _dict_refs,
     list: _list_refs,
@@ -409,9 +425,9 @@ del _dict_tag, _list_tag, _tuple_tag, _instance_tag, \
 # chopping their reprs at all.  We're only trying to prevent massive
 # expense for massive lists, tuples & dicts.
 
-import reprlib
 _repr = repr
 del repr
+
 
 class _CyclopsRepr(_repr.Repr):
 
@@ -437,8 +453,8 @@ class _CyclopsRepr(_repr.Repr):
         for k, v in list(x.items())[:min(n, self.maxdict)]:
             if s:
                 s = s + ', '
-            s = s + self.repr1(k, level-1)
-            s = s + ': ' + self.repr1(v, level-1)
+            s = s + self.repr1(k, level - 1)
+            s = s + ': ' + self.repr1(v, level - 1)
         if n > self.maxdict:
             s = s + ', ...'
         return '{' + s + '}'
@@ -450,7 +466,7 @@ class _CyclopsRepr(_repr.Repr):
             return repr(x)
             # Bugs in x.__repr__() can cause arbitrary
             # exceptions -- then make up something
-        except:
+        except BaseException:
             return '<' + x.__class__.__name__ + ' instance at ' + \
                    hex(id(x))[2:] + '>'
 
@@ -459,10 +475,12 @@ class _CyclopsRepr(_repr.Repr):
 
     repr_instance_method = repr_class
 
+
 _quickrepr = _CyclopsRepr().repr
 
 #########################################################################
 # CycleFinder is the workhorse.
+
 
 def typename_address_cmp(x, y):
     if isinstance(x, _InstanceType) and isinstance(y, _InstanceType):
@@ -472,6 +490,7 @@ def typename_address_cmp(x, y):
     else:
         xname, yname = type(x).__name__, type(y).__name__
     return cmp((xname, id(x)), (yname, id(y)))
+
 
 class CycleFinder:
     """Class for finding cycles in Python data structures.
@@ -631,7 +650,7 @@ class CycleFinder:
         n = len(self.cycles)
         for i in range(n):
             self._print_cycle(self.cycles[i])
-            if i < n-1:
+            if i < n - 1:
                 print("-" * 20)
 
     def show_cycleobjs(self, compare=typename_address_cmp):
@@ -668,7 +687,7 @@ class CycleFinder:
         sccs = list(self.sccno2objs.values())
         n = len(sccs)
         for i in range(n):
-            print("--- SCC", i+1, "of", n)
+            print("--- SCC", i + 1, "of", n)
             objs = sccs[i]
             objs.sort(compare)
             for obj in objs:
@@ -762,9 +781,8 @@ class CycleFinder:
                 if locals:
                     # first argname is first element of locals
                     self.register(frame.f_locals[locals[0]])
-        except:
+        except BaseException:
             print(repr(event), frame, frame.f_code, frame.f_code.co_name)
-
 
     def __reset(self):
         # Clear out everything except:
@@ -849,7 +867,7 @@ class CycleFinder:
                     self.__find_cycles(child, i)
                 elif currently_on_stack(childid):
                     cycle = stack[id2stacki[childid]:]
-                    cycle.append((child, i)) # complete the cycle
+                    cycle.append((child, i))  # complete the cycle
                     self.__study_cycle(cycle)
 
         del stack[-1], id2stacki[myid]
@@ -882,11 +900,11 @@ class CycleFinder:
             self.sccno2objs[sccnowinner] = []
         classwinner = self.sccno2objs[sccnowinner]
 
-        for i in range(len(slice)-1):
+        for i in range(len(slice) - 1):
             obj1 = slice[i][0]
             key1 = self.__obj2arcname(obj1)
 
-            obj2, index = slice[i+1]
+            obj2, index = slice[i + 1]
             key2 = self.tag_dispatcher[type(obj1)](obj1, index)
 
             key3 = self.__obj2arcname(obj2)
@@ -957,20 +975,22 @@ class CycleFinder:
     def _print_cycle(self, slice):
         n = len(slice)
         assert n >= 2
-        print("%d-element cycle" % (n-1))
+        print("%d-element cycle" % (n - 1))
         for i in range(n):
             obj = slice[i][0]
             self.show_obj(obj)
-            if i < n-1:
-                index = slice[i+1][1]
-                print("    this" + \
-                      self.tag_dispatcher[type(obj)](obj, index), \
+            if i < n - 1:
+                index = slice[i + 1][1]
+                print("    this" +
+                      self.tag_dispatcher[type(obj)](obj, index),
                       "->")
+
 
 def _test():
     class X:
         def __init__(self, name):
             self.name = name
+
         def __repr__(self):
             return "X(" + repr(self.name) + ")"
 
@@ -985,7 +1005,8 @@ def _test():
     a.gotoe = e
     a.__repr__ = a.__repr__
 
-    class Y: pass
+    class Y:
+        pass
     X.gotoy = Y
     Y.gotox = X
 
@@ -1007,6 +1028,7 @@ def _test():
             z.show_obj(x)
     z.find_cycles(1)
     z.show_stats()
+
 
 if __name__ == "__main__":
     _test()

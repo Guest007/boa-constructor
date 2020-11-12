@@ -4,33 +4,37 @@
 # Note DDE requires PythonWin
 
 # Add this code snippet to Boa.py to turn Boa into a dde server
-##try: 
+# try:
 ##    import ddeconn
-##    dde = ddeconn.DDEApp('BoaConstructor', startupModules,
-##          'sys.boa_ide.openOrGotoModule(%s)')
-##    if dde.done:
-##        print 'Transfered arguments to running Boa, exiting.'
-##        sys.exit()
-##except ImportError: 
-##    pass
+# dde = ddeconn.DDEApp('BoaConstructor', startupModules,
+# 'sys.boa_ide.openOrGotoModule(%s)')
+# if dde.done:
+# print 'Transfered arguments to running Boa, exiting.'
+# sys.exit()
+# except ImportError:
+# pass
 
-from pywin.mfc import object
-from dde import *
-import traceback
 import string
+import traceback
+
+from dde import *
+from pywin.mfc import object
+
 
 class DDESystemTopic(object.Object):
     def __init__(self, app):
         self.app = app
         object.Object.__init__(self, CreateServerSystemTopic())
+
     def Exec(self, data):
         try:
             self.app.OnDDECommand(data)
-        except:
+        except BaseException:
             # The DDE Execution failed.
             print("Error executing DDE command.")
             traceback.print_exc()
             return 0
+
 
 class DDEServer(object.Object):
     def __init__(self, app):
@@ -56,7 +60,8 @@ class DDEServer(object.Object):
 
     def Status(self, msg):
         pass
-        #print 'STATUS', msg
+        # print 'STATUS', msg
+
 
 class DDEApp:
     def __init__(self, name, args, execStr):
@@ -67,8 +72,8 @@ class DDEApp:
         self.InitDDE()
 
     def MakeExistingDDEConnection(self):
-    # Use DDE to connect to an existing instance
-    # Return None if no existing instance
+        # Use DDE to connect to an existing instance
+        # Return None if no existing instance
         conv = CreateConversation(self.ddeServer)
         try:
             conv.ConnectTo(self.svrName, "System")
@@ -79,19 +84,18 @@ class DDEApp:
     def InitDDE(self):
         # Do all the magic DDE handling.
         self.ddeServer = DDEServer(self)
-        self.ddeServer.Create(self.svrName, CBF_FAIL_SELFCONNECTIONS )
+        self.ddeServer.Create(self.svrName, CBF_FAIL_SELFCONNECTIONS)
         try:
-        # If there is an existing instance, pump the arguments to it
+            # If there is an existing instance, pump the arguments to it
             dde = self.MakeExistingDDEConnection()
             if dde is not None and self.args:
                 for arg in self.args:
-                    dde.Exec(self.execStr%repr(arg))
+                    dde.Exec(self.execStr % repr(arg))
                 self.done = 1
-        except:
+        except BaseException:
             print('ERROR: There was an error during the DDE conversation.')
             traceback.print_exc()
 
     def OnDDECommand(self, data):
         import sys
         exec(data)
-        

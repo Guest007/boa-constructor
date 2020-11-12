@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        sourceconst.py
 # Purpose:     Central place for constants, templates and snippets used by the
 #              code generation process
@@ -9,16 +9,18 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2001 - 2007 Riaan Booysen
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 
-import Preferences, Utils
+import Preferences
+import Utils
 
 idnt = Utils.getIndentBlock()
 
 methodIndent = idnt
 bodyIndent = idnt * 2
+
 
 def wsfix(s):
     return s.replace('\t', idnt).replace('\n', os.linesep)
@@ -47,10 +49,11 @@ defCreateClass = wsfix('''def create(parent):
 
 ''')
 
-srchWindowIdsLC = '\[wx.NewId\(\) for %s in range\((?P<count>\d+)\)\]'
-srchWindowIds = '\[(?P<winids>[A-Za-z0-9_, ]*)\] = ' + srchWindowIdsLC
-srchWindowIdsCont = '(?P<any>.*)\] = ' + srchWindowIdsLC
-defWindowIdsCont = wsfix('] = [wx.NewId() for %(idIdent)s in range(%(idCount)d)]\n')
+srchWindowIdsLC = r'\[wx.NewId\(\) for %s in range\((?P<count>\d+)\)\]'
+srchWindowIds = r'\[(?P<winids>[A-Za-z0-9_, ]*)\] = ' + srchWindowIdsLC
+srchWindowIdsCont = r'(?P<any>.*)\] = ' + srchWindowIdsLC
+defWindowIdsCont = wsfix(
+    '] = [wx.NewId() for %(idIdent)s in range(%(idCount)d)]\n')
 defWindowIds = wsfix('[%(idNames)s') + defWindowIdsCont
 
 defClass = wsfix('''

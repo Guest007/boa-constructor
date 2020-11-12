@@ -1,8 +1,14 @@
-import os, sys, base64
+import base64
+import os
+import sys
+
+from .DebugClient import DebugClient, DebuggerTask, MultiThreadedDebugClient
+
 try:
     from ExternalLib import xmlrpclib
 except ImportError:
     import xmlrpc.client
+
 
 class TransportWithAuthentication (xmlrpc.client.Transport):
     """Adds a proprietary but simple authentication header to the
@@ -16,9 +22,6 @@ class TransportWithAuthentication (xmlrpc.client.Transport):
         xmlrpc.client.Transport.send_user_agent(self, connection)
         connection.putheader("Authentication", self._auth)
 
-
-from .DebugClient import DebugClient, MultiThreadedDebugClient, \
-     DebuggerTask
 
 class RemoteClient (MultiThreadedDebugClient):
 

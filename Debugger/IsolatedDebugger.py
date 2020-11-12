@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Name:         IsolatedDebugger.py
 # Purpose:      A Bdb-based debugger (tracer) that can be operated by
 #               another process
@@ -9,17 +9,18 @@
 # RCS-ID:       $Id$
 # Copyright:    (c) 2000 - 2007 : Shane Hathaway, Riaan Booysen
 # Licence:      GPL
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
-import sys, _thread, threading, queue
-import pprint
-from os import chdir
-from os import path
+import _thread
 import bdb
+import pprint
+import queue
+import sys
+import threading
 from bdb import Bdb, BdbQuit, Breakpoint
+from os import chdir, path
 from reprlib import Repr
 from types import TupleType
-
 
 # XXX Extend breakpoints to break on exception (like conditional breakpoints)
 
@@ -29,6 +30,7 @@ bdb.__traceable__ = 0
 
 class DebugError(Exception):
     """Incorrect operation of the debugger"""
+
 
 class BreakpointError(DebugError):
     """Incorrect operation on a breakpoint"""
@@ -55,7 +57,7 @@ class DebuggerConnection:
         res = sm.getResult()
         return res
 
-    ### Non-blocking calls.
+    # Non-blocking calls.
 
     def allowEnvChanges(self, allow=1):
         """Allows the debugger to set sys.path, sys.argv, and
@@ -75,9 +77,9 @@ class DebuggerConnection:
         rather than stop.  Non-blocking.
         """
         self._callNoWait('runFile', 1, filename, params, autocont, add_paths)
-    
+
     def post_mortem(self):
-        """ Inspecting tracebacks in the debugger 
+        """ Inspecting tracebacks in the debugger
         """
         self._callMethod('post_mortem', 0)
 
@@ -105,7 +107,7 @@ class DebuggerConnection:
     def set_step_jump(self, lineno):
         """Updates the lineno of the bottom frame.  Non-blocking."""
         self._callMethod('set_step_jump', 0, lineno)
-    
+
     def set_pause(self):
         """Stops as soon as possible.  Non-blocking and immediate.
         """
@@ -167,7 +169,7 @@ class DebuggerConnection:
         """
         self._ds.adjustBreakpoints(filename, lineno, delta)
 
-    ### Blocking methods.
+    # Blocking methods.
 
     def pprintVarValue(self, name, frameno):
         """Pretty-prints the value of name.  Blocking."""
@@ -236,10 +238,11 @@ class DebuggerConnection:
         available through the given watch expression.  Blocking."""
         return self._callMethod('getWatchSubobjects', 0, expr, frameno)
 
-##    def updateBottomOfStackCodeObject(self, code):
-##        """ Experimental
-##        """
-##        return self._callMethod('updateBottomOfStackCodeObject', 0, code)
+# def updateBottomOfStackCodeObject(self, code):
+# """ Experimental
+# """
+# return self._callMethod('updateBottomOfStackCodeObject', 0, code)
+
 
 class NonBlockingDebuggerConnection (DebuggerConnection):
     """Modifies call semantics in such a way that even blocking
@@ -304,7 +307,8 @@ class DebuggerController:
             ds = self._debug_servers[id]
             ds.set_quit()
             self._deleteServer(id)
-        except: pass
+        except BaseException:
+            pass
 
     def _deleteServer(self, id):
         del self._debug_servers[id]
@@ -329,6 +333,7 @@ class ServerMessage:
     def doExit(self): return 0
     def execute(self, ds): pass
 
+
 class MethodCall (ServerMessage):
     def __init__(self, func_name, args, kw, do_return):
         self.__name__ = func_name
@@ -348,7 +353,7 @@ class MethodCall (ServerMessage):
             result = getattr(ob, self.__name__)(*self.args, **self.kw)
         except (SystemExit, BdbQuit):
             raise
-        except:
+        except BaseException:
             if hasattr(self, 'callback'):
                 self.callback.notifyException()
             else:
@@ -386,7 +391,6 @@ class MethodCall (ServerMessage):
         return self.result
 
 
-
 class ThreadChoiceLock:
     """A reentrant lock designed for simply choosing a thread.
     It is always released when you call release()."""
@@ -417,6 +421,7 @@ class ThreadChoiceLock:
 
 
 _orig_syspath = sys.path
+
 
 class DebugServer (Bdb):
 
@@ -482,10 +487,10 @@ class DebugServer (Bdb):
 
     def servicerThread(self):
         """Bootstraps the debugger server loop."""
-        while 1:
+        while True:
             try:
                 self.eventLoop()
-            except:
+            except BaseException:
                 # ??
                 import traceback
                 traceback.print_exc()
@@ -524,11 +529,11 @@ class DebugServer (Bdb):
         canonic = self.fncache.get(filename, None)
         if not canonic:
             if ((filename[:1] == '<' and filename[-1:] == '>') or
-                filename.find('://') >= 0):
+                    filename.find('://') >= 0):
                 # Don't change URLs or special filenames
                 canonic = filename
             elif filename.startswith('Python expression'):
-                canonic = '<Python expression: %s>'%filename[:17]
+                canonic = '<Python expression: %s>' % filename[:17]
             else:
                 canonic = path.abspath(filename)
 
@@ -621,7 +626,7 @@ class DebugServer (Bdb):
         sys.settrace(None)
         try:
             raise Exception('gen_exc_info')
-        except:
+        except BaseException:
             frame = sys.exc_info()[2].tb_frame
             while frame:
                 # Clear all the f_trace attributes
@@ -666,7 +671,7 @@ class DebugServer (Bdb):
             # Add trace hooks.
             try:
                 raise Exception('gen_exc_info')
-            except:
+            except BaseException:
                 frame = sys.exc_info()[2].tb_frame.f_back
             self.add_trace_hooks(frame)
             sys.settrace(self.trace_dispatch)
@@ -698,7 +703,7 @@ class DebugServer (Bdb):
         """
         try:
             raise Exception('gen_exc_info')
-        except:
+        except BaseException:
             frame = sys.exc_info()[2].tb_frame.f_back
         stop = self.hard_break_here(frame)
         if not stop:
@@ -788,10 +793,10 @@ class DebugServer (Bdb):
         #self.ignore_stopline = -1
         #self.frame = frame
         #self.exc_info = exc_info
-        #self.eventLoop()
+        # self.eventLoop()
         pass
 
-    ### Utility methods.
+    # Utility methods.
     def stopAnywhere(self):
         self.stopframe = None
         self.returnframe = None
@@ -799,7 +804,7 @@ class DebugServer (Bdb):
     def runFile(self, filename, params, autocont, add_paths):
         d = {'__name__': '__main__',
              '__doc__': 'Debugging',
-             '__builtins__': __builtins__,}
+             '__builtins__': __builtins__, }
 
         fn = self.canonic(filename)
         if self._allow_env_changes:
@@ -814,7 +819,7 @@ class DebugServer (Bdb):
         self.autocont = autocont
 
         self.run("execfile(fn, d)", {
-            'fn':fn, 'd':d, '__debugger__': self})
+            'fn': fn, 'd': d, '__debugger__': self})
 
     def run(self, cmd, globals=None, locals=None):
         try:
@@ -823,7 +828,7 @@ class DebugServer (Bdb):
                 Bdb.run(self, cmd, globals, locals)
             except (BdbQuit, SystemExit):
                 pass
-            except:
+            except BaseException:
                 import traceback
                 traceback.print_exc()
                 if self._lock.acquire(0):
@@ -840,17 +845,17 @@ class DebugServer (Bdb):
 
     def isRunning(self):
         return self._running
-    
+
     def post_mortem(self, exc_info=None):
         if exc_info is None:
             self.exc_info = sys.exc_info()
         else:
             self.exc_info = exc_info
-            
+
         if self.exc_info[2] is not None:
             self.frame = self.exc_info[2].tb_frame
         else:
-            self.frame = None    
+            self.frame = None
 
         self._running = 1
         self.quitting = 0
@@ -876,7 +881,7 @@ class DebugServer (Bdb):
             self.set_next(frame)
         else:
             raise DebugError('No current frame')
-        
+
     def set_step_jump(self, lineno):
         """ Adjust the linenumber attribute of the bottom frame """
         frame = self.getFrameByNumber(-1)
@@ -884,9 +889,9 @@ class DebugServer (Bdb):
             frame.f_lineno = lineno
         else:
             raise DebugError('No current frame')
-    
 
-    ### Breakpoint control.
+    # Breakpoint control.
+
     def setAllBreakpoints(self, brks):
         """brks is a list of mappings containing the keys:
         filename, lineno, temporary, enabled, and cond.
@@ -901,7 +906,7 @@ class DebugServer (Bdb):
         """Sets a breakpoint.  Non-blocking.
         """
         bp = self.set_break(filename, lineno, temporary, cond)
-        if type(bp) == type(''):
+        if isinstance(bp, type('')):
             # Note that checking for string type is strange. Argh.
             raise BreakpointError(bp)
         elif bp is not None and not enabled:
@@ -915,8 +920,10 @@ class DebugServer (Bdb):
         bps = self.get_breaks(filename, lineno)
         if bps:
             for bp in bps:
-                if enabled: bp.enable()
-                else: bp.disable()
+                if enabled:
+                    bp.enable()
+                else:
+                    bp.disable()
 
     def ignoreBreakpoints(self, filename, lineno, ignore=0):
         """Sets the ignore count for all breakpoints on a given line.
@@ -1038,12 +1045,12 @@ class DebugServer (Bdb):
                 filename, lineno = self.getFilenameAndLine(frame)
                 modname, funcname = self.getFrameNames(frame)
                 stack_summary.append(
-                    {'filename':filename, 'lineno':lineno,
-                     'funcname':funcname, 'modname':modname})
+                    {'filename': filename, 'lineno': lineno,
+                     'funcname': funcname, 'modname': modname})
 
-            result = {'stack':stack_summary,
-                      'frame_stack_len':frame_stack_len,
-                      'running':self._running and 1 or 0}
+            result = {'stack': stack_summary,
+                      'frame_stack_len': frame_stack_len,
+                      'running': self._running and 1 or 0}
             if exc_type:
                 result['exc_type'] = exc_type
             if exc_value:
@@ -1058,13 +1065,13 @@ class DebugServer (Bdb):
         for bps in list(bdb.Breakpoint.bplist.values()):
             for bp in bps:
                 filename = bp.file  # Already canonic
-                rval.append({'filename':filename,
-                             'lineno':bp.line,
-                             'cond':bp.cond or '',
-                             'temporary':bp.temporary and 1 or 0,
-                             'enabled':bp.enabled and 1 or 0,
-                             'hits':bp.hits or 0,
-                             'ignore':bp.ignore or 0,
+                rval.append({'filename': filename,
+                             'lineno': bp.line,
+                             'cond': bp.cond or '',
+                             'temporary': bp.temporary and 1 or 0,
+                             'enabled': bp.enabled and 1 or 0,
+                             'hits': bp.hits or 0,
+                             'ignore': bp.ignore or 0,
                              })
         return rval
 
@@ -1080,18 +1087,18 @@ class DebugServer (Bdb):
             rname = 'globals'
         frame = self.getFrameByNumber(frameno)
         if frame is None:
-            return {'frameno':frameno, rname:{}}
+            return {'frameno': frameno, rname: {}}
         globalsDict, localsDict = self.getFrameNamespaces(frame)
         if locals:
             d = self.safeReprDict(localsDict)
         else:
             d = self.safeReprDict(globalsDict)
-        return {'frameno':frameno, rname:d}
+        return {'frameno': frameno, rname: d}
 
     def evaluateWatches(self, exprs, frameno):
         frame = self.getFrameByNumber(frameno)
         if frame is None:
-            return {'frameno':frameno, 'watches':{}}
+            return {'frameno': frameno, 'watches': {}}
         globalsDict, localsDict = self.getFrameNamespaces(frame)
         rval = {}
         for info in exprs:
@@ -1110,7 +1117,7 @@ class DebugServer (Bdb):
                     value = '??? (%s)' % message
             svalue = self.safeRepr(value)
             rval[name] = svalue
-        return {'frameno':frameno, 'watches':rval}
+        return {'frameno': frameno, 'watches': rval}
 
     def getWatchSubobjects(self, expr, frameno):
         """Returns a tuple containing the names of subobjects
@@ -1119,11 +1126,15 @@ class DebugServer (Bdb):
         if frame is None:
             return []
         globalsDict, localsDict = self.getFrameNamespaces(frame)
-        try: inst_items = dir(eval(expr, globalsDict, localsDict))
-        except: inst_items = []
-        try: clss_items = dir(eval(expr, globalsDict, localsDict)
-                              .__class__)
-        except: clss_items = []
+        try:
+            inst_items = dir(eval(expr, globalsDict, localsDict))
+        except BaseException:
+            inst_items = []
+        try:
+            clss_items = dir(eval(expr, globalsDict, localsDict)
+                             .__class__)
+        except BaseException:
+            clss_items = []
         return inst_items + clss_items
 
     def pythonShell(self, code, globalsDict, localsDict, name='<debug>'):
@@ -1136,14 +1147,14 @@ class DebugServer (Bdb):
             return sys.stdout.getvalue()
 # lame attempt at handling None values
 ##            res = sys.stdout.getvalue()
-##            if not res:
-##                try:
-##                    if eval(co, globalsDict, localsDict) is None:
-##                        return 'None'
-##                except:
-##                    pass
-##            return res
-                    
+# if not res:
+# try:
+# if eval(co, globalsDict, localsDict) is None:
+# return 'None'
+# except:
+# pass
+# return res
+
         finally:
             sys.stdout = _ts
 
@@ -1155,7 +1166,7 @@ class DebugServer (Bdb):
             try:
                 globalsDict, localsDict = self.getFrameNamespaces(frame)
                 return self.pythonShell(expr, globalsDict, localsDict)
-            except:
+            except BaseException:
                 t, v = sys.exc_info()[:2]
                 import traceback
                 return ''.join(traceback.format_exception_only(t, v))
@@ -1172,11 +1183,10 @@ class DebugServer (Bdb):
             rval[str(key)] = self.safeRepr(value)
         return rval
 
-##    def updateBottomOfStackCodeObject(self, code):
+# def updateBottomOfStackCodeObject(self, code):
 ##        frame = self.getFrameByNumber(-1)
-##        if frame is not None:
+# if frame is not None:
 ##            frame.f_lineno = lineno
 ##            self.quitting = 0
-##        else:
+# else:
 ##            raise DebugError('No current frame')
-        

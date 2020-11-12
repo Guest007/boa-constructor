@@ -1,9 +1,14 @@
-import sys, os, time
-import random, sha, threading
-from time import sleep
+import os
+import random
+import sys
+import threading
+import time
 from socketserver import TCPServer
+from time import sleep
 
-from .IsolatedDebugger import DebugServer, DebuggerConnection
+import sha
+
+from .IsolatedDebugger import DebuggerConnection, DebugServer
 from .Tasks import ThreadedTaskHandler
 
 # The process uses the Debugger dir as the main script dir
@@ -59,11 +64,13 @@ class TaskingMixIn:
         task_handler.addTask(self.finish_request,
                              args=(request, client_address))
 
-class TaskingTCPServer(TaskingMixIn, TCPServer): pass
+
+class TaskingTCPServer(TaskingMixIn, TCPServer):
+    pass
 
 
 def streamFlushThread():
-    while 1:
+    while True:
         sys.stdout.flush()
         sys.stderr.flush()
         sleep(0.15)  # 150 ms
@@ -101,7 +108,7 @@ def main(args=None):
     sys.boa_debugger = debug_server
 
     def serve_forever(server):
-        while 1:
+        while True:
             server.handle_request()
 
     def startDaemon(target, args=()):
@@ -114,8 +121,8 @@ def main(args=None):
     startDaemon(debug_server.servicerThread)
 
     # Serve until the stdin pipe closes.
-    #print 'serving until stdin returns EOF'
-    #sys.stdin.read()
+    # print 'serving until stdin returns EOF'
+    # sys.stdin.read()
 
     while serving:
         time.sleep(0.1)

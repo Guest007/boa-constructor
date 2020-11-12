@@ -1,8 +1,10 @@
 import sys
+
 import wx
 import wx.lib.buttons
 
-def postCommandEvent(ctrl, evtType, evtId = None):
+
+def postCommandEvent(ctrl, evtType, evtId=None):
     if evtId is None:
         evtId = ctrl.GetId()
     wx.PostEvent(ctrl, wx.CommandEvent(evtType, evtId))
@@ -23,7 +25,8 @@ def test_wxFrame(palette):
         # Select static text
         btn = palette.palettePages[2].buttons['wx.StaticText']
         btn.up = False
-        evt = wx.lib.buttons.GenButtonEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+        evt = wx.lib.buttons.GenButtonEvent(
+            wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
         evt.SetButtonObj(btn)
         evt.SetIsDown(True)
         wx.PostEvent(btn, evt)
@@ -55,15 +58,16 @@ def test_wxFrame(palette):
 
         # resize designer
         model.views['Designer'].SetDimensions(10, 10, 200, 200)
-        model.views['Designer'].SetPosition( (0, 0) )
+        model.views['Designer'].SetPosition((0, 0))
         wx.Yield()
 
         model.views['Designer'].Close()
-    except:
-        wx.MessageBox('Test failed\n'+repr(sys.exc_info()))
+    except BaseException:
+        wx.MessageBox('Test failed\n' + repr(sys.exc_info()))
     else:
-        #if model.data == frame_answer:
+        # if model.data == frame_answer:
         wx.MessageBox('Test succeeded')
+
 
 frame_answer = '''#Boa:Frame:TestFrame
 

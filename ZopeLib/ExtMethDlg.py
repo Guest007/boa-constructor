@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ExtMethDlg.py
 # Purpose:
 #
@@ -8,21 +8,23 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2001 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
-#Boa:Dialog:ExtMethDlg
+# -----------------------------------------------------------------------------
+# Boa:Dialog:ExtMethDlg
 
 import os
 
 import wx
 
+
 def create(parent, zopepath):
     return ExtMethDlg(parent, zopepath)
+
 
 class ExternalMethodFinder:
     def __init__(self, zopeDir):
         self.zopeDir = zopeDir
         if self.zopeDir:
-            prodsDir = os.path.join(zopeDir, 'lib','python','Products')
+            prodsDir = os.path.join(zopeDir, 'lib', 'python', 'Products')
             if not os.path.exists(prodsDir):
                 prodsDir = os.path.join(zopeDir, 'Products')
                 if not os.path.exists(prodsDir):
@@ -38,9 +40,9 @@ class ExternalMethodFinder:
             prods = os.listdir(self.prodsDir)
             for p in prods:
                 if os.path.exists(os.path.join(self.prodsDir, p)) and \
-                      os.path.exists(os.path.join(self.prodsDir, p, 'Extensions')):
+                        os.path.exists(os.path.join(self.prodsDir, p, 'Extensions')):
                     mods.extend(self._addPyMods(os.path.join(self.prodsDir, p,
-                          'Extensions'), p))
+                                                             'Extensions'), p))
         return mods
 
     def _addPyMods(self, pypath, prod=''):
@@ -49,15 +51,20 @@ class ExternalMethodFinder:
         mods = []
         fls = Explorer.listdirEx(pypath, '.py')
         for file in fls:
-            mods.append(prod +(prod and '.')+os.path.splitext(file)[0])
+            mods.append(prod + (prod and '.') + os.path.splitext(file)[0])
         return mods
 
     def getExtPath(self, module):
         modLst = module.split('.')
         if len(modLst) == 1:
-            modpath = os.path.join(self.zopeDir, 'Extensions', modLst[0] + '.py')
+            modpath = os.path.join(
+                self.zopeDir, 'Extensions', modLst[0] + '.py')
         else:
-            modpath = os.path.join(self.prodsDir, modLst[0], 'Extensions', modLst[1]+'.py')
+            modpath = os.path.join(
+                self.prodsDir,
+                modLst[0],
+                'Extensions',
+                modLst[1] + '.py')
         return modpath.replace('<LocalFS::directory>', '<LocalFS::file>')
 
     def getFunctions(self, module):
@@ -74,53 +81,57 @@ class ExternalMethodFinder:
         return list(module.functions.keys())
 
 
-[wxID_EXTMETHDLG, wxID_EXTMETHDLGBTCANCEL, wxID_EXTMETHDLGBTOK, 
- wxID_EXTMETHDLGCBMODULE, wxID_EXTMETHDLGCHFUNCTION, wxID_EXTMETHDLGPANEL1, 
- wxID_EXTMETHDLGSTATICTEXT1, wxID_EXTMETHDLGSTATICTEXT2, 
-] = [wx.NewId() for _init_ctrls in range(8)]
+[wxID_EXTMETHDLG, wxID_EXTMETHDLGBTCANCEL, wxID_EXTMETHDLGBTOK,
+ wxID_EXTMETHDLGCBMODULE, wxID_EXTMETHDLGCHFUNCTION, wxID_EXTMETHDLGPANEL1,
+ wxID_EXTMETHDLGSTATICTEXT1, wxID_EXTMETHDLGSTATICTEXT2,
+ ] = [wx.NewId() for _init_ctrls in range(8)]
+
 
 class ExtMethDlg(wx.Dialog):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
         wx.Dialog.__init__(self, id=wxID_EXTMETHDLG, name='ExtMethDlg',
-              parent=prnt, pos=wx.Point(363, 248), size=wx.Size(267, 141),
-              style=wx.DEFAULT_DIALOG_STYLE, title='Add External Method')
+                           parent=prnt, pos=wx.Point(363, 248), size=wx.Size(267, 141),
+                           style=wx.DEFAULT_DIALOG_STYLE, title='Add External Method')
         self.SetClientSize(wx.Size(259, 114))
 
         self.panel1 = wx.Panel(id=wxID_EXTMETHDLGPANEL1, name='panel1',
-              parent=self, pos=wx.Point(0, 0), size=wx.Size(259, 114),
-              style=wx.TAB_TRAVERSAL)
+                               parent=self, pos=wx.Point(0, 0), size=wx.Size(259, 114),
+                               style=wx.TAB_TRAVERSAL)
 
         self.staticText1 = wx.StaticText(id=wxID_EXTMETHDLGSTATICTEXT1,
-              label='Module:', name='staticText1', parent=self.panel1,
-              pos=wx.Point(8, 16), size=wx.Size(56, 13), style=0)
+                                         label='Module:', name='staticText1', parent=self.panel1,
+                                         pos=wx.Point(8, 16), size=wx.Size(56, 13), style=0)
 
         self.staticText2 = wx.StaticText(id=wxID_EXTMETHDLGSTATICTEXT2,
-              label='Function:', name='staticText2', parent=self.panel1,
-              pos=wx.Point(8, 48), size=wx.Size(56, 13), style=0)
+                                         label='Function:', name='staticText2', parent=self.panel1,
+                                         pos=wx.Point(8, 48), size=wx.Size(56, 13), style=0)
 
         self.cbModule = wx.ComboBox(choices=[], id=wxID_EXTMETHDLGCBMODULE,
-              name='cbModule', parent=self.panel1, pos=wx.Point(72, 8),
-              size=wx.Size(176, 21), style=0, value='')
+                                    name='cbModule', parent=self.panel1, pos=wx.Point(72, 8),
+                                    size=wx.Size(176, 21), style=0, value='')
         self.cbModule.Bind(wx.EVT_COMBOBOX, self.OnCbmoduleCombobox,
-              id=wxID_EXTMETHDLGCBMODULE)
+                           id=wxID_EXTMETHDLGCBMODULE)
 
         self.chFunction = wx.ComboBox(choices=[], id=wxID_EXTMETHDLGCHFUNCTION,
-              name='chFunction', parent=self.panel1, pos=wx.Point(72, 40),
-              size=wx.Size(176, 21), style=0, value='')
+                                      name='chFunction', parent=self.panel1, pos=wx.Point(72, 40),
+                                      size=wx.Size(176, 21), style=0, value='')
         self.chFunction.Bind(wx.EVT_COMBOBOX, self.OnChfunctionCombobox,
-              id=wxID_EXTMETHDLGCHFUNCTION)
+                             id=wxID_EXTMETHDLGCHFUNCTION)
 
         self.btOK = wx.Button(id=wxID_EXTMETHDLGBTOK, label='OK', name='btOK',
-              parent=self.panel1, pos=wx.Point(96, 80), size=wx.Size(72, 24),
-              style=0)
-        self.btOK.Bind(wx.EVT_BUTTON, self.OnBtokButton, id=wxID_EXTMETHDLGBTOK)
+                              parent=self.panel1, pos=wx.Point(96, 80), size=wx.Size(72, 24),
+                              style=0)
+        self.btOK.Bind(
+            wx.EVT_BUTTON,
+            self.OnBtokButton,
+            id=wxID_EXTMETHDLGBTOK)
 
         self.btCancel = wx.Button(id=wxID_EXTMETHDLGBTCANCEL, label='Cancel',
-              name='btCancel', parent=self.panel1, pos=wx.Point(176, 80),
-              size=wx.Size(72, 24), style=0)
+                                  name='btCancel', parent=self.panel1, pos=wx.Point(176, 80),
+                                  size=wx.Size(72, 24), style=0)
         self.btCancel.Bind(wx.EVT_BUTTON, self.OnBtcancelButton,
-              id=wxID_EXTMETHDLGBTCANCEL)
+                           id=wxID_EXTMETHDLGBTCANCEL)
 
     def __init__(self, parent, zopeDir):
         self._init_ctrls(parent)

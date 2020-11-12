@@ -80,7 +80,11 @@ BabelizerIOError
 Version: $Id$
 Author: Jonathan Feinberg <jdf@pobox.com>
 """
-import re, string, urllib.request, urllib.parse, urllib.error
+import re
+import string
+import urllib.error
+import urllib.parse
+import urllib.request
 
 """
 Various patterns I have encountered in looking for the babelfish result.
@@ -88,18 +92,18 @@ We try each of them in turn, based on the relative number of times I've
 seen each of these patterns.  $1.00 to anyone who can provide a heuristic
 for knowing which one to use.   This includes AltaVista employees.
 """
-__where = [ re.compile(r'name=\"q\">([^<]*)'),
-            re.compile(r'td bgcolor=white>([^<]*)'),
-            re.compile(r'<\/strong><br>([^<]*)')
-          ]
+__where = [re.compile(r'name=\"q\">([^<]*)'),
+           re.compile(r'td bgcolor=white>([^<]*)'),
+           re.compile(r'<\/strong><br>([^<]*)')
+           ]
 
-__languages = { 'english'   : 'en',
-                'french'    : 'fr',
-                'spanish'   : 'es',
-                'german'    : 'de',
-                'italian'   : 'it',
-                'portugese' : 'pt',
-              }
+__languages = {'english': 'en',
+               'french': 'fr',
+               'spanish': 'es',
+               'german': 'de',
+               'italian': 'it',
+               'portugese': 'pt',
+               }
 
 """
   All of the available language names.
@@ -110,76 +114,93 @@ available_languages = list(map(string.capitalize, list(__languages.keys())))
 """
   Calling translate() or babelize() can raise a BabelizerError
 """
+
+
 class BabelizerError(Exception):
     pass
 
+
 class LanguageNotAvailableError(BabelizerError):
     pass
+
+
 class BabelfishChangedError(BabelizerError):
     pass
+
+
 class BabelizerIOError(BabelizerError):
     pass
 
+
 def clean(text):
-#    return ' '.join(string.replace(text.strip(), "\n", ' ').split())
-    return string.join(string.split(string.replace(string.strip(text), "\n", ' ')))
+    #    return ' '.join(string.replace(text.strip(), "\n", ' ').split())
+    return string.join(string.split(
+        string.replace(string.strip(text), "\n", ' ')))
+
 
 def translate(phrase, from_lang, to_lang):
     phrase = clean(phrase)
     try:
-##        from_code = __languages[from_lang.lower()]
-##        to_code = __languages[to_lang.lower()]
+        ##        from_code = __languages[from_lang.lower()]
+        ##        to_code = __languages[to_lang.lower()]
         from_code = __languages[string.lower(from_lang)]
         to_code = __languages[string.lower(to_lang)]
     except KeyError as lang:
         raise LanguageNotAvailableError(lang)
 
-    params = urllib.parse.urlencode( { 'BabelFishFrontPage' : 'yes',
-                                 'doit' : 'done',
-                                 'urltext' : phrase,
-                                 'lp' : from_code + '_' + to_code } )
+    params = urllib.parse.urlencode({'BabelFishFrontPage': 'yes',
+                                     'doit': 'done',
+                                     'urltext': phrase,
+                                     'lp': from_code + '_' + to_code})
     try:
-        response = urllib.request.urlopen('http://babelfish.altavista.com/tr', params)
+        response = urllib.request.urlopen(
+            'http://babelfish.altavista.com/tr', params)
     except IOError as what:
         raise BabelizerIOError("Couldn't talk to server: %s" % what)
-    except:
+    except BaseException:
         print("Unexpected error:", sys.exc_info()[0])
 
     html = response.read()
     for regex in __where:
         match = regex.search(html)
-        if match: break
-    if not match: raise BabelfishChangedError("Can't recognize translated string.")
+        if match:
+            break
+    if not match:
+        raise BabelfishChangedError("Can't recognize translated string.")
     return clean(match.group(1))
 
-def babelize(phrase, from_language, through_language, limit = 12, callback = None):
+
+def babelize(phrase, from_language, through_language, limit=12, callback=None):
     phrase = clean(phrase)
-    seen = { phrase: 1 }
+    seen = {phrase: 1}
     if callback:
         callback(phrase)
     else:
-        results = [ phrase ]
-    flip = { from_language: through_language, through_language: from_language }
+        results = [phrase]
+    flip = {from_language: through_language, through_language: from_language}
     next = from_language
     for i in range(limit):
         phrase = translate(phrase, next, flip[next])
-        if phrase in seen: break
+        if phrase in seen:
+            break
         seen[phrase] = 1
         if callback:
             callback(phrase)
         else:
             results.append(phrase)
         next = flip[next]
-    if not callback: return results
+    if not callback:
+        return results
+
 
 if __name__ == '__main__':
     import sys
+
     def printer(x):
         print(x)
-        sys.stdout.flush();
+        sys.stdout.flush()
 
 
-##    babelize("I won't take that sort of treatment from you, or from your doggie!",
-##             'english', 'french', callback = printer)
+# babelize("I won't take that sort of treatment from you, or from your doggie!",
+# 'english', 'french', callback = printer)
     # babelize("F�r die Validierung der Ausgabedatei catalog.xml sollte ebenfalls ein Perl-Modul zur Anwendung kommen", 'German', 'English', callback = printer)
-

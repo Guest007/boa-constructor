@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        ClipboardPlus.py
 # Purpose:
 #
@@ -8,14 +8,17 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2002 - 2007
 # Licence:
-#-----------------------------------------------------------------------------
-
-import wx
+# -----------------------------------------------------------------------------
 
 from types import *
 
+import wx
+
+from Views import SourceViews
+
+
 class ClipboardPlus:
-    def __init__(self, buffer = [], buffer_size = 10):
+    def __init__(self, buffer=[], buffer_size=10):
         self._buffer = buffer
         self._buffer_size = buffer_size
 
@@ -44,9 +47,9 @@ class ClipboardPlus:
             pass
         self._buffer.insert(0, text)
 
-    def update(self, param = None):
+    def update(self, param=None):
         if param is None:
-            self._smart_insert(self._read() )
+            self._smart_insert(self._read())
         elif isinstance(param, ListType):
             self._buffer = param
         elif isinstance(param, StringType):
@@ -62,7 +65,8 @@ class ClipboardPlus:
     def getClipboardList(self):
         return self._buffer
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+
 
 class ClipboardPlusViewPlugin:
 
@@ -71,12 +75,11 @@ class ClipboardPlusViewPlugin:
     def __init__(self, model, view, actions):
         self.model = model
         self.view = view
-        actions.extend( (
-              ('-', None, '-', ''),
-              ('Copy+', self.OnEditCopyPlus, '-', 'CopyPlus'),
-              ('Paste+', self.OnEditPastePlus, '-', 'PastePlus'),
-        ) )
-
+        actions.extend((
+            ('-', None, '-', ''),
+            ('Copy+', self.OnEditCopyPlus, '-', 'CopyPlus'),
+            ('Paste+', self.OnEditPastePlus, '-', 'PastePlus'),
+        ))
 
     def OnEditCopyPlus(self, event):
         self.clipboardPlus.updateClipboard(self.view.GetSelectedText())
@@ -86,16 +89,24 @@ class ClipboardPlusViewPlugin:
         if len(buffer) == 1:
             self.view.Paste()
         else:
-            dlg = wx.SingleChoiceDialog(self.view, 'Context', 'Smart clipboard', buffer)
+            dlg = wx.SingleChoiceDialog(
+                self.view, 'Context', 'Smart clipboard', buffer)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
-                    self.clipboardPlus.updateClipboard( dlg.GetStringSelection() )
+                    self.clipboardPlus.updateClipboard(
+                        dlg.GetStringSelection())
                     self.view.Paste()
             finally:
                 dlg.Destroy()
 
-from Views import SourceViews
+
 SourceViews.EditorStyledTextCtrl.plugins += (ClipboardPlusViewPlugin,)
 
-Preferences.keyDefs['CopyPlus'] = (wx.ACCEL_CTRL|wx.ACCEL_SHIFT, ord('C') , 'Ctrl-Shift-C')
-Preferences.keyDefs['PastePlus'] = (wx.ACCEL_CTRL|wx.ACCEL_SHIFT, ord('V'), 'Ctrl-Shift-V')
+Preferences.keyDefs['CopyPlus'] = (
+    wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
+    ord('C'),
+    'Ctrl-Shift-C')
+Preferences.keyDefs['PastePlus'] = (
+    wx.ACCEL_CTRL | wx.ACCEL_SHIFT,
+    ord('V'),
+    'Ctrl-Shift-V')

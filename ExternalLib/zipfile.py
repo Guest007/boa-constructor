@@ -2,20 +2,26 @@
 # Written by James C. Ahlstrom jim@interet.com
 # All rights transferred to CNRI pursuant to the Python contribution agreement
 
-import struct, os, time
-import binascii, py_compile
+import binascii
+import os
+import py_compile
+import struct
+import time
 
 try:
-    import zlib # We may need its compression method
+    import zlib  # We may need its compression method
     try:
         binascii.crc32
     except AttributeError:
         binascii.crc32 = zlib.crc32
-except:
+except BaseException:
     zlib = None
+
 
 class _BadZipfile(Exception):
     pass
+
+
 error = _BadZipfile     # The exception raised by this module
 
 # constants for Zip file compression methods
@@ -26,10 +32,11 @@ ZIP_DEFLATED = 8
 # Here are some struct module formats for reading headers
 structEndArchive = "<4s4H2lH"     # 9 items, end of archive, 22 bytes
 stringEndArchive = "PK\005\006"   # magic number for end of archive record
-structCentralDir = "<4s4B4H3l5H2l"# 19 items, central directory, 46 bytes
+structCentralDir = "<4s4B4H3l5H2l"  # 19 items, central directory, 46 bytes
 stringCentralDir = "PK\001\002"   # magic number for central directory
 structFileHeader = "<4s2B4H3l2H"  # 12 items, file header record, 30 bytes
 stringFileHeader = "PK\003\004"   # magic number for file header
+
 
 def is_zipfile(filename):
     """Quickly see if file is a ZIP file by checking the magic number.
@@ -42,16 +49,18 @@ Will not accept a ZIP archive with an ending comment."""
         fpin.close()
         if endrec[0:4] == "PK\005\006" and endrec[-2:] == "\000\000":
             return 1    # file has correct magic number
-    except:
+    except BaseException:
         pass
+
 
 class ZipInfo:
     "Class with attributes describing each file in the ZIP archive"
-    def __init__(self, filename="NoName", date_time=(1980,1,1,0,0,0)):
+
+    def __init__(self, filename="NoName", date_time=(1980, 1, 1, 0, 0, 0)):
         self.filename = filename        # Name of the file in the archive
         self.date_time = date_time      # year, month, day, hour, min, sec
         # Standard values:
-        self.compress_type = ZIP_STORED # Type of compression for the file
+        self.compress_type = ZIP_STORED  # Type of compression for the file
         self.comment = ""               # Comment for each file
         self.extra = ""                 # ZIP extra data
         self.create_system = 0          # System which created ZIP archive
@@ -82,22 +91,24 @@ class ZipInfo:
             compress_size = self.compress_size
             file_size = self.file_size
         header = struct.pack(structFileHeader, stringFileHeader,
-                 self.extract_version, self.reserved, self.flag_bits,
-                 self.compress_type, dostime, dosdate, CRC,
-                 compress_size, file_size,
-                 len(self.filename), len(self.extra))
+                             self.extract_version, self.reserved, self.flag_bits,
+                             self.compress_type, dostime, dosdate, CRC,
+                             compress_size, file_size,
+                             len(self.filename), len(self.extra))
         return header + self.filename + self.extra
 
 
 class ZipFile:
     "Class with methods to open, read, write, close, list zip files"
+
     def __init__(self, filename, mode="r", compression=ZIP_STORED):
         'Open the ZIP file with mode read "r", write "w" or append "a".'
         if compression == ZIP_STORED:
             pass
         elif compression == ZIP_DEFLATED:
             if not zlib:
-                raise RuntimeError("Compression requires the (missing) zlib module")
+                raise RuntimeError(
+                    "Compression requires the (missing) zlib module")
         else:
             raise RuntimeError("That compression method is not supported")
         self.debug = 0  # Level of printing: 0 through 3
@@ -116,7 +127,7 @@ class ZipFile:
             fp.seek(-22, 2)             # Seek to end-of-file record
             endrec = fp.read()
             if endrec[0:4] == stringEndArchive and \
-                       endrec[-2:] == "\000\000":
+                    endrec[-2:] == "\000\000":
                 self._GetContents()     # file is a zip file
                 # seek to start of directory and overwrite
                 fp.seek(self.start_dir, 0)
@@ -168,8 +179,8 @@ class ZipFile:
                 x.CRC, x.compress_size, x.file_size) = centdir[1:12]
             x.volume, x.internal_attr, x.external_attr = centdir[15:18]
             # Convert date/time code to (year, month, day, hour, min, sec)
-            x.date_time = ( (d>>9)+1980, (d>>5)&0xF, d&0x1F,
-                                     t>>11, (t>>5)&0x3F, (t&0x1F) * 2 )
+            x.date_time = ((d >> 9) + 1980, (d >> 5) & 0xF, d & 0x1F,
+                           t >> 11, (t >> 5) & 0x3F, (t & 0x1F) * 2)
             self.filelist.append(x)
             self.NameToInfo[x.filename] = x
             if self.debug > 2:
@@ -183,7 +194,7 @@ class ZipFile:
             fname = fp.read(fheader[10])
             if fname != data.filename:
                 raise RuntimeError('File name in Central Directory "%s" and File Header "%s" differ.' % (
-                             data.filename, fname))
+                    data.filename, fname))
 
     def namelist(self):
         "Return a list of file names in the archive"
@@ -208,7 +219,7 @@ class ZipFile:
         for zinfo in self.filelist:
             try:
                 self.read(zinfo.filename)       # Check CRC-32
-            except:
+            except BaseException:
                 return zinfo.filename
 
     def getinfo(self, name):
@@ -220,7 +231,8 @@ class ZipFile:
         if self.mode not in ("r", "a"):
             raise RuntimeError('read() requires mode "r" or "a"')
         if not self.fp:
-            raise RuntimeError("Attempt to read ZIP archive that was already closed")
+            raise RuntimeError(
+                "Attempt to read ZIP archive that was already closed")
         zinfo = self.getinfo(name)
         filepos = self.fp.tell()
         self.fp.seek(zinfo.file_offset, 0)
@@ -230,7 +242,8 @@ class ZipFile:
             pass
         elif zinfo.compress_type == ZIP_DEFLATED:
             if not zlib:
-                raise RuntimeError("De-compression requires the (missing) zlib module")
+                raise RuntimeError(
+                    "De-compression requires the (missing) zlib module")
             # zlib compress/decompress code by Jeremy Hylton of CNRI
             dc = zlib.decompressobj(-15)
             bytes = dc.decompress(bytes)
@@ -239,8 +252,8 @@ class ZipFile:
             if ex:
                 bytes = bytes + ex
         else:
-            raise error("Unsupported compression method %d for file %s" % \
-            (zinfo.compress_type, name))
+            raise error("Unsupported compression method %d for file %s" %
+                        (zinfo.compress_type, name))
         crc = binascii.crc32(bytes)
         if crc != zinfo.CRC:
             raise error("Bad CRC-32 for file %s" % name)
@@ -254,9 +267,11 @@ class ZipFile:
         if self.mode not in ("w", "a"):
             raise RuntimeError('write() requires mode "w" or "a"')
         if not self.fp:
-            raise RuntimeError("Attempt to write ZIP archive that was already closed")
+            raise RuntimeError(
+                "Attempt to write ZIP archive that was already closed")
         if zinfo.compress_type == ZIP_DEFLATED and not zlib:
-            raise RuntimeError("Compression requires the (missing) zlib module")
+            raise RuntimeError(
+                "Compression requires the (missing) zlib module")
         if zinfo.compress_type not in (ZIP_STORED, ZIP_DEFLATED):
             raise RuntimeError("That compression method is not supported")
 
@@ -286,10 +301,10 @@ class ZipFile:
         file_size = 0
         if zinfo.compress_type == ZIP_DEFLATED:
             cmpr = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION,
-                 zlib.DEFLATED, -15)
+                                    zlib.DEFLATED, -15)
         else:
             cmpr = None
-        while 1:
+        while True:
             buf = fp.read(1024 * 8)
             if not buf:
                 break
@@ -311,7 +326,7 @@ class ZipFile:
         zinfo.file_size = file_size
         # Write CRC and file sizes after the file data
         self.fp.write(struct.pack("<lll", zinfo.CRC, zinfo.compress_size,
-              zinfo.file_size))
+                                  zinfo.file_size))
         self.filelist.append(zinfo)
         self.NameToInfo[zinfo.filename] = zinfo
 
@@ -322,7 +337,7 @@ class ZipFile:
         zinfo.CRC = binascii.crc32(bytes)       # CRC-32 checksum
         if zinfo.compress_type == ZIP_DEFLATED:
             co = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION,
-                 zlib.DEFLATED, -15)
+                                  zlib.DEFLATED, -15)
             bytes = co.compress(bytes) + co.flush()
             zinfo.compress_size = len(bytes)    # Compressed size
         else:
@@ -334,7 +349,7 @@ class ZipFile:
         if zinfo.flag_bits & 0x08:
             # Write CRC and file sizes after the file data
             self.fp.write(struct.pack("<lll", zinfo.CRC, zinfo.compress_size,
-                  zinfo.file_size))
+                                      zinfo.file_size))
         self.filelist.append(zinfo)
         self.NameToInfo[zinfo.filename] = zinfo
 
@@ -355,13 +370,14 @@ class ZipFile:
                 dosdate = (dt[0] - 1980) << 9 | dt[1] << 5 | dt[2]
                 dostime = dt[3] << 11 | dt[4] << 5 | dt[5] / 2
                 centdir = struct.pack(structCentralDir,
-                  stringCentralDir, zinfo.create_version,
-                  zinfo.create_system, zinfo.extract_version, zinfo.reserved,
-                  zinfo.flag_bits, zinfo.compress_type, dostime, dosdate,
-                  zinfo.CRC, zinfo.compress_size, zinfo.file_size,
-                  len(zinfo.filename), len(zinfo.extra), len(zinfo.comment),
-                  0, zinfo.internal_attr, zinfo.external_attr,
-                  zinfo.header_offset)
+                                      stringCentralDir, zinfo.create_version,
+                                      zinfo.create_system, zinfo.extract_version, zinfo.reserved,
+                                      zinfo.flag_bits, zinfo.compress_type, dostime, dosdate,
+                                      zinfo.CRC, zinfo.compress_size, zinfo.file_size,
+                                      len(zinfo.filename), len(
+                                          zinfo.extra), len(zinfo.comment),
+                                      0, zinfo.internal_attr, zinfo.external_attr,
+                                      zinfo.header_offset)
                 self.fp.write(centdir)
                 self.fp.write(zinfo.filename)
                 self.fp.write(zinfo.extra)
@@ -369,7 +385,7 @@ class ZipFile:
             pos2 = self.fp.tell()
             # Write end-of-zip-archive record
             endrec = struct.pack(structEndArchive, stringEndArchive,
-                     0, 0, count, count, pos2 - pos1, pos1, 0)
+                                 0, 0, count, count, pos2 - pos1, pos1, 0)
             self.fp.write(endrec)
         self.fp.close()
         self.fp = None
@@ -377,7 +393,8 @@ class ZipFile:
 
 class PyZipFile(ZipFile):
     "Class to create ZIP archives with Python library files and packages"
-    def writepy(self, pathname, basename = ""):
+
+    def writepy(self, pathname, basename=""):
         """Add all files from "pathname" to the ZIP archive.
 
 If pathname is a package directory, search the directory and all
@@ -413,7 +430,7 @@ This method will compile the module.py into module.pyc if necessary."""
                             self.writepy(path, basename)  # Recursive call
                     elif ext == ".py":
                         fname, arcname = self._get_codename(path[0:-3],
-                                         basename)
+                                                            basename)
                         if self.debug:
                             print("Adding", arcname)
                         self.write(fname, arcname)
@@ -426,13 +443,14 @@ This method will compile the module.py into module.pyc if necessary."""
                     root, ext = os.path.splitext(filename)
                     if ext == ".py":
                         fname, arcname = self._get_codename(path[0:-3],
-                                         basename)
+                                                            basename)
                         if self.debug:
                             print("Adding", arcname)
                         self.write(fname, arcname)
         else:
             if pathname[-3:] != ".py":
-                raise RuntimeError('Files added with writepy() must end with ".py"')
+                raise RuntimeError(
+                    'Files added with writepy() must end with ".py"')
             fname, arcname = self._get_codename(pathname[0:-3], basename)
             if self.debug:
                 print("Adding file", arcname)
@@ -444,14 +462,14 @@ This method will compile the module.py into module.pyc if necessary."""
 Given a module name path, return the correct file path and archive name,
 compiling if necessary.  For example, given /python/lib/string,
 return (/python/lib/string.pyc, string)"""
-        file_py  = pathname + ".py"
+        file_py = pathname + ".py"
         file_pyc = pathname + ".pyc"
         file_pyo = pathname + ".pyo"
         if os.path.isfile(file_pyo) and \
-                            os.stat(file_pyo)[8] >= os.stat(file_py)[8]:
+                os.stat(file_pyo)[8] >= os.stat(file_py)[8]:
             fname = file_pyo    # Use .pyo file
         elif not os.path.isfile(file_pyc) or \
-                            os.stat(file_pyc)[8] < os.stat(file_py)[8]:
+                os.stat(file_pyc)[8] < os.stat(file_py)[8]:
             if self.debug:
                 print("Compiling", file_py)
             py_compile.compile(file_py, file_pyc)

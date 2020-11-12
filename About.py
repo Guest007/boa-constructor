@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        About.py
 # Purpose:
 #
@@ -8,9 +8,12 @@
 # RCS-ID:      $Id$
 # Copyright:   (c) 2000 - 2007
 # Licence:     GPL
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-import sys, time, re, string
+import re
+import string
+import sys
+import time
 from _thread import start_new_thread
 
 import wx
@@ -18,19 +21,20 @@ import wx.html
 import wx.lib.wxpTag
 
 import __version__
-import Preferences, Utils
+import Preferences
+import Utils
+from ExternalLib import langlistctrl
 from Utils import _
 
-from ExternalLib import langlistctrl
-
 translations = [
-  (wx.LANGUAGE_AFRIKAANS, 'Riaan Booysen (riaan@e.co.za)'),
-  (wx.LANGUAGE_CHINESE, 'Dylan Yang (otherrrr@gmail.com)'),
-  (wx.LANGUAGE_FRENCH, 'Olivier Thiery (olivier.th@gmail.com)'),
-  (wx.LANGUAGE_GERMAN, 'Werner F. Bruhin (werner.bruhin@free.fr), Jens Klein (jens@bluedynamics.com)'),
-  (wx.LANGUAGE_ITALIAN, 'Michele Petrazzo (michele.petrazzo@unipex.it)'),
-  (wx.LANGUAGE_PORTUGUESE_BRAZILIAN, 'Sergio Brant (sergiobrant@yahoo.com.br)'),
-  (wx.LANGUAGE_SPANISH, 'Felix Medrano Sanz (xukosky@yahoo.es)'),
+    (wx.LANGUAGE_AFRIKAANS, 'Riaan Booysen (riaan@e.co.za)'),
+    (wx.LANGUAGE_CHINESE, 'Dylan Yang (otherrrr@gmail.com)'),
+    (wx.LANGUAGE_FRENCH, 'Olivier Thiery (olivier.th@gmail.com)'),
+    (wx.LANGUAGE_GERMAN,
+        'Werner F. Bruhin (werner.bruhin@free.fr), Jens Klein (jens@bluedynamics.com)'),
+    (wx.LANGUAGE_ITALIAN, 'Michele Petrazzo (michele.petrazzo@unipex.it)'),
+    (wx.LANGUAGE_PORTUGUESE_BRAZILIAN, 'Sergio Brant (sergiobrant@yahoo.com.br)'),
+    (wx.LANGUAGE_SPANISH, 'Felix Medrano Sanz (xukosky@yahoo.es)'),
 ]
 
 prog_update = re.compile('<<(?P<cnt>[0-9]+)/(?P<tot>[0-9]+)>>')
@@ -165,6 +169,7 @@ about_text = '''
 
 wx.FileSystem.AddHandler(wx.MemoryFSHandler())
 
+
 def addImagesToFS():
     PNG = wx.BITMAP_TYPE_PNG
     for name, path, type in [
@@ -175,7 +180,7 @@ def addImagesToFS():
         ('Debian.png', 'Images/Shared/Debian.png', PNG),
         ('Gentoo.png', 'Images/Shared/Gentoo.png', PNG),
         ('FreeBSD.png', 'Images/Shared/FreeBSD.png', PNG),
-        ]:
+    ]:
         if name not in addImagesToFS.addedImages:
             wx.MemoryFSHandler.AddFile(name, Preferences.IS.load(path), type)
             addImagesToFS.addedImages.append(name)
@@ -191,16 +196,22 @@ def addImagesToFS():
 
 addImagesToFS.addedImages = []
 
+
 def createSplash(parent, modTot, fileTot):
-    return AboutBoxSplash(parent, modTot, fileTot, extraStyle=wx.html.HW_SCROLLBAR_NEVER)
+    return AboutBoxSplash(parent, modTot, fileTot,
+                          extraStyle=wx.html.HW_SCROLLBAR_NEVER)
+
 
 def createNormal(parent):
     return AboutBox(parent)
 
+
 wxID_ABOUTBOX = wx.NewId()
+
 
 class AboutBoxMixin:
     border = 7
+
     def __init__(self, parent, modTot=0, fileTot=0, extraStyle=0):
         self._init_ctrls(parent)
 
@@ -210,11 +221,11 @@ class AboutBoxMixin:
         self.fileTotal = fileTot
 
         self.blackback = wx.Window(self, -1, pos=(0, 0),
-              size=self.GetClientSize(), style=wx.CLIP_CHILDREN)
+                                   size=self.GetClientSize(), style=wx.CLIP_CHILDREN)
         self.blackback.SetBackgroundColour(wx.BLACK)
 
         self.html = Utils.wxUrlClickHtmlWindow(self.blackback, -1,
-              style=wx.CLIP_CHILDREN | wx.html.HW_NO_SELECTION | extraStyle)
+                                               style=wx.CLIP_CHILDREN | wx.html.HW_NO_SELECTION | extraStyle)
         Utils.EVT_HTML_URL_CLICK(self.html, self.OnLinkClick)
         self.setPage()
         self.blackback.SetAutoLayout(True)
@@ -226,7 +237,8 @@ class AboutBoxMixin:
         self.html.SetConstraints(lc)
         self.blackback.Layout()
         self.Center(wx.BOTH)
-        self.SetAcceleratorTable(wx.AcceleratorTable([(0, wx.WXK_ESCAPE, wx.ID_OK)]))
+        self.SetAcceleratorTable(wx.AcceleratorTable(
+            [(0, wx.WXK_ESCAPE, wx.ID_OK)]))
 
     def gotoInternetUrl(self, url):
         try:
@@ -243,7 +255,7 @@ class AboutBoxMixin:
             for lid, name in translations:
                 li = wx.Locale.GetLanguageInfo(lid)
                 translators.append('<img src="memory:flag-%s">&nbsp;%s - %s<br>' % (
-                      li.CanonicalName, li.Description, name))
+                    li.CanonicalName, li.Description, name))
             translators = ''.join(translators)
 
             self.html.SetPage(credits_html % (translators,
@@ -253,7 +265,7 @@ class AboutBoxMixin:
                                               'memory:Debian.png',
                                               'memory:Gentoo.png',
                                               'memory:FreeBSD.png',
-                                             ))
+                                              ))
         elif clicked == 'Back':
             self.setPage()
             # self.html.HistoryBack()
@@ -265,13 +277,13 @@ class AboutBoxMixin:
             self.gotoInternetUrl('http://www.wxwidgets.org')
         elif clicked == 'Debian':
             self.gotoInternetUrl(
-               'http://packages.debian.org/unstable/devel/boa-constructor.html')
+                'http://packages.debian.org/unstable/devel/boa-constructor.html')
         elif clicked == 'Gentoo':
             self.gotoInternetUrl(
-               'http://www.gentoo.org/dyn/pkgs/dev-util/boa-constructor.xml')
+                'http://www.gentoo.org/dyn/pkgs/dev-util/boa-constructor.xml')
         elif clicked == 'FreeBSD':
             self.gotoInternetUrl(
-               'http://www.freebsd.org/ports/python.html#boaconstructor-0.2.3')
+                'http://www.freebsd.org/ports/python.html#boaconstructor-0.2.3')
         elif clicked == 'Boa':
             self.gotoInternetUrl('https://bitbucket.org/cwt/boa-constructor')
         elif clicked == 'BoaLegacy':
@@ -287,18 +299,19 @@ class AboutBoxMixin:
 class AboutBox(AboutBoxMixin, wx.Dialog):
     def _init_ctrls(self, prnt):
         if Preferences.thisPlatform == 'msw':
-            boxSize=wx.Size(410, 645)
+            boxSize = wx.Size(410, 645)
         else:
-            boxSize=wx.Size(410, 600)
+            boxSize = wx.Size(410, 600)
         wx.Dialog.__init__(self, size=boxSize, pos=(-1, -1),
-              id=wxID_ABOUTBOX, title=_('About Boa Constructor'), parent=prnt,
-              name='AboutBox', style=wx.DEFAULT_DIALOG_STYLE)
+                           id=wxID_ABOUTBOX, title=_('About Boa Constructor'), parent=prnt,
+                           name='AboutBox', style=wx.DEFAULT_DIALOG_STYLE)
 
         try:
             if 'Language.png' not in addImagesToFS.addedImages:
                 wx.MemoryFSHandler.AddFile('Language.png',
-                 langlistctrl.GetLanguageFlag(wx.GetApp().locale.GetLanguage()),
-                 wx.BITMAP_TYPE_PNG)
+                                           langlistctrl.GetLanguageFlag(
+                                               wx.GetApp().locale.GetLanguage()),
+                                           wx.BITMAP_TYPE_PNG)
                 addImagesToFS.addedImages.append('Language.png')
         except Exception as err:
             pass
@@ -306,12 +319,15 @@ class AboutBox(AboutBoxMixin, wx.Dialog):
     def setPage(self):
         sysLangName = wx.GetApp().locale.GetSysName()
         self.html.SetPage((about_html % (
-              'memory:Boa.jpg', __version__.version,
-              '', about_text % (sys.version, wx.VERSION_STRING,
-                ', '.join(wx.PlatformInfo), 'memory:Language.png', sysLangName,
-                sys.getdefaultencoding()))))
+            'memory:Boa.jpg', __version__.version,
+            '', about_text % (sys.version, wx.VERSION_STRING,
+                              ', '.join(
+                                  wx.PlatformInfo), 'memory:Language.png', sysLangName,
+                              sys.getdefaultencoding()))))
+
 
 DefAboutBox = AboutBox
+
 
 class AboutBoxSplash(AboutBoxMixin, wx.Frame):
     progressBorder = 1
@@ -319,15 +335,16 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
 
     def _init_ctrls(self, prnt):
         wx.Frame.__init__(self, size=wx.Size(418, 320), pos=(-1, -1),
-              id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
-              name='AboutBoxSplash', style=wx.SIMPLE_BORDER)
+                          id=wxID_ABOUTBOX, title='Boa Constructor', parent=prnt,
+                          name='AboutBoxSplash', style=wx.SIMPLE_BORDER)
         self.progressId = wx.NewId()
         self.gaugePId = wx.NewId()
-        self.SetBackgroundColour(wx.Colour(0x44, 0x88, 0xFF))  # wxColour(0x99, 0xcc, 0xff))
+        # wxColour(0x99, 0xcc, 0xff))
+        self.SetBackgroundColour(wx.Colour(0x44, 0x88, 0xFF))
 
     def setPage(self):
         self.html.SetPage(about_html % ('memory:Boa.jpg',
-          __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
+                                        __version__.version, progress_text % (self.progressId, self.gaugePId), ''))
 
         self.initCtrlNames()
 
@@ -341,11 +358,11 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
         gaugePrnt.SetBackgroundColour(wx.BLACK)  # wx.Colour(0x99, 0xcc, 0xff))
         gaugeSze = gaugePrnt.GetClientSize()
         self.gauge = wx.Gauge(gaugePrnt, -1,
-              range=self.moduleTotal + self.fileTotal * self.fileOpeningFactor,
-              style=wx.GA_HORIZONTAL | wx.GA_SMOOTH,
-              pos=(self.progressBorder, self.progressBorder),
-              size=(gaugeSze.x - 2 * self.progressBorder,
-                    gaugeSze.y - 2 * self.progressBorder))
+                              range=self.moduleTotal + self.fileTotal * self.fileOpeningFactor,
+                              style=wx.GA_HORIZONTAL | wx.GA_SMOOTH,
+                              pos=(self.progressBorder, self.progressBorder),
+                              size=(gaugeSze.x - 2 * self.progressBorder,
+                                    gaugeSze.y - 2 * self.progressBorder))
         self.gauge.SetBackgroundColour(wx.Colour(0xff, 0x33, 0x00))
         # secret early quit option
         self.gauge.Bind(wx.EVT_LEFT_DOWN, self.OnGaugeDClick)
@@ -361,9 +378,12 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
         self._live = True
         lastCnt = 0
         if self and sys and len(sys.modules) >= self.moduleTotal:
-            wx.PostEvent(self, ModCntUpdateEvent(self.moduleTotal, 'importing'))
+            wx.PostEvent(
+                self, ModCntUpdateEvent(
+                    self.moduleTotal, 'importing'))
         else:
-            while self and self._live and sys and len(sys.modules) < self.moduleTotal:
+            while self and self._live and sys and len(
+                    sys.modules) < self.moduleTotal:
                 mc = len(sys.modules)
                 if mc > lastCnt:
                     lastCnt = mc
@@ -395,6 +415,7 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
                 print('Received early abort...')
                 sys.exit()
 
+
 class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
         if not wx.Thread_IsMain():
@@ -404,7 +425,7 @@ class StaticTextPF(Utils.PseudoFile):
         if res:
             cnt = int(res.group('cnt'))
             wx.PostEvent(self.output.GetGrandParent().GetParent(),
-                  ModCntUpdateEvent(cnt, 'opening'))
+                         ModCntUpdateEvent(cnt, 'opening'))
             s = s[:res.start()]
 
         ss = s.strip()
@@ -420,8 +441,10 @@ class StaticTextPF(Utils.PseudoFile):
 
         wx.Yield()
 
+
 wxEVT_MOD_CNT_UPD = wx.NewId()
 EVT_MOD_CNT_UPD = wx.PyEventBinder(wxEVT_MOD_CNT_UPD)
+
 
 class ModCntUpdateEvent(wx.PyEvent):
     def __init__(self, cnt, tpe):
@@ -429,6 +452,7 @@ class ModCntUpdateEvent(wx.PyEvent):
         self.SetEventType(wxEVT_MOD_CNT_UPD)
         self.cnt = cnt
         self.tpe = tpe
+
 
 if __name__ == '__main__':
 

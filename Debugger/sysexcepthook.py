@@ -3,7 +3,7 @@
 This script allows you to import, start and hook a DebugServer when
 an uncaught exception occurs.
 
-Once the DebugServer has started, you may connect to it via 
+Once the DebugServer has started, you may connect to it via
 Tools->Attach to debugger
 
 To use, fix path_to_boa to point to your Boa installation, copy it anywhere
@@ -14,17 +14,19 @@ if you use it often.
 
 """
 
+import sys
+import traceback
+
 path_to_boa = 'c:/path/to/boa'
 
-import sys, traceback
 
 def hook_debugger(tpe, val, tb):
     traceback.print_exception(tpe, val, tb)
-    
-    #if sys.modules.has_key('wxPython.wx'):
+
+    # if sys.modules.has_key('wxPython.wx'):
     import wx
-    if wx.MessageBox('%s: %s\n\nStart DebugServer?'%(tpe, val), 
-          'Uncaught Exception', wx.ICON_ERROR | wx.YES_NO) == wx.NO:
+    if wx.MessageBox('%s: %s\n\nStart DebugServer?' % (tpe, val),
+                     'Uncaught Exception', wx.ICON_ERROR | wx.YES_NO) == wx.NO:
         return
 
     if not hasattr(sys, 'debugger_control'):
@@ -33,8 +35,7 @@ def hook_debugger(tpe, val, tb):
 
         start(username='', password='')
 
-    sys.debugger_control.post_mortem( (tpe, val, tb) )
+    sys.debugger_control.post_mortem((tpe, val, tb))
+
 
 sys.excepthook = hook_debugger
-    
-    
