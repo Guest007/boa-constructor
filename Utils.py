@@ -67,7 +67,7 @@ def yesNoDialog(parent, title, question):
 def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth,
                            theToggleBitmap=wx.NullBitmap):
     nId = wx.NewId()
-    toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString=hint)
+    toolbar.AddTool(nId, '', thebitmap, theToggleBitmap, shortHelp=hint)
     frame.Bind(wx.EVT_TOOL, triggermeth, id=nId)
     return nId
 

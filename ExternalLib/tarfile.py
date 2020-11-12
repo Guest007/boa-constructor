@@ -91,13 +91,13 @@ if _tarfile and not hasattr(os, "makedev"):
 if _tarfile and not hasattr(os, "lchown"):
     os.lchown = _tarfile.lchown
 
-# XXX remove for release (2.3)
-try:
-    True
-    False
-except NameError:
-    True = 1
-    False = 0
+# # XXX remove for release (2.3)
+# try:
+#     True
+#     False
+# except NameError:
+#     True = 1
+#     False = 0
 
 # ---------------------------------------------------------
 # tar constants
@@ -111,7 +111,7 @@ VERSION = "00"               # version number
 LENGTH_NAME = 100            # maximum length of a filename
 LENGTH_LINK = 100            # maximum length of a linkname
 LENGTH_PREFIX = 155            # maximum length of the prefix field
-MAXSIZE_MEMBER = 077777777777  # maximum size of a file (11 octal digits)
+MAXSIZE_MEMBER = 0o77777777777  # maximum size of a file (11 octal digits)
 
 REGTYPE = "0"                  # regular file
 AREGTYPE = "\0"                 # regular file

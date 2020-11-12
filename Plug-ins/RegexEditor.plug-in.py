@@ -117,7 +117,7 @@ class RegexEditorFrm(wx.Frame, Utils.FrameRestorerMixin):
                            id=wxID_REGEXEDITORFRMRBACTION)
 
         self.statusBar = wx.StatusBar(id=wxID_REGEXEDITORFRMSTATUSBAR,
-                                      name='statusBar', parent=self, style=wx.ST_SIZEGRIP)
+                                      name='statusBar', parent=self, style=wx.STB_SIZEGRIP)
         self.statusBar.SetPosition(wx.Point(0, 462))
         self.statusBar.SetSize(wx.Size(495, 20))
         self._init_coll_statusBar_Fields(self.statusBar)

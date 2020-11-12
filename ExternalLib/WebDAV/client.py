@@ -134,7 +134,7 @@ class Resource:
             h.close()
         except BaseException:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            raise 'NotAvailable', exc_value
+            raise BaseException(f'NotAvailable {exc_value}')
         return http_response(ver, code, msg, hdrs, data)
 
     # HTTP methods

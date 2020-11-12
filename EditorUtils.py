@@ -100,7 +100,7 @@ class EditorStatusBar(wx.StatusBar):
             self,
             _kwargs['parent'],
             _kwargs['id'],
-            style=wx.ST_SIZEGRIP)
+            style=wx.STB_SIZEGRIP)
         self.SetFieldsCount(6)
         if wx.Platform == '__WXGTK__':
             imgWidth = 21

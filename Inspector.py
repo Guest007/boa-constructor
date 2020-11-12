@@ -78,9 +78,9 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
     def _init_coll_toolBar_Tools(self, parent):
         # generated method, don't edit
 
-        parent.AddTool(bitmap=self.up_bmp, id=wxID_INSPECTORFRAMETOOLBARTOOLS0,
-                       isToggle=False, longHelpString='', pushedBitmap=wx.NullBitmap,
-                       shortHelpString=_('Select parent'))
+        parent.AddTool(bitmap=self.up_bmp, toolId=wxID_INSPECTORFRAMETOOLBARTOOLS0, label='parent',
+                       longHelp='', bmpDisabled=wx.NullBitmap,  # isToggle=False,
+                       shortHelp=_('Select parent'))
         self.Bind(wx.EVT_TOOL, self.OnUp, id=wxID_INSPECTORFRAMETOOLBARTOOLS0)
 
         parent.Realize()
@@ -115,7 +115,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.SetToolBar(self.toolBar)
 
         self.statusBar = wx.StatusBar(id=wxID_INSPECTORFRAMESTATUSBAR,
-                                      name='statusBar', parent=self, style=wx.ST_SIZEGRIP)
+                                      name='statusBar', parent=self, style=wx.STB_SIZEGRIP)
         self.statusBar.SetFont(wx.Font(Preferences.inspStatBarFontSize,
                                        wx.DEFAULT, wx.NORMAL, wx.BOLD, False, ''))
         self._init_coll_statusBar_Fields(self.statusBar)

@@ -45,14 +45,14 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
     def _init_coll_toolBar_Tools(self, parent):
         # generated method, don't edit
 
-        parent.AddTool(bitmap=IS.load('Images/Shared/Inspector.png'),
-                       id=wxID_BOAFRAMETOOLBARTOOLS0, isToggle=False, longHelpString='',
-                       pushedBitmap=wx.NullBitmap,
-                       shortHelpString=_('Brings the Inspector to the front'))
-        parent.AddTool(bitmap=IS.load('Images/Shared/Editor.png'),
-                       id=wxID_BOAFRAMETOOLBARTOOLS1, isToggle=False, longHelpString='',
-                       pushedBitmap=wx.NullBitmap,
-                       shortHelpString=_('Brings the Editor to the front'))
+        parent.AddTool(bitmap=IS.load('Images/Shared/Inspector.png'), label='Inspector',
+                       toolId=wxID_BOAFRAMETOOLBARTOOLS0, #isToggle=False, longHelpString='',
+                       # pushedBitmap=wx.NullBitmap,
+                       shortHelp=_('Brings the Inspector to the front'))
+        parent.AddTool(bitmap=IS.load('Images/Shared/Editor.png'), label='Editor',
+                       toolId=wxID_BOAFRAMETOOLBARTOOLS1, #isToggle=False, longHelpString='',
+                       # pushedBitmap=wx.NullBitmap,
+                       shortHelp=_('Brings the Editor to the front'))
         self.Bind(wx.EVT_TOOL, self.OnInspectorToolClick,
                   id=wxID_BOAFRAMETOOLBARTOOLS0)
         self.Bind(wx.EVT_TOOL, self.OnEditorToolClick,
@@ -226,8 +226,8 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
 
     def addTool(self, filename, text, help, func, toggle=False):
         mID = wx.NewId()
-        self.toolBar.AddTool(mID, IS.load(filename + '.png'),
-                             shortHelpString=text, isToggle=toggle)
+        self.toolBar.AddTool(mID, '', IS.load(filename + '.png'),
+                             shortHelp=text)  # , isToggle=toggle)
         self.Bind(wx.EVT_TOOL, func, id=mID)
         return mID
 

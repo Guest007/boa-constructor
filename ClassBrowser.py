@@ -51,7 +51,7 @@ class ClassBrowserFrame(wx.Frame, Utils.FrameRestorerMixin):
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
         self.statusBar = wx.StatusBar(id=wxID_CLASSBROWSERFRAMESTATUSBAR,
-                                      name='statusBar', parent=self, style=wx.ST_SIZEGRIP)
+                                      name='statusBar', parent=self, style=wx.STB_SIZEGRIP)
         self.SetStatusBar(self.statusBar)
 
         self.pages = wx.Notebook(id=wxID_CLASSBROWSERFRAMEPAGES, name='pages',
