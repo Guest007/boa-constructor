@@ -10,12 +10,12 @@
 # Licence:     GPL
 # -----------------------------------------------------------------------------
 import wx
-import wx.calendar
+from wx.lib import calendar
 import wx.gizmos
 import wx.grid
 import wx.html
 import wx.stc
-import wx.wizard
+# import wx.wizard
 
 import Preferences as _Prefs
 

@@ -14,9 +14,9 @@ import glob
 import os
 import pprint
 
-import new
-
 # Components
+import types
+
 import PaletteStore
 import Preferences
 import Utils
@@ -68,7 +68,7 @@ def importFromPlugins(name):
             _('Module %s could not be found in Plug-ins') %
             modname)
 
-    mod = new.module(name)
+    mod = types.ModuleType(name)
 
     exec(compile(open(modpath, "rb").read(), modpath, 'exec'), mod.__dict__)
 

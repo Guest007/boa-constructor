@@ -1,17 +1,18 @@
 # Boa:PyWizardPage:wxPyWizardPage1
 
 import wx
-import wx.wizard
+# import wx.adv.Wizard as wx_wizard
+from wx.adv import PyWizardPage
 
 [wxID_WXPYWIZARDPAGE1, wxID_WXPYWIZARDPAGE1BUTTON1,
  wxID_WXPYWIZARDPAGE1BUTTON2, wxID_WXPYWIZARDPAGE1STATICTEXT1,
  ] = [wx.NewId() for _init_ctrls in range(4)]
 
 
-class wxPyWizardPage1(wx.wizard.PyWizardPage):
+class wxPyWizardPage1(PyWizardPage):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wx.wizard.PyWizardPage.__init__(self, bitmap=wx.NullBitmap, parent=prnt,
+        PyWizardPage.__init__(self, bitmap=wx.NullBitmap, parent=prnt,
                                         resource='')
 
         self.staticText1 = wx.StaticText(id=wxID_WXPYWIZARDPAGE1STATICTEXT1,

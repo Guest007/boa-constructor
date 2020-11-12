@@ -37,11 +37,11 @@ print('importing PropertyEditors')
 # XXX Is still too fuzzy
 
 
-StringTypes = [StringType]
-try:
-    StringTypes.append(UnicodeType)
-except BaseException:
-    pass
+# StringTypes = [StringType]
+# try:
+#     StringTypes.append(UnicodeType)
+# except BaseException:
+#     pass
 
 
 class EditorStyles:
@@ -91,13 +91,13 @@ class PropertyRegistry:
             print(_('Error on accessing Getter for %s: %s') % (name, message))
             value = None
 
-        # 2.4
-        if isinstance(value, InstanceType):
-            if value.__class__.__name__ in self.classRegistry:
-                return self.classRegistry[value.__class__.__name__](name,
-                                                                    parent, companion, rootCompanion, propWrapper, idx, width)
-            else:
-                pass
+        # # 2.4
+        # if isinstance(value, InstanceType):
+        #     if value.__class__.__name__ in self.classRegistry:
+        #         return self.classRegistry[value.__class__.__name__](name,
+        #                                                             parent, companion, rootCompanion, propWrapper, idx, width)
+        #     else:
+        #         pass
 # print 'e:class', value, value.__class__.__name__, 'for', name, 'not supported'
         # 2.5
         if type(value) in self.typeRegistry:
@@ -162,11 +162,11 @@ class PropertyEditor:
     def isValuesEqual(self, propVal, ctrlVal):
         if isinstance(propVal, wx.Font) and isinstance(ctrlVal, wx.Font):
             return fontAsExpr(propVal) == fontAsExpr(ctrlVal)
-        elif isinstance(propVal, (StringType, UnicodeType)) and \
-                isinstance(ctrlVal, (StringType, UnicodeType)):
-            return propVal == ctrlVal
-        else:
-            return propVal == ctrlVal
+        # elif isinstance(propVal, (StringType, UnicodeType)) and \
+        #         isinstance(ctrlVal, (StringType, UnicodeType)):
+        #     return propVal == ctrlVal
+        # else:
+        return propVal == ctrlVal
 
     def validateProp(self, oldVal, newVal):
         pass
@@ -1257,8 +1257,8 @@ class BaseFlagsConstrPropEdit(ConstrPropEdit):
         if self.editorCtrl:
             try:
                 anInt = self.companion.eval(self.editorCtrl.getValue())
-                if isinstance(anInt, IntType):
-                    self.value = ' | '.join(map(string.strip,
+                if isinstance(anInt, int):
+                    self.value = ' | '.join(map(str.strip,
                                                 self.editorCtrl.getValue().split('|')))
                 else:
                     self.value = self.getCtrlValue()
@@ -1295,7 +1295,7 @@ class StrConstrPropEdit(ConstrPropEdit):
         if self.editorCtrl:
             try:
                 aStr = self.editorCtrl.getValue()
-                if type(aStr) in StringTypes:
+                if type(aStr) is str:
                     if self.value.startswith('_('):
                         self.value = '_(%r)' % aStr
                     else:
@@ -1352,7 +1352,7 @@ class NameConstrPropEdit(ConstrPropEdit):
     def getValue(self):
         if self.editorCtrl:
             value = self.editorCtrl.getValue()
-            if type(value) in StringTypes:
+            if type(value) is str:
                 value = repr(self.editorCtrl.getValue())
             else:
                 value = self.getCtrlValue()
@@ -1401,7 +1401,7 @@ class ChoicesConstrPropEdit(ConstrPropEdit):
         if self.editorCtrl:
             try:
                 aList = self.companion.eval(self.editorCtrl.getValue())
-                if isinstance(aList, ListType):
+                if isinstance(aList, list):
                     self.value = self.editorCtrl.getValue()
                 else:
                     self.value = self.getCtrlValue()
@@ -1423,7 +1423,7 @@ class MajorDimensionConstrPropEdit(ConstrPropEdit):
         if self.editorCtrl:
             try:
                 anInt = self.companion.eval(self.editorCtrl.getValue())
-                if isinstance(anInt, IntType):
+                if isinstance(anInt, int):
                     self.value = self.editorCtrl.getValue()
                 else:
                     self.value = self.getCtrlValue()
@@ -1674,7 +1674,7 @@ class NamePropEdit(BITPropEditor):
     def valueToIECValue(self):
         return self.value
 
-    identifier = string.letters + string.digits + '_'
+    identifier = string.ascii_letters + string.digits + '_'
 
     def getValue(self):
         if self.editorCtrl:
@@ -1719,7 +1719,7 @@ class BoolPropEdit(OptionedPropEdit):
 
     def valueToIECValue(self):
         v = self.value
-        if isinstance(v, IntType):
+        if isinstance(v, int):
             return self.getValues()[v]
         else:
             return repr(v)
@@ -1877,7 +1877,7 @@ class StatusBarClassLinkPropEdit(ClassLinkPropEdit):
 
 
 class ToolBarClassLinkPropEdit(ClassLinkPropEdit):
-    linkClass = wx.ToolBarBase
+    linkClass = wx.ToolBar  # Base
 
 
 class MenuBarClassLinkPropEdit(ClassLinkPropEdit):
@@ -2222,12 +2222,12 @@ class AnchorPropEdit(OptionedPropEdit):
 
 
 class SashVisiblePropEdit(BoolPropEdit):
-    sashEdgeMap = {wx.SASH_LEFT: 'wx.SASH_LEFT', wx.SASH_TOP: 'wx.SASH_TOP',
-                   wx.SASH_RIGHT: 'wx.SASH_RIGHT', wx.SASH_BOTTOM: 'wx.SASH_BOTTOM'}
+    sashEdgeMap = {wx.adv.SASH_LEFT: 'wx.adv.SASH_LEFT', wx.adv.SASH_TOP: 'wx.adv.SASH_TOP',
+                   wx.adv.SASH_RIGHT: 'wx.adv.SASH_RIGHT', wx.adv.SASH_BOTTOM: 'wx.adv.SASH_BOTTOM'}
 
     def valueToIECValue(self):
         v = self.value[1]
-        if isinstance(v, IntType):
+        if isinstance(v, int):
             return self.getValues()[v]
         else:
             return repr(v)
@@ -2332,10 +2332,9 @@ def registerEditors(reg):
 
 
 registeredTypes = [
-    ('Type', IntType, [IntPropEdit]),
-    ('Type', StringType, [StrPropEdit]),
-    ('Type', UnicodeType, [StrPropEdit]),
-    ('Type', TupleType, [TuplePropEdit]),
+    ('Type', int, [IntPropEdit]),
+    ('Type', str, [StrPropEdit]),
+    ('Type', tuple, [TuplePropEdit]),
     ('Class', wx.Size, [SizePropEdit]),
     ('Class', wx.Point, [PosPropEdit]),
     ('Class', wx.Font, [FontPropEdit]),
@@ -2345,6 +2344,6 @@ registeredTypes = [
 ]
 
 try:
-    registeredTypes.append(('Type', BooleanType, [BoolPropEdit]))
+    registeredTypes.append(('Type', bool, [BoolPropEdit]))
 except NameError:  # 2.2
     pass

@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 
 import wx
-import wx.wizard
+from wx.adv import Wizard, PyWizardPage, WizardPageSimple
 
 import Plugins
 import sourceconst
@@ -31,9 +31,9 @@ wizardPageSize = (270, 300)
 wizardFrameStyle = wx.MINIMIZE_BOX | wx.SYSTEM_MENU | wx.CAPTION  # wx.MAXIMIZE_BOX
 
 EventCollections.EventCategories['WizardEvent'] = (
-    'wx.wizard.EVT_WIZARD_PAGE_CHANGED', 'wx.wizard.EVT_WIZARD_PAGE_CHANGING',
-    'wx.wizard.EVT_WIZARD_CANCEL', 'wx.wizard.EVT_WIZARD_HELP',
-    'wx.wizard.EVT_WIZARD_FINISHED')
+    'wx.adv.EVT_WIZARD_PAGE_CHANGED', 'wx.adv.EVT_WIZARD_PAGE_CHANGING',
+    'wx.adv.EVT_WIZARD_CANCEL', 'wx.adv.EVT_WIZARD_HELP',
+    'wx.adv.EVT_WIZARD_FINISHED')
 
 EventCollections.commandCategories.append('WizardEvent')
 
@@ -106,9 +106,9 @@ class WizardPageSimpleDTC(FramePanelDTC):
 # -------------------------------------------------------------------------------
 
 Plugins.registerComponents(None,
-                           (wx.wizard.Wizard, 'wx.wizard.Wizard', WizardDTC),
-                           (wx.wizard.PyWizardPage,
-                            'wx.wizard.PyWizardPage', PyWizardPageDTC),
-                           (wx.wizard.WizardPageSimple,
-                            'wx.wizard.WizardPageSimple', WizardPageSimpleDTC),
+                           (Wizard, 'wx.wizard.Wizard', WizardDTC),
+                           (PyWizardPage,
+                            'wx.adv.PyWizardPage', PyWizardPageDTC),
+                           (WizardPageSimple,
+                            'wx.adv.WizardPageSimple', WizardPageSimpleDTC),
                            )

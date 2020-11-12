@@ -14,7 +14,7 @@ import copy
 import os
 import sys
 
-import EventCollections
+from . import EventCollections
 import wx
 
 import methodparse

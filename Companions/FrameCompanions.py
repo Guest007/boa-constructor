@@ -17,7 +17,8 @@ from Preferences import wxDefaultFramePos, wxDefaultFrameSize
 from PropEdit.Enumerations import *
 from PropEdit.PropertyEditors import *
 from Utils import _
-from wxCompat import wxDIALOG_MODAL, wxDIALOG_MODELESS  # wxNO_3D,
+# from wxCompat import wxDIALOG_MODAL, wxDIALOG_MODELESS  # wxNO_3D,
+# from wx import Dialog as wxDIALOG_MODAL
 
 from . import Constructors
 from .BaseCompanions import ContainerDTC
@@ -201,17 +202,17 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
                               'wx.RESIZE_BORDER', 'wx.THICK_FRAME', 'wx.STAY_ON_TOP',
                               'wx.DIALOG_NO_PARENT', 'wx.SYSTEM_MENU', 'wx.CLOSE_BOX']
 
-        # wx.DIALOG_MODAL compat
-        if hasattr(wx, 'DIALOG_MODAL'):
-            self.windowStyles += ['wx.DIALOG_MODAL']
-        elif hasattr(wx, 'wxDIALOG_MODAL'):
-            self.windowStyles += ['wx.wxDIALOG_MODAL']
-
-        # wx.DIALOG_MODELESS compat
-        if hasattr(wx, 'DIALOG_MODELESS'):
-            self.windowStyles += ['wx.DIALOG_MODELESS']
-        elif hasattr(wx, 'wxDIALOG_MODELESS'):
-            self.windowStyles += ['wx.wxDIALOG_MODELESS']
+        # # wx.DIALOG_MODAL compat
+        # if hasattr(wx, 'DIALOG_MODAL'):
+        #     self.windowStyles += ['wx.DIALOG_MODAL']
+        # elif hasattr(wx, 'wxDIALOG_MODAL'):
+        #     self.windowStyles += ['wx.wxDIALOG_MODAL']
+        #
+        # # wx.DIALOG_MODELESS compat
+        # if hasattr(wx, 'DIALOG_MODELESS'):
+        #     self.windowStyles += ['wx.DIALOG_MODELESS']
+        # elif hasattr(wx, 'wxDIALOG_MODELESS'):
+        #     self.windowStyles += ['wx.wxDIALOG_MODELESS']
 
         # # wx.NO_3D compat
         # if hasattr(wx, 'NO_3D'):
@@ -237,14 +238,14 @@ class DialogDTC(FramesConstr, BaseFrameDTC):
         return BaseFrameDTC.events(self) + ['DialogEvent']
 
 
-class MiniFrameDTC(FramesConstr, FrameDTC):
+class MiniFrameDTC(FrameDTC):  # FramesConstr, FrameDTC):
     def __init__(self, name, designer, frameCtrl):
         FrameDTC.__init__(self, name, designer, frameCtrl)
         self.windowStyles.extend(
             ['wx.TINY_CAPTION_HORIZ', 'wx.TINY_CAPTION_VERT'])
 
 
-class MDIParentFrameDTC(FramesConstr, FrameDTC):
+class MDIParentFrameDTC(FrameDTC):  # FramesConstr, FrameDTC):
     def designTimeSource(self):
         dts = FrameDTC.designTimeSource(self)
         dts.update(
@@ -252,7 +253,7 @@ class MDIParentFrameDTC(FramesConstr, FrameDTC):
         return dts
 
 
-class MDIChildFrameDTC(FramesConstr, FrameDTC):
+class MDIChildFrameDTC(FrameDTC):  # FramesConstr, FrameDTC):
     pass
 
 
@@ -296,7 +297,7 @@ class PopupWindowDTC(ContainerDTC):
 EventCategories['PanelEvent'] = ('wx.EVT_SYS_COLOUR_CHANGED',)
 
 
-class FramePanelDTC(Constructors.WindowConstr, BaseFrameDTC):
+class FramePanelDTC(BaseFrameDTC):  # Constructors.WindowConstr, BaseFrameDTC):
     dialogLayout = True
     suppressWindowId = False
 

@@ -1,16 +1,16 @@
 # Boa:WizardPageSimple:wxWizardPageSimple2
 
 import wx
-import wx.wizard
+from wx.adv import WizardPageSimple
 
 [wxID_WXWIZARDPAGESIMPLE2, wxID_WXWIZARDPAGESIMPLE2BUTTON1,
  ] = [wx.NewId() for _init_ctrls in range(2)]
 
 
-class wxWizardPageSimple2(wx.wizard.WizardPageSimple):
+class wxWizardPageSimple2(WizardPageSimple):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wx.wizard.WizardPageSimple.__init__(self, next=None, parent=prnt,
+        WizardPageSimple.__init__(self, next=None, parent=prnt,
                                             prev=None)
         self.SetAutoLayout(True)
 

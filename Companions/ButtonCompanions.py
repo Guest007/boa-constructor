@@ -158,7 +158,7 @@ class BitmapButtonDTC(WindowDTC):
         insp.events.doAddEvent('ButtonEvent', 'wx.EVT_BUTTON')
 
 
-class SpinButtonDTC(Constructors.WindowConstr, WindowDTC):
+class SpinButtonDTC(WindowDTC):  # Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = ['wx.SP_HORIZONTAL', 'wx.SP_VERTICAL',

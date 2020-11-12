@@ -13,7 +13,7 @@ import os
 import time
 from io import StringIO
 
-import EditorViews
+from . import EditorViews
 import wx
 import wx.stc
 

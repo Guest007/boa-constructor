@@ -12,8 +12,8 @@
 import codecs
 import os
 
-import EditorHelper
-import EditorModels
+from . import EditorHelper
+from . import EditorModels
 import wx
 
 import PaletteStore

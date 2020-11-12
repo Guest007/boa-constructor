@@ -329,7 +329,7 @@ EventCategories['GridEvent'] = ('wx.grid.EVT_GRID_CELL_LEFT_CLICK',
                                 )
 
 
-class GridDTC(Constructors.WindowConstr, WindowDTC):
+class GridDTC(WindowDTC):  # Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors['Editable'] = self.editors['GridLinesEnabled'] = BoolPropEdit

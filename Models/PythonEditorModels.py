@@ -22,7 +22,7 @@ from _thread import start_new_thread
 from io import StringIO
 from time import localtime, strftime, time
 
-import EditorHelper
+from . import EditorHelper
 import wx
 
 import ErrorStack

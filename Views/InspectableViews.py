@@ -15,7 +15,7 @@ import copy
 import os
 import pprint
 
-import EditorViews
+from . import EditorViews
 import wx
 
 import methodparse

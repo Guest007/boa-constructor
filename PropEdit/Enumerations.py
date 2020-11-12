@@ -11,7 +11,7 @@
 # ----------------------------------------------------------------------
 import wx
 
-# from wxCompat import wxNO_3D
+from wx import adv as wxadv
 
 
 def reverseDict(dict):
@@ -73,17 +73,17 @@ constraintRelationships = ['wx.Unconstrained', 'wx.AsIs', 'wx.Above', 'wx.Below'
 formatStyle = ['wx.LIST_FORMAT_LEFT', 'wx.LIST_FORMAT_RIGHT', 'wx.LIST_FORMAT_CENTRE',
                'wx.LIST_FORMAT_CENTER']
 
-sashLayoutOrientation = [wx.LAYOUT_HORIZONTAL, wx.LAYOUT_VERTICAL]
-sashLayoutOrientationNames = {'wx.LAYOUT_HORIZONTAL': wx.LAYOUT_HORIZONTAL,
-                              'wx.LAYOUT_VERTICAL': wx.LAYOUT_VERTICAL}
+sashLayoutOrientation = [wxadv.LAYOUT_HORIZONTAL, wxadv.LAYOUT_VERTICAL]
+sashLayoutOrientationNames = {'wx.adv.LAYOUT_HORIZONTAL': wxadv.LAYOUT_HORIZONTAL,
+                              'wx.adv.LAYOUT_VERTICAL': wxadv.LAYOUT_VERTICAL}
 
-sashLayoutAlignment = [wx.LAYOUT_NONE, wx.LAYOUT_TOP, wx.LAYOUT_LEFT, wx.LAYOUT_RIGHT,
-                       wx.LAYOUT_BOTTOM]
-sashLayoutAlignmentNames = {'wx.LAYOUT_NONE': wx.LAYOUT_NONE,
-                            'wx.LAYOUT_TOP': wx.LAYOUT_TOP,
-                            'wx.LAYOUT_LEFT': wx.LAYOUT_LEFT,
-                            'wx.LAYOUT_RIGHT': wx.LAYOUT_RIGHT,
-                            'wx.LAYOUT_BOTTOM': wx.LAYOUT_BOTTOM}
+sashLayoutAlignment = [wxadv.LAYOUT_NONE, wxadv.LAYOUT_TOP, wxadv.LAYOUT_LEFT, wxadv.LAYOUT_RIGHT,
+                       wxadv.LAYOUT_BOTTOM]
+sashLayoutAlignmentNames = {'wx.adv.LAYOUT_NONE': wxadv.LAYOUT_NONE,
+                            'wx.adv.LAYOUT_TOP': wxadv.LAYOUT_TOP,
+                            'wx.adv.LAYOUT_LEFT': wxadv.LAYOUT_LEFT,
+                            'wx.adv.LAYOUT_RIGHT': wxadv.LAYOUT_RIGHT,
+                            'wx.adv.LAYOUT_BOTTOM': wxadv.LAYOUT_BOTTOM}
 
 wxStockIds = [
     'wx.ID_ADD', 'wx.ID_APPLY', 'wx.ID_BOLD', 'wx.ID_CANCEL', 'wx.ID_CLEAR',

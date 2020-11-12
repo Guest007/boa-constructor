@@ -56,13 +56,13 @@ about_html = '''
 '''
 
 #  <param name="style" value="ALIGN_CENTER | CLIP_CHILDREN | ST_NO_AUTORESIZE">
+#   <param name="style" value="wx.ALIGN_CENTRE_HORIZONTAL | wx.ST_NO_AUTORESIZE">
 
 progress_text = '''<p>
 <wxp module="wx" class="StaticText">
   <param name="label" value="  ">
   <param name="id"    value="%d">
   <param name="size"  value="(352, 20)">
-  <param name="style" value="wx.ALIGN_CENTER | wx.CLIP_CHILDREN | wx.ST_NO_AUTORESIZE">
 </wxp>
 <wxp module="wx" class="Window">
   <param name="id"    value="%d">
@@ -418,8 +418,8 @@ class AboutBoxSplash(AboutBoxMixin, wx.Frame):
 
 class StaticTextPF(Utils.PseudoFile):
     def write(self, s):
-        if not wx.Thread_IsMain():
-            locker = wx.MutexGuiLocker()
+        # if not wx.IsMainThread(self):
+        #     locker = wx.MutexGuiLocker()
 
         res = prog_update.search(s)
         if res:

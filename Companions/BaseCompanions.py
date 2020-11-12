@@ -18,7 +18,7 @@ objects """
 
 import sourceconst
 import methodparse
-import EventCollections
+from . import EventCollections
 import RTTI
 import Utils
 import Preferences

@@ -1,5 +1,6 @@
 import wx
-import wx.calendar
+from wx.adv import DatePickerCtrl, CalendarCtrl
+from wx.lib import calendar
 
 import Plugins
 from PropEdit import PropertyEditors
@@ -13,10 +14,10 @@ class CalendarConstr:
                 'Style': 'style', 'Name': 'name'}
 
 
-EventCollections.EventCategories['CalendarEvent'] = ('wx.calendar.EVT_CALENDAR',
-                                                     'wx.calendar.EVT_CALENDAR_SEL_CHANGED',
-                                                     'wx.calendar.EVT_CALENDAR_DAY, EVT_CALENDAR_MONTH',
-                                                     'wx.calendar.EVT_CALENDAR_YEAR', 'wx.calendar.EVT_CALENDAR_WEEKDAY_CLICKED')
+EventCollections.EventCategories['CalendarEvent'] = ('wx.lib.calendar.EVT_CALENDAR',
+                                                     'wx.lib.calendar.EVT_CALENDAR_SEL_CHANGED',
+                                                     'wx.lib.calendar.EVT_CALENDAR_DAY, EVT_CALENDAR_MONTH',
+                                                     'wx.lib.calendar.EVT_CALENDAR_YEAR', 'wx.lib.calendar.EVT_CALENDAR_WEEKDAY_CLICKED')
 EventCollections.commandCategories.append('CalendarEvent')
 
 
@@ -24,9 +25,9 @@ class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         BaseCompanions.WindowDTC.__init__(
             self, name, designer, parent, ctrlClass)
-        self.windowStyles = ['wx.calendar.CAL_SUNDAY_FIRST', 'wx.calendar.CAL_MONDAY_FIRST',
-                             'wx.calendar.CAL_SHOW_HOLIDAYS', 'wx.calendar.CAL_NO_YEAR_CHANGE',
-                             'wx.calendar.CAL_NO_MONTH_CHANGE'] + self.windowStyles
+        self.windowStyles = ['wx.lib.calendar.CAL_SUNDAY_FIRST', 'wx.lib.calendar.CAL_MONDAY_FIRST',
+                             'wx.lib.calendar.CAL_SHOW_HOLIDAYS', 'wx.lib.calendar.CAL_NO_YEAR_CHANGE',
+                             'wx.lib.calendar.CAL_NO_MONTH_CHANGE'] + self.windowStyles
 
         self.compositeCtrl = True
 
@@ -42,7 +43,7 @@ class CalendarDTC(CalendarConstr, BaseCompanions.WindowDTC):
         return BaseCompanions.WindowDTC.events(self) + ['CalendarEvent']
 
     def writeImports(self):
-        return 'import wx.calendar'
+        return 'import wx.lib.calendar'
 
 
 class DateTimePropEditor(PropertyEditors.BITPropEditor):
@@ -99,11 +100,11 @@ class DatePickerCtrlDTC(BaseCompanions.WindowDTC):
 # -------------------------------------------------------------------------------
 
 
-Plugins.registerComponent('BasicControls', wx.calendar.CalendarCtrl,
+Plugins.registerComponent('BasicControls', CalendarCtrl,
                           'wx.calendar.CalendarCtrl', CalendarDTC)
 try:
     Plugins.registerComponent('BasicControls',
-                              wx.DatePickerCtrl, 'wx.DatePickerCtrl', DatePickerCtrlDTC)
+                              DatePickerCtrl, 'wx.DatePickerCtrl', DatePickerCtrlDTC)
 except AttributeError:
     pass
 

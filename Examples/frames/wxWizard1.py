@@ -1,7 +1,8 @@
 # Boa:Wizard:wxWizard1
 
 import wx
-import wx.wizard
+# import wx.wizard
+from wx.adv import WizardPageSimple, Wizard, EVT_WIZARD_PAGE_CHANGING, EVT_WIZARD_PAGE_CHANGED
 
 
 def create(parent):
@@ -11,10 +12,10 @@ def create(parent):
 def run(parent):
     wizard = create(parent)
 
-    import wxPyWizardPage1
-    import wxPyWizardPage2
-    import wxWizardPageSimple1
-    import wxWizardPageSimple2
+    from . import wxPyWizardPage1
+    from . import wxPyWizardPage2
+    from . import wxWizardPageSimple1
+    from . import wxWizardPageSimple2
 
     pwpage1 = wxPyWizardPage1.wxPyWizardPage1(wizard)
     pwpage2 = wxPyWizardPage2.wxPyWizardPage2(wizard)
@@ -25,7 +26,7 @@ def run(parent):
     pwpage2._next = wspage1
     pwpage2._prev = pwpage1
     wspage1.SetPrev(pwpage2)
-    wx.wizard.WizardPageSimple.Chain(wspage1, wspage2)
+    WizardPageSimple.Chain(wspage1, wspage2)
 
     return wizard.RunWizard(pwpage1)
 
@@ -34,15 +35,15 @@ def run(parent):
  ] = [wx.NewId() for _init_ctrls in range(3)]
 
 
-class wxWizard1(wx.wizard.Wizard):
+class wxWizard1(Wizard):
     def _init_ctrls(self, prnt):
         # generated method, don't edit
-        wx.wizard.Wizard.__init__(self, bitmap=wx.Bitmap('WizImage.png',
+        Wizard.__init__(self, bitmap=wx.Bitmap('WizImage.png',
                                                          wx.BITMAP_TYPE_PNG), id=wxID_WXWIZARD1, parent=prnt,
                                   pos=wx.Point(333, 205), title='wxWizard Example')
-        self.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGING,
+        self.Bind(EVT_WIZARD_PAGE_CHANGING,
                   self.OnWxwizard1WizardPageChanging, id=wxID_WXWIZARD1)
-        self.Bind(wx.wizard.EVT_WIZARD_PAGE_CHANGED,
+        self.Bind(EVT_WIZARD_PAGE_CHANGED,
                   self.OnWxwizard1WizardPageChanged, id=wxID_WXWIZARD1)
 
         self.button1 = wx.Button(id=wxID_WXWIZARD1BUTTON1, label='debug',
@@ -52,8 +53,11 @@ class wxWizard1(wx.wizard.Wizard):
                           id=wxID_WXWIZARD1BUTTON1)
 
         self.staticText1 = wx.StaticText(id=wxID_WXWIZARD1STATICTEXT1,
-                                         label='(status)', name='staticText1', parent=self, pos=wx.Point(8,
-                                                                                                         293), size=wx.Size(34, 13), style=0)
+                                         label='(status)',
+                                         name='staticText1',
+                                         parent=self,
+                                         pos=wx.Point(8, 293),
+                                         size=wx.Size(34, 13), style=0)
 
     def __init__(self, parent):
         self._init_ctrls(parent)

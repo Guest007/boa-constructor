@@ -10,7 +10,7 @@
 # Licence:     GPL
 # -----------------------------------------------------------------------------
 import wx
-import wx.animate
+# import wx.animate
 import wx.html
 import wx.stc
 
@@ -306,7 +306,7 @@ class StaticBoxDTC(LabeledNonInputConstr, WindowDTC):
         return props
 
 
-class StaticLineDTC(Constructors.WindowConstr, WindowDTC):
+class StaticLineDTC(WindowDTC):  # Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.windowStyles = [
@@ -442,7 +442,7 @@ stcWrapModeNames = {'wx.stc.STC_WRAP_NONE': wx.stc.STC_WRAP_NONE,
                     'wx.stc.STC_WRAP_WORD': wx.stc.STC_WRAP_WORD}
 
 
-class StyledTextCtrlDTC(Constructors.WindowConstr, WindowDTC):
+class StyledTextCtrlDTC(WindowDTC):  # Constructors.WindowConstr, WindowDTC):
     def __init__(self, name, designer, parent, ctrlClass):
         WindowDTC.__init__(self, name, designer, parent, ctrlClass)
         self.editors.update(
@@ -551,7 +551,7 @@ class GIFAnimationCtrlDTC(WindowDTC):
 
     def writeImports(self):
         return '\n'.join((WindowDTC.writeImports(self),
-                          'import wx.animate'))
+                          'import wx.adv.Animation'))
 
 
 class MediaCtrlDTC(WindowDTC):
@@ -760,8 +760,8 @@ Plugins.registerComponents('BasicControls',
                            (wx.html.HtmlWindow, 'wx.html.HtmlWindow', HtmlWindowDTC),
                            (wx.stc.StyledTextCtrl,
                             'wx.stc.StyledTextCtrl', StyledTextCtrlDTC),
-                           (wx.animate.GIFAnimationCtrl,
-                               'wx.animate.GIFAnimationCtrl',
+                           (wx.adv.AnimationCtrl,
+                               'wx.adv.AnimationCtrl',
                                GIFAnimationCtrlDTC),
                            )
 

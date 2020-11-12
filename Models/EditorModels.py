@@ -19,7 +19,7 @@ import sys
 import tempfile
 from io import StringIO
 
-import EditorHelper
+from . import EditorHelper
 import wx
 
 import Preferences

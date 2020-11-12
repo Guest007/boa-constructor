@@ -14,7 +14,7 @@ import keyword
 import os
 import re
 import string
-from types import IntType, SliceType, StringType
+# from types import IntType, SliceType, StringType
 
 import wx
 import wx.stc
@@ -48,7 +48,7 @@ def ver_tot(ma, mi, re):
     return ma * 10000 + mi * 100 + re
 
 
-word_delim = string.letters + string.digits + '_'
+word_delim = string.ascii_letters + string.digits + '_'
 object_delim = word_delim + '.'
 
 # ---Utility mixins-------------------------------------------------------
@@ -897,13 +897,13 @@ class STCLinesList:
         self.__pos = self.GetCurrentPos()
 
     def __getitem__(self, key):
-        if isinstance(key, IntType):
+        if isinstance(key, int):
             # XXX last char is garbage
             if key < len(self):
                 return self.__STC.GetLine(key)
             else:
                 raise IndexError
-        elif isinstance(key, SliceType):
+        elif isinstance(key, slice):
             res = []
             for idx in range(key.start, key.stop):
                 res.append(self[idx])
@@ -913,8 +913,8 @@ class STCLinesList:
 
     def __setitem__(self, key, value):
         stc = self.__STC
-        if isinstance(key, IntType):
-            assert isinstance(value, StringType)
+        if isinstance(key, int):
+            assert isinstance(value, str)
             if key < len(self):
                 stc.SetSelection(
                     stc.PositionFromLine(key),
@@ -922,7 +922,7 @@ class STCLinesList:
                 stc.ReplaceSelection(value)
             else:
                 raise IndexError
-        elif isinstance(key, SliceType):
+        elif isinstance(key, slice):
             lines = eols[stc.GetEOLMode()].join(value)
             stc.SetSelection(stc.PositionFromLine(key.start),
                              stc.GetLineEndPosition(key.stop))
@@ -932,12 +932,12 @@ class STCLinesList:
 
     def __delitem__(self, key):
         stc = self.__STC
-        if isinstance(key, IntType):
+        if isinstance(key, int):
             stc.SetSelection(
                 stc.PositionFromLine(key),
                 stc.GetLineEndPosition(key) + 1)
             stc.ReplaceSelection('')
-        elif isinstance(key, SliceType):
+        elif isinstance(key, slice):
             stc.SetSelection(stc.PositionFromLine(key.start),
                              stc.GetLineEndPosition(key.stop) + 1)
             stc.ReplaceSelection('')

@@ -13,7 +13,10 @@
 """
 import wx
 
-from . import flagart
+# from . import flagart
+from wx._core import wxAssertionError
+from wx.lib.art import flagart
+from wx.lib.langlistctrl import GetLanguageFlag
 
 langIdCountryMap = {
     # generated from wx.Locale info and locale.windows_locale
@@ -273,7 +276,7 @@ def CreateLanguagesResourceLists(filter=LC_AVAILABLE, only=()):
                (filter == LC_AVAILABLE and wx.Locale.IsAvailable(wxLI)) or \
                (filter == LC_ALL):
                 wxLangIds.append(wxLI)
-        except wx.PyAssertionError:
+        except wxAssertionError:
             # invalid language assertions
             pass
         except AttributeError:
@@ -303,14 +306,14 @@ def CreateLanguagesResourceLists(filter=LC_AVAILABLE, only=()):
     return icons, names, langs
 
 
-def GetLanguageFlag(lang):
-    """ Returns a bitmap of the flag for the country of the language id """
-    langIdNameMap = BuildLanguageCountryMapping()
-    if lang in langIdNameMap:
-        cnt = langIdNameMap[lang].split('_')[1]
-        if cnt in flagart.catalog:
-            return flagart.catalog[cnt].getBitmap()
-    return flagart.catalog['BLANK'].getBitmap()
+# def GetLanguageFlag(lang):
+#     """ Returns a bitmap of the flag for the country of the language id """
+#     langIdNameMap = BuildLanguageCountryMapping()
+#     if lang in langIdNameMap:
+#         cnt = langIdNameMap[lang].split('_')[1]
+#         if cnt in flagart.catalog:
+#             return flagart.catalog[cnt].getBitmap()
+#     return flagart.catalog['BLANK'].getBitmap()
 
 
 def BuildLanguageCountryMapping():
@@ -382,8 +385,8 @@ class LanguageListCtrl(wx.ListCtrl):
         idx = self.GetFirstSelected()
         if idx != -1:
             return self.langs[idx]
-        else:
-            None
+        # else:
+        #     None
 
     def SetLanguage(self, lang):
         """ Selects the given language ids item in the control """
