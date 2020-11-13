@@ -727,7 +727,7 @@ class BitmapPropEditMix:
             else:
                 patchExplorerFileTypes(True)
                 dlg = wxFileDialog(self.parent, _('Choose an image'), dir, name,
-                                   'ImageFiles', wx.OPEN)
+                                   'ImageFiles', wx.FD_OPEN)
                 try:
                     if dlg.ShowModal() != wx.ID_OK:
                         return '', '', ''

@@ -103,7 +103,7 @@ class Upgrade:
                               "wxPoint": "wx.Point",
                               "wxNewId": "wx.NewId",
                               "wxColour": "wx.Colour",
-                              "wxOPEN": "wx.OPEN",
+                              "wxOPEN": "wx.FD_OPEN",
                               "wxRED": "wx.RED",
                               "wxBLUE": "wx.BLUE",
                               "wxGREEN": "wx.GREEN",

@@ -439,7 +439,7 @@ class FileSysNode(ExplorerNodes.ExplorerNode):
             # We need to convert filesystem names
             # from local encoding to unicode
             if isinstance(self.resourcepath, str):
-                files = os.listdir(self.resourcepath.decode(
+                files = os.listdir(self.resourcepath.encode(
                     sys.getfilesystemencoding()))
             else:  # unicode or other
                 files = os.listdir(self.resourcepath)

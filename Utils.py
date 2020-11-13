@@ -25,6 +25,7 @@ import wx
 import wx.html
 
 import Preferences
+# from EditorUtils import EditorToolBar
 from Preferences import IS
 
 # Centralised i18n gettext compatible definition
@@ -66,8 +67,13 @@ def yesNoDialog(parent, title, question):
 
 def AddToolButtonBmpObject(frame, toolbar, thebitmap, hint, triggermeth,
                            theToggleBitmap=wx.NullBitmap):
+    from EditorUtils import EditorToolBar
     nId = wx.NewId()
-    toolbar.AddTool(nId, '', thebitmap, theToggleBitmap, shortHelp=hint)
+    if type(toolbar) == EditorToolBar:
+        toolbar.AddTool(nId, thebitmap, theToggleBitmap, shortHelpString=hint)
+    else:
+        toolbar.AddTool(nId, '', thebitmap, theToggleBitmap)  # , shortHelp=hint)
+
     frame.Bind(wx.EVT_TOOL, triggermeth, id=nId)
     return nId
 
@@ -169,7 +175,7 @@ def duplicateMenu(source):
         else:
             dest.Append(
                 menu.GetId(),
-                menu.GetText(),
+                menu.GetItemLabel(),
                 menu.GetHelp(),
                 menu.IsCheckable())
             mi = dest.FindItemById(menu.GetId())

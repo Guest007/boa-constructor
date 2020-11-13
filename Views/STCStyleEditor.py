@@ -1219,20 +1219,20 @@ def setEdgeColour(stc, style):
 def strToCol(strCol):
     assert len(strCol) == 7 and strCol[0] == '#', _(
         'Not a valid colour string: %s') % strCol
-    return wx.Colour(string.atoi('0x' + strCol[1:3], 16),
-                     string.atoi('0x' + strCol[3:5], 16),
-                     string.atoi('0x' + strCol[5:7], 16))
+    return wx.Colour(int('0x' + strCol[1:3], 16),
+                     int('0x' + strCol[3:5], 16),
+                     int('0x' + strCol[5:7], 16))
 
 
 def colToStr(col):
-    return '#%s%s%s' % (string.zfill(string.upper(hex(col.Red())[2:]), 2),
-                        string.zfill(string.upper(hex(col.Green())[2:]), 2),
-                        string.zfill(string.upper(hex(col.Blue())[2:]), 2))
+    return '#%s%s%s' % (str.zfill(str.upper(hex(col.Red())[2:]), 2),
+                        str.zfill(str.upper(hex(col.Green())[2:]), 2),
+                        str.zfill(str.upper(hex(col.Blue())[2:]), 2))
 
 
 def writeProp(num, style, lang):
     if num >= 0:
-        return 'style.%s.%s=' % (lang, string.zfill(repr(num), 3)) + style
+        return 'style.%s.%s=' % (lang, str.zfill(repr(num), 3)) + style
     else:
         return 'setting.%s.%d=' % (lang, num) + style
 

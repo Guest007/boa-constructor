@@ -208,7 +208,7 @@ class Wx25CodeUpgradeDlg(wx.Dialog):
             self.defaultDir,
             "",
             "*.py",
-            wx.OPEN)
+            wx.FD_OPEN)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()

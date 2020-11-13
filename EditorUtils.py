@@ -22,8 +22,15 @@ class MyToolBar(wx.ToolBar):
 
     def AddTool(self, id, bitmap, toggleBitmap=wx.NullBitmap,
                 shortHelpString='', isToggle=False):
-        wx.ToolBar.AddTool(self, id, bitmap, toggleBitmap, isToggle=isToggle,
-                           shortHelpString=shortHelpString)
+        super(MyToolBar, self).AddTool(
+            toolId=id,
+            label='',
+            bitmap=bitmap,
+            bmpDisabled=toggleBitmap,
+            shortHelp=shortHelpString
+        )
+        # self.parent.AddTool(self, id, '', bitmap, toggleBitmap,  # isToggle=isToggle,
+        #                    shortHelp=shortHelpString)
 
         self.toolLst.append(id)
         self.toolCount = self.toolCount + 1

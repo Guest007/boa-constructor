@@ -101,7 +101,7 @@ class Frame1(wx.Frame):
         self.FileName = None
 
     def OnMenuFileOpenMenu(self, event):
-        dlg = wx.FileDialog(self, "Choose a file", ".", "", "*.*", wx.OPEN)
+        dlg = wx.FileDialog(self, "Choose a file", ".", "", "*.*", wx.FD_OPEN)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()

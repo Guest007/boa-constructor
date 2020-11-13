@@ -241,7 +241,7 @@ class ExplorerStore:
 
         # Create clipboards for all registered nodes
         self.clipboards = {'global': ExplorerNodes.GlobalClipper()}
-        for Clss, info in list(ExplorerNodes.explorerNodeReg.items()):
+        for Clss, info in ExplorerNodes.explorerNodeReg.items():
             Clip = info['clipboard']
             if isinstance(Clip, type):
                 self.clipboards[Clss.protocol] = Clip(
@@ -326,7 +326,7 @@ class ExplorerStore:
                             'is not rectifiable,\nconsider removing the transport under '
                             'Preferences->Plug-ins->Transports. Click "Details"'))
 
-    def initInstalledControllers(self, editor, list):
+    def initInstalledControllers(self, editor, _list):
         """ Creates controllers for built-in, plugged-in and installed nodes
             in the order specified by installedModules """
 
@@ -334,13 +334,13 @@ class ExplorerStore:
         links = []
         for instMod in ['Explorers.ExplorerNodes', 'PaletteMapping'] + \
                 ExplorerNodes.installedModules:
-            for Clss, info in list(ExplorerNodes.explorerNodeReg.items()):
+            for Clss, info in ExplorerNodes.explorerNodeReg.items():
                 if Clss.__module__ == instMod and info['controller']:
                     Ctrlr = info['controller']
                     if isinstance(Ctrlr, type('')):
                         links.append((Clss.protocol, Ctrlr))
                     else:
-                        controllers[Clss.protocol] = Ctrlr(editor, list,
+                        controllers[Clss.protocol] = Ctrlr(editor, _list,
                                                            editor.inspector, controllers)
 
         for protocol, link in links:

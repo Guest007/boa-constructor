@@ -116,7 +116,7 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
                                                       True, True, False))
 
     def __init__(self, parent, message=_('Choose a file'), defaultDir='.',
-                 defaultFile='', wildcard='', style=wx.OPEN, pos=wx.DefaultPosition):
+                 defaultFile='', wildcard='', style=wx.FD_OPEN, pos=wx.DefaultPosition):
         self.htmlBackCol = wx.Colour(192, 192, 192)
         self.htmlBackCol = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
 
@@ -614,10 +614,10 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
     def SetStyle(self, style):
         title = _('File Dialog')
         btn = _('OK')
-        if style & wx.OPEN:
+        if style & wx.FD_OPEN:
             title = _('Open')
             btn = openStr
-        if style & wx.SAVE:
+        if style & wx.FD_SAVE:
             title = _('Save As')
             btn = saveStr
 
