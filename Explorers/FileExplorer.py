@@ -395,7 +395,7 @@ class FileSysNode(ExplorerNodes.ExplorerNode):
 
     def createChildNode(self, file, filename=''):
         if not filename:
-            filename = os.path.join(self.resourcepath, file)
+            filename = os.path.join(self.resourcepath, str(file))
 
         ext = os.path.splitext(filename)[1].lower()
         exts, extSubTypes = self.getFilterExts()

@@ -226,7 +226,7 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
 
         xtrdir = ''
 
-        mainSegs = string.split(dir, '://')
+        mainSegs = str.split(dir, '://')
         if len(mainSegs) == 1:
             prot = 'file'
             dir = mainSegs[0]
@@ -273,10 +273,10 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
             filepath2.append(file)
             textpathlst.append(file)
 
-            htmlfilepath = string.join(filepath, '<b>%s</b>' % os.sep)
+            htmlfilepath = f'{filepath}<b>{os.sep}</b>'  # string.join(filepath, '<b>%s</b>' % os.sep)
             if segs2:
-                htmlfilepath = htmlfilepath + '<b>://</b>' + \
-                    string.join(filepath2, '<b>/</b>')
+                # htmlfilepath = htmlfilepath + '<b>://</b>' + string.join(filepath2, '<b>/</b>')
+                htmlfilepath = f'{htmlfilepath}<b>://</b>{filepath2}<b>/</b>'
         else:
             url = '%s://' % prot
             for seg in segs[:-1]:
@@ -289,11 +289,12 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
             filepath.append(file)
             textpathlst.append(file)
 
-            htmlfilepath = string.join(
-                filepath, '<b>%s</b>' %
-                self.lcFiles.node.pathSep)
+            htmlfilepath = f'{filepath}<b>{self.lcFiles.node.pathSep}</b>'
+            # string.join(
+            #     filepath, '<b>%s</b>' %
+            #     self.lcFiles.node.pathSep)
 
-        textfilepath = string.join(textpathlst, os.sep)
+        textfilepath = f'{textpathlst}{os.sep}'  # string.join(textpathlst, os.sep)
 
         self.textPath = textPath % (prot, textfilepath)
 
