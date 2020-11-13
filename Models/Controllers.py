@@ -294,12 +294,11 @@ class BitmapFileController(UndockedController):
     AdditionalViews = []
 
     def display(self, model):
-        pass
-        # from ZopeLib import ImageViewer
-        # ImageViewer.create(
-        #     self.editor).showImage(
-        #     model.filename,
-        #     model.transport)
+        from ZopeLib import ImageViewer
+        ImageViewer.create(
+            self.editor).showImage(
+            model.filename,
+            model.transport)
 
 # XXX move to a new module PythonComControllers
 

@@ -133,7 +133,7 @@ if Preferences.pluginPaths:
 palette = PaletteStore.palette
 newPalette = PaletteStore.newPalette
 dialogPalette = PaletteStore.dialogPalette
-zopePalette = PaletteStore.zopePalette
+# zopePalette = PaletteStore.zopePalette
 helperClasses = PaletteStore.helperClasses
 compInfo = PaletteStore.compInfo
 

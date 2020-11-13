@@ -400,8 +400,7 @@ class InspectorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
     def updateToolBarState(self):
         canAddDel = self.selCmp is not None and \
-            hasattr(self.selCmp, 'propItems') and \
-            hasattr(self.selCmp, 'updateZopeProps')
+            hasattr(self.selCmp, 'propItems')
         self.toolBar.EnableTool(self.wxID_ADDITEM, canAddDel)
         self.toolBar.EnableTool(self.wxID_DELITEM, canAddDel)
 
@@ -930,12 +929,12 @@ class EventNameValue(NameValue):
                 self.updateDisplayValue()
 
 
-class ZopePropNameValue(NameValue):
-    """ Name value for properties, usually Get/Set methods, but can also be
-        routed to Companion methods """
-
-    def initFromComponent(self):
-        pass
+# class ZopePropNameValue(NameValue):
+#     """ Name value for properties, usually Get/Set methods, but can also be
+#         routed to Companion methods """
+#
+#     def initFromComponent(self):
+#         pass
 
 
 wxID_EVTCATS = wx.NewId()

@@ -186,20 +186,20 @@ class FTPItemNode(ExplorerNodes.ExplorerNode):
 
 class FTPConnectionNode(FTPItemNode):
     def __init__(self, name, properties, respath, clipboard, parent):
-        # from ZopeLib import ZopeFTP
-        #
-        # ftpConn = ZopeFTP.ZopeFTP()
-        # if respath and respath[-1] == '/':
-        #     ftpObj = ftpConn.folder_item(os.path.basename(respath),
-        #                                  os.path.dirname(respath))
-        #     isFolder = True
-        # else:
-        #     ftpObj = ftpConn.add_doc(os.path.basename(respath),
-        #                              os.path.dirname(respath))
-        #     isFolder = False
-        #
-        # FTPItemNode.__init__(self, '', properties, ftpObj.path, clipboard,
-        #                      isFolder, EditorHelper.imgNetDrive, parent, ftpConn, ftpObj, self)
+        from ZopeLib import ZopeFTP
+
+        ftpConn = ZopeFTP.ZopeFTP()
+        if respath and respath[-1] == '/':
+            ftpObj = ftpConn.folder_item(os.path.basename(respath),
+                                         os.path.dirname(respath))
+            isFolder = True
+        else:
+            ftpObj = ftpConn.add_doc(os.path.basename(respath),
+                                     os.path.dirname(respath))
+            isFolder = False
+
+        FTPItemNode.__init__(self, '', properties, ftpObj.path, clipboard,
+                             isFolder, EditorHelper.imgNetDrive, parent, ftpConn, ftpObj, self)
         self.connected = False
         self.treename = name
         self.category = name

@@ -3,13 +3,13 @@ from Utils import _
 
 paletteLists = {'New': [],
                 'Dialogs': [],
-                'Zope': [],
+                # 'Zope': [],
                 }
 
 newPalette = [_('New'), 'Editor/Tabs/New', paletteLists['New']]
 palette = []
 dialogPalette = [_('Dialogs'), 'Editor/Tabs/Dialogs', paletteLists['Dialogs']]
-zopePalette = [_('Zope'), 'Editor/Tabs/Zope', paletteLists['Zope']]
+# zopePalette = [_('Zope'), 'Editor/Tabs/Zope', paletteLists['Zope']]
 
 helperClasses = {}
 compInfo = {}

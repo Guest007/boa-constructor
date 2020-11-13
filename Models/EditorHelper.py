@@ -81,13 +81,13 @@ def addPluginImgs(imgPath):
 
 # Indexes for the imagelist
 (imgFolderUp, imgFolder, imgPathFolder, imgCVSFolder, imgSystemObj,
- imgSystemObjOrdered, imgSystemObjBroken, imgSystemObjPending, imgSystemObjDisabled,
- imgZopeConnection, imgBoaLogo, imgFSDrive, imgNetDrive, imgFolderBookmark,
+ imgSystemObjOrdered, imgSystemObjBroken, imgSystemObjPending, imgSystemObjDisabled, # imgZopeConnection,
+ imgBoaLogo, imgFSDrive, imgNetDrive, imgFolderBookmark,
  imgOpenEditorModels, imgPrefsFolder, imgPrefsSTCStyles, imgRecentFiles,
  imgShell, imgExplorer, imgHelpBook,
 
  imgTextModel, imgBitmapFileModel, imgUnknownFileModel, imgInternalFileModel,
- ) = imgIdxRange(25)
+ ) = imgIdxRange(24)
 
 # List of name, func tuples that will be installed under the Tools menu.
 editorToolsReg = []

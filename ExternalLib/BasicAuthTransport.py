@@ -12,7 +12,7 @@ class BasicAuthTransport(xmlrpclib.Transport):
         self.verbose = 0
 
     def request(self, host, handler, request_body, verbose=0):
-        h = http.client.HTTP(host)
+        h = http.client.HTTPConnection(host)
         h.putrequest("POST", handler)
         h.putheader("Host", host)
         h.putheader("User-Agent", self.user_agent)
@@ -22,21 +22,15 @@ class BasicAuthTransport(xmlrpclib.Transport):
             h.putheader(
                 "AUTHORIZATION",
                 "Basic %s" %
-                string.replace(
-                    encodestring(
-                        "%s:%s" %
-                        (self.username,
-                         self.password)),
-                    "\012",
-                    ""))
+                str.replace(str(encodestring(b"%s:%s" % (self.username, self.password))), "\012", ""))
         h.endheaders()
         if request_body:
             h.send(request_body)
 
-        errcode, errmsg, headers = h.getreply()
+        errcode, errmsg, headers = h.getresponse()  # h.getreply()
         # print 'getreply ok'
 
         if errcode != 200:
             raise xmlrpclib.ProtocolError(
                 host + handler, errcode, errmsg, headers)
-        return self.parse_response(h.getfile())
+        return self.parse_response(h.getresponse())  # getfile())

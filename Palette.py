@@ -249,8 +249,8 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
         cls, cmp = self.dialogPalettePage.widgets[event.GetId()][1:]
         self.editor.addNewDialog(cls, cmp)
 
-    def OnZopePaletteClick(self, event):
-        cls, cmp = self.zopePalettePage.widgets[event.GetId()][1:]
+    # def OnZopePaletteClick(self, event):
+    #     cls, cmp = self.zopePalettePage.widgets[event.GetId()][1:]
 
     def OnComposeClick(self, event):
         pass
@@ -534,14 +534,14 @@ class PalettePage(PanelPalettePage):
                 self.selection = None
 
 
-class ZopePalettePage(PalettePage):
-    def __init__(self, parent, name, bitmapPath, eventOwner, widgets,
-                 components, palette):
-        PalettePage.__init__(self, parent, name, bitmapPath, eventOwner,
-                             widgets, components, palette)
-
-    def getButtonBmp(self, name, wxClass):
-        return IS.load('%s%s.png' % (self.bitmapPath, name))
+# class ZopePalettePage(PalettePage):
+#     def __init__(self, parent, name, bitmapPath, eventOwner, widgets,
+#                  components, palette):
+#         PalettePage.__init__(self, parent, name, bitmapPath, eventOwner,
+#                              widgets, components, palette)
+#
+#     def getButtonBmp(self, name, wxClass):
+#         return IS.load('%s%s.png' % (self.bitmapPath, name))
 
 
 if __name__ == '__main__':

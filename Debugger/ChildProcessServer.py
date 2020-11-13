@@ -82,11 +82,7 @@ def main(args=None):
     # Create the debug server.
     if args is None:
         args = sys.argv[1:]
-    if args and '--zope' in args:
-        from .ZopeScriptDebugServer import ZopeScriptDebugServer
-        debug_server = ZopeScriptDebugServer()
-    else:
-        debug_server = DebugServer()
+    debug_server = DebugServer()
     connection = DebuggerConnection(debug_server)
     connection.allowEnvChanges()  # Allow changing of sys.path, etc.
 

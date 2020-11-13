@@ -65,10 +65,7 @@ def start(username, password, host='127.0.0.1', port=26200,
         raise RuntimeError('The debug server is already running')
 
     # Create the debug server.
-    if server_type == 'zope':
-        from .ZopeScriptDebugServer import ZopeScriptDebugServer
-        ds = ZopeScriptDebugServer()
-    elif server_type == 'basic':
+    if server_type == 'basic':
         ds = DebugServer()
     else:
         raise ValueError('Unknown debug server type: %s' % server_type)

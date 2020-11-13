@@ -547,25 +547,14 @@ class DebuggerFrame(wx.Frame, Utils.FrameRestorerMixin):
         from Explorers.ExplorerNodes import all_transports
 
         prot, category, filepath, filename = splitURI(filename)
-        if prot == 'zope':
-            node = getTransport(prot, category, filepath, all_transports)
-            if node:
-                props = node.properties
-                return 'zopedebug://%s:%s/%s/%s' % (props['host'],
-                                                    props['httpport'], filepath, node.metatype)
-            else:
-                raise Exception(_('No Zope connection for: %s') % filename)
-        elif prot == 'zopedebug':
-            raise Exception(_('"zopedebug" is a server filename protocol'))
-        else:
-            # if prot == 'file':
-            if self.serverClientPaths:
-                normFilepath = os.path.normcase(filepath)
-                for serverPath, clientPath in self.serverClientPaths:
-                    normClientPath = os.path.normcase(clientPath)
-                    if normFilepath.startswith(normClientPath):
-                        return serverPath + normFilepath[len(normClientPath):]
-            return filepath
+
+        if self.serverClientPaths:
+            normFilepath = os.path.normcase(filepath)
+            for serverPath, clientPath in self.serverClientPaths:
+                normClientPath = os.path.normcase(clientPath)
+                if normFilepath.startswith(normClientPath):
+                    return serverPath + normFilepath[len(normClientPath):]
+        return filepath
 
     def serverFNToClientFN(self, filename):
         """Converts a filename on the server to a filename on the client.

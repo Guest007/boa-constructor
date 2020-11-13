@@ -114,8 +114,8 @@ class EditorModel:
         views = self.views
         if 'Source' in views:
             return views['Source']
-        elif 'ZopeHTML' in views:
-            return views['ZopeHTML']
+        # elif 'ZopeHTML' in views:
+        #     return views['ZopeHTML']
         return None
 
 
