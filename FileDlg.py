@@ -375,7 +375,7 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
                               wx.OK | wx.ICON_EXCLAMATION | wx.CENTRE)
                 return
             self.updatePathLabel()
-            if self.style & wx.SAVE:
+            if self.style & wx.FD_SAVE:
                 btn = saveStr
             else:
                 btn = openStr
@@ -446,7 +446,7 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
 
                 self.lcFiles.refreshItems(self.modImages, catnode)
                 self.updatePathLabel()
-                if self.style & wx.SAVE:
+                if self.style & wx.FD_SAVE:
                     btn = saveStr
                 else:
                     btn = openStr
@@ -459,7 +459,7 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
 
         nameExistsInDir = self.lcFiles.hasItemNamed(self.GetFilename())
         if (node and not node.isFolderish()
-                or not node) and self.style & wx.OVERWRITE_PROMPT:
+                or not node) and self.style & wx.FD_OVERWRITE_PROMPT:
             if nameExistsInDir:
                 dlg = wx.MessageDialog(self, _('This file already exists.\n'
                                                'Do you want to overwrite the file?'), _('Overwrite file?'),
@@ -537,14 +537,14 @@ class wxBoaFileDialog(wx.Dialog, Utils.FrameRestorerMixin):
         node = self.lcFiles.getSelection()
         # deselect
         if not name:
-            if self.style & wx.SAVE:
+            if self.style & wx.FD_SAVE:
                 btn = saveStr
             else:
                 btn = openStr
         # file
         elif name != '..' and not node.isFolderish():
             self.SetFilename(name)
-            if self.style & wx.SAVE:
+            if self.style & wx.FD_SAVE:
                 btn = saveStr
             else:
                 btn = openStr

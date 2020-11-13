@@ -421,7 +421,7 @@ class FilepathConfPropEdit(ConfPropEdit):
             '.',
             '',
             'AllFiles',
-            wx.SAVE)
+            wx.FD_SAVE)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 self.editorCtrl.setValue(repr(dlg.GetFilePath()))

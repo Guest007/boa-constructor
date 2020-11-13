@@ -1094,7 +1094,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
 
         from FileDlg import wxFileDialog
         dlg = wxFileDialog(self, _('Save as...'), dir, name, filter,
-                           wx.SAVE | wx.OVERWRITE_PROMPT)
+                           wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         #dlg.dont_pop = dont_pop
         try:
             if dlg.ShowModal() == wx.ID_OK:

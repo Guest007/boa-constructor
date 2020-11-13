@@ -1282,7 +1282,7 @@ def identifySource(source):
         The logic is a copy paste from above func """
     for line in source:
         if line:
-            if line.startswith(codecs.BOM_UTF8):
+            if line.startswith(str(codecs.BOM_UTF8)):
                 line = line[len(codecs.BOM_UTF8):]
 
             if line[0] != '#':

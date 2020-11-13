@@ -247,7 +247,7 @@ class PyResourceImagesView(EditorViews.ListCtrlView):
         if self.selected != -1:
             name = self.imageSrcInfo[self.selected][0]
             dlg = wx.FileDialog(self, 'Save image', '.', name + '.png',
-                                ';'.join(['*%s' % e for e in extTypeMap]), wx.SAVE)
+                                ';'.join(['*%s' % e for e in extTypeMap]), wx.FD_SAVE)
             try:
                 if dlg.ShowModal() == wx.ID_OK:
                     path = dlg.GetPath()

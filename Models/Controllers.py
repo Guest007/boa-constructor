@@ -371,7 +371,7 @@ def identifyFile(filename, source=None, localfs=True):
                     if not line:
                         break
                     line = line.strip()
-                    if line.startswith(codecs.BOM_UTF8):
+                    if line.startswith(str(codecs.BOM_UTF8)):
                         line = line[len(codecs.BOM_UTF8):]
                     if line and lext in headerStartChar:
                         if line[0] != headerStartChar[lext]:

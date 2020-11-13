@@ -119,7 +119,7 @@ class Frame1(wx.Frame):
             self.textEditor.SaveFile(self.FileName)
 
     def OnMenuFileSaveasMenu(self, event):
-        dlg = wx.FileDialog(self, "Save file as", ".", "", "*.*", wx.SAVE)
+        dlg = wx.FileDialog(self, "Save file as", ".", "", "*.*", wx.FD_SAVE)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()

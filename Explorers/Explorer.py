@@ -550,7 +550,7 @@ class BaseExplorerList(wx.ListCtrl, Utils.ListCtrlSelectionManagerMix):
                 recentFiles.add(mod.filename)
 
     def OnItemSelect(self, event):
-        self.selected = event.m_itemIndex
+        self.selected = event.GetIndex()
         event.Skip()
 
     def OnItemDeselect(self, event):

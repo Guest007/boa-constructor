@@ -1040,7 +1040,7 @@ class EventsWindow(wx.SplitterWindow):
         self.SetSashPosition(Preferences.oiEventSelectionHeight)
 
     def OnCatClassSelect(self, event):
-        self.selCatClass = event.m_itemIndex
+        self.selCatClass = event.GetIndex()
         catClass = EventCollections.EventCategories[
             self.categoryClasses.GetItemText(self.selCatClass)]
         for catMac in catClass:
@@ -1052,7 +1052,7 @@ class EventsWindow(wx.SplitterWindow):
         self.categoryMacros.DeleteAllItems()
 
     def OnMacClassSelect(self, event):
-        self.selMacClass = event.m_itemIndex
+        self.selMacClass = event.GetIndex()
 
     def OnMacClassDeselect(self, event):
         self.selMacClass = -1

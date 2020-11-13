@@ -261,7 +261,7 @@ class DataView(wx.ListView, InspectableObjectView):
         idx = 0
         while idx < len(self.selection):
             name, ctrlIdx = self.selection[idx]
-            if ctrlIdx == event.m_itemIndex:
+            if ctrlIdx == event.GetIndex():
                 del self.selection[idx]
             else:
                 idx = idx + 1

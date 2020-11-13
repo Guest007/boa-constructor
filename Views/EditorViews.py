@@ -424,7 +424,7 @@ class HTMLDocView(HTMLView):
     def OnSaveHTML(self, event):
         from FileDlg import wxFileDialog
         dlg = wx.FileDialog(self, _('Save as...'), '.', '', '*.html',
-                            wx.SAVE | wx.OVERWRITE_PROMPT)
+                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         try:
             if dlg.ShowModal() == wx.ID_OK:
                 from Explorers.Explorer import openEx
@@ -741,7 +741,7 @@ class ListCtrlView(wx.ListView, EditorView, Utils.ListCtrlSelectionManagerMix):
         event.Skip()
 
     def OnItemSelect(self, event):
-        self.selected = event.m_itemIndex
+        self.selected = event.GetIndex()
 
     def OnItemDeselect(self, event):
         self.selected = -1
