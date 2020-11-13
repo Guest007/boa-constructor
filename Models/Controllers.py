@@ -252,6 +252,7 @@ class SourceController(PersistentController):
     AdditionalViews = [EditorViews.CVSConflictsView]
 
     def OnDiffFile(self, event, diffWithFilename=''):
+        filename = None
         model = self.getModel()
         if model:
             if self.checkUnsaved(model):
@@ -261,6 +262,7 @@ class SourceController(PersistentController):
             filename = model.assertLocalFile(filename)
 
     def OnPatchFile(self, event, patchFilename=''):
+        filename = None
         model = self.getModel()
         if model:
             if self.checkUnsaved(model):
@@ -292,11 +294,12 @@ class BitmapFileController(UndockedController):
     AdditionalViews = []
 
     def display(self, model):
-        from ZopeLib import ImageViewer
-        ImageViewer.create(
-            self.editor).showImage(
-            model.filename,
-            model.transport)
+        pass
+        # from ZopeLib import ImageViewer
+        # ImageViewer.create(
+        #     self.editor).showImage(
+        #     model.filename,
+        #     model.transport)
 
 # XXX move to a new module PythonComControllers
 

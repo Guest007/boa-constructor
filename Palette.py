@@ -205,17 +205,6 @@ class BoaFrame(wx.Frame, Utils.FrameRestorerMixin):
 # if mb: mb.Append(menu=self.dialogPalettePage.menu,
 # title=PaletteStore.dialogPalette[0])
 
-            # Zope page
-            if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
-                self.zopePalettePage = ZopePalettePage(self.palette,
-                                                       PaletteStore.zopePalette[0], 'Images/Palette/',
-                                                       self, self.widgetSet, self.componentSB, self)
-                self.zopePalettePage.addToggleBitmaps(
-                    PaletteStore.zopePalette[2], None, None)
-                self.palettePages.append(self.zopePalettePage)
-                if mb:
-                    mb.Append(menu=self.zopePalettePage.menu,
-                              title=PaletteStore.zopePalette[0])
         else:
             palettePage = None
 

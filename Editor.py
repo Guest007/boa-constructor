@@ -465,16 +465,7 @@ class EditorFrame(wx.Frame, Utils.FrameRestorerMixin):
             allImages[len(allImages)] = img
         for mod in list(EditorHelper.modelReg.values()):
             allImages[mod.imgIdx] = 'Images/Modules/' + mod.bitmap
-        # XXX move ZOAImages/Icons into EditorHelper.extraImages updated from
-        # # ZopeEditorModels
-        # if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
-        #     from ZopeLib import ZopeEditorModels
-        #     for metatype, filename in ZopeEditorModels.ZOAImages:
-        #         idx = ZopeEditorModels.ZOAIcons[metatype]
-        #         if idx in allImages and filename != allImages[idx]:
-        #             print(('ImgIdx clash:', idx, filename,
-        #                    'clashes with', allImages[idx]))
-        #         allImages[idx] = filename
+
         for imgIdx, name in EditorHelper.pluginImgs:
             allImages[imgIdx] = name
 

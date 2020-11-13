@@ -60,10 +60,6 @@ if Preferences.csWxPythonSupport:
     from Companions.DialogCompanions import *
     from Companions.UtilCompanions import *
 
-# # Zope requires spesific support
-# if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
-#     from ZopeLib.ZopeCompanions import *
-
 # -Controller imports which auto-registers themselves on the Palette------
 
 from Models import EditorHelper
@@ -96,9 +92,6 @@ if Preferences.csHtmlSupport:
     from Models import HTMLSupport
 if Preferences.csXmlSupport:
     from Models import XMLSupport
-
-# if Plugins.transportInstalled('ZopeLib.ZopeExplorer'):
-#     import ZopeLib.ZopeEditorModels
 
 if Utils.IsComEnabled():
     PaletteStore.newControllers['MakePy-Dialog'] = Controllers.MakePyController
