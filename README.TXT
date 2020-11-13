@@ -7,7 +7,7 @@ It is an IDE for Python development including visual wxPython frame
 design, object browsers, documentation generation, debugging,
 source control (CVS, SVN) and much more.
 The Boa IDE also integrates with other Python technologies like 
-Distutils, Zope, PyChecker, BicycleRepairMain.
+Distutils, PyChecker, BicycleRepairMain.
 
 If you are new to Boa and wxPython, work through the Getting Started Guide
 and Tutorial.
@@ -22,8 +22,8 @@ Licence:
 GPL
 
 Version:
-0.7.2 - Beta
-Requires wxPython 2.6 or higher, Python 2.5/2.6/2.7
+0.8.0 - Alpha (WIP)
+Requires wxPython 4.1 or higher, Python 3.8/3.9
 
 
 Copyright:
@@ -34,6 +34,8 @@ cwt@bashell.com
 Riaan Booysen 1999 - 2007
 riaan@e.co.za
 
+Guest007 2020
+trash4@yandex.ru
 
 Release history:
 

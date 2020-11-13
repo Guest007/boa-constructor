@@ -1,6 +1,10 @@
 Changes
 -------
 
+-- unreleased 0.8.0 --
+WIP migrate sources to Python 3 (3.9) and wxPython 4.1.0.0
+Just for fun
+
 -- 0.7.2 - beta (Release) --
 * Add changes made by Tinker Tonyo <tinker.tonyo@gmail.com>
   (https://github.com/tinkertonyo/boa-constructor)
